@@ -22,13 +22,12 @@ import (
 )
 
 const (
-	PID_PATH    = "/tmp/proxy.pid"
 	haproxyTmpl = `# managed by interlock
 global
-    {{ if .SyslogAddr }}log {{ .SyslogAddr }} local0
+    {{ if .Config.SyslogAddr }}log {{ .Config.SyslogAddr }} local0
     log-send-hostname{{ end }}
-    maxconn {{ .MaxConn }}
-    pidfile {{ .PidPath }}
+    maxconn {{ .Config.MaxConn }}
+    pidfile {{ .Config.PidPath }}
 
 defaults
     mode http
@@ -36,16 +35,18 @@ defaults
     option redispatch
     option httplog
     option dontlognull
-    timeout connect {{ .ConnectTimeout }}
-    timeout client {{ .ClientTimeout }}
-    timeout server {{ .ServerTimeout }}
+    timeout connect {{ .Config.ConnectTimeout }}
+    timeout client {{ .Config.ClientTimeout }}
+    timeout server {{ .Config.ServerTimeout }}
 
 frontend http-default
-    bind *:{{ .Port }}
+    bind *:{{ .Config.Port }}
+    {{ if .Config.StatsUser }}stats realm Stats
+    stats auth {{ .Config.StatsUser }}:{{ .Config.StatsPassword }}
     stats enable
-    stats uri /haproxy?stats
-    {{ range $host := .Hosts }}acl is_{{$host.Name}} hdr_end(host) -i {{$host.Domain}}
-    use_backend {{$host.Name}} if is_{{$host.Name}}
+    stats uri /haproxy?stats{{ end }}
+    {{ range $host := .Hosts }}acl is_{{ $host.Name }} hdr_end(host) -i {{ $host.Domain }}
+    use_backend {{ $host.Name }} if is_{{ $host.Name }}
     {{ end }}
 {{ range $host := .Hosts }}backend {{ $host.Name }}
     balance roundrobin
@@ -96,12 +97,12 @@ func (m *Manager) init() error {
 func (m *Manager) writeConfig(config *interlock.ProxyConfig) error {
 	m.mux.Lock()
 	defer m.mux.Unlock()
-	f, err := os.OpenFile(config.Path, os.O_WRONLY|os.O_TRUNC, 0664)
+	f, err := os.OpenFile(m.config.ProxyConfigPath, os.O_WRONLY|os.O_TRUNC, 0664)
 	if err != nil {
 		if !os.IsNotExist(err) {
 			return err
 		}
-		ff, fErr := os.Create(config.Path)
+		ff, fErr := os.Create(m.config.ProxyConfigPath)
 		defer ff.Close()
 		if fErr != nil {
 			return fErr
@@ -177,15 +178,8 @@ func (m *Manager) GenerateProxyConfig() (*interlock.ProxyConfig, error) {
 	}
 	// generate config
 	cfg := &interlock.ProxyConfig{
-		Path:           m.config.ProxyConfigPath,
-		PidPath:        PID_PATH,
-		SyslogAddr:     m.config.SyslogAddr,
-		MaxConn:        m.config.MaxConn,
-		Port:           m.config.Port,
-		Hosts:          hosts,
-		ConnectTimeout: m.config.ConnectTimeout,
-		ServerTimeout:  m.config.ServerTimeout,
-		ClientTimeout:  m.config.ClientTimeout,
+		Hosts:  hosts,
+		Config: m.config,
 	}
 	return cfg, nil
 }
@@ -202,7 +196,7 @@ func (m *Manager) UpdateConfig() error {
 }
 
 func (m *Manager) getProxyPid() (int, error) {
-	f, err := ioutil.ReadFile(PID_PATH)
+	f, err := ioutil.ReadFile(m.config.PidPath)
 	if err != nil {
 		return -1, err
 	}
@@ -217,7 +211,7 @@ func (m *Manager) getProxyPid() (int, error) {
 }
 
 func (m *Manager) Reload() error {
-	args := []string{"-D", "-f", m.config.ProxyConfigPath, "-p", PID_PATH, "-sf"}
+	args := []string{"-D", "-f", m.config.ProxyConfigPath, "-p", m.config.PidPath, "-sf"}
 	if m.proxyCmd != nil {
 		p, err := m.getProxyPid()
 		if err != nil {

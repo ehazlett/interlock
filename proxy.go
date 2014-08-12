@@ -11,14 +11,7 @@ type (
 	}
 	// this is the struct that is used for generation of the proxy config
 	ProxyConfig struct {
-		Hosts          []*Host
-		Path           string
-		PidPath        string
-		SyslogAddr     string
-		MaxConn        int
-		Port           int
-		ConnectTimeout int
-		ServerTimeout  int
-		ClientTimeout  int
+		Hosts  []*Host
+		Config *Config
 	}
 )

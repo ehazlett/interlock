@@ -4,6 +4,11 @@
     "server_timeout": 10000,
     "client_timeout": 10000,
     "max_conn": 2048,
+    "sysload_addr": "",
+    "proxy_config_path": "/tmp/proxy.conf",
+    "stats_user": "stats",
+    "stats_password": "password",
+    "pid_path": "/tmp/proxy.pid",
     "engines": [
         {
             "engine": {
