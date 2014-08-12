@@ -1,0 +1,21 @@
+{
+    "port": 8080,
+    "connect_timeout": 5000,
+    "server_timeout": 10000,
+    "client_timeout": 10000,
+    "max_conn": 2048,
+    "engines": [
+        {
+            "engine": {
+                "id": "local",
+                "addr": "http://10.0.1.10:4243",
+                "cpus": 1.0,
+                "memory": 1024,
+                "labels": ["local", "dev"]
+            },
+            "ssl_cert": "",
+            "ssl_key": "",
+            "ca_cert": ""
+        }
+    ]
+}
