@@ -42,3 +42,10 @@ Replace `1.2.3.4` in `addr` listed in the engines section with your IP for your 
 
 * You should then be able to access `http://<your-host-ip>/haproxy?stats` to see the proxy stats.
 * Add some CNAMEs or /etc/host entries for your IP.  Interlock uses the `hostname` in the container config to add backends to the proxy.
+
+# Optional Data
+There is also the ability to send configuration data.  This allows for custom specification of ports (by default interlock will use the first exposed port), DNS aliases (extra domain names that reference a backend) and the ability to "warm" each container before adding.  To do this, specify the options as a JSON payload in the environment variable `INTERLOCK_DATA`.  For example:
+
+`docker run -it -P -d -e INTERLOCK_DATA='{"alias_domains": ["foo.com", "example.com"], "port": 8080, "warm": true}' ehazlett/go-demo`
+
+This will create two alias domains `foo.com` and `example.com`, use the port that was allocated for the container port "8080" and make a GET request to the backend container before adding.

@@ -2,8 +2,10 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
@@ -127,7 +129,7 @@ func (m *Manager) writeConfig(config *interlock.ProxyConfig) error {
 	return nil
 }
 
-func (m *Manager) GenerateProxyConfig() (*interlock.ProxyConfig, error) {
+func (m *Manager) GenerateProxyConfig(isKillEvent bool) (*interlock.ProxyConfig, error) {
 	containers, err := m.cluster.ListContainers()
 	if err != nil {
 		return nil, err
@@ -139,6 +141,15 @@ func (m *Manager) GenerateProxyConfig() (*interlock.ProxyConfig, error) {
 			continue
 		}
 		cntId := cnt.ID[:12]
+		// load interlock data
+		env := cnt.Image.Environment
+		interlockData := &interlock.InterlockData{}
+		if key, ok := env["INTERLOCK_DATA"]; ok {
+			b := bytes.NewBufferString(key)
+			if err := json.NewDecoder(b).Decode(&interlockData); err != nil {
+				logger.Warnf("%s: unable to parse interlock data: %s", cntId, err)
+			}
+		}
 		hostname := cnt.Image.Hostname
 		domain := cnt.Image.Domainname
 		if hostname != domain && hostname != "" {
@@ -154,17 +165,31 @@ func (m *Manager) GenerateProxyConfig() (*interlock.ProxyConfig, error) {
 		if len(hostParts) != 1 {
 			host = hostParts[0]
 		}
-
 		if len(cnt.Ports) == 0 {
 			logger.Warnf("%s: no ports exposed", cntId)
 			continue
 		}
 		portDef := cnt.Ports[0]
 		addr := fmt.Sprintf("%s:%d", host, portDef.Port)
+		if interlockData.Port != 0 {
+			for _, p := range cnt.Ports {
+				if p.ContainerPort == interlockData.Port {
+					addr = fmt.Sprintf("%s:%d", host, p.Port)
+				}
+			}
+		}
 		up := &interlock.Upstream{
 			Addr: addr,
 		}
+		for _, alias := range interlockData.AliasDomains {
+			proxyUpstreams[alias] = append(proxyUpstreams[alias], up)
+		}
 		proxyUpstreams[domain] = append(proxyUpstreams[domain], up)
+		if !isKillEvent && interlockData.Warm {
+			logger.Infof("warming %s: %s", cntId, addr)
+			http.Get(fmt.Sprintf("http://%s", addr))
+		}
+
 	}
 	for k, v := range proxyUpstreams {
 		name := strings.Replace(k, ".", "_", -1)
@@ -184,8 +209,12 @@ func (m *Manager) GenerateProxyConfig() (*interlock.ProxyConfig, error) {
 	return cfg, nil
 }
 
-func (m *Manager) UpdateConfig() error {
-	cfg, err := m.GenerateProxyConfig()
+func (m *Manager) UpdateConfig(e *citadel.Event) error {
+	isKillEvent := false
+	if e != nil && e.Type == "kill" {
+		isKillEvent = true
+	}
+	cfg, err := m.GenerateProxyConfig(isKillEvent)
 	if err != nil {
 		return err
 	}
@@ -235,7 +264,7 @@ func (m *Manager) Reload() error {
 }
 
 func (m *Manager) Run() error {
-	if err := m.UpdateConfig(); err != nil {
+	if err := m.UpdateConfig(nil); err != nil {
 		return err
 	}
 	if err := m.cluster.Events(&EventHandler{Manager: m}); err != nil {
