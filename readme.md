@@ -38,7 +38,7 @@ Replace `1.2.3.4` in `addr` listed in the engines section with your IP for your 
 * Pull the Interlock image from the Docker Hub: `docker pull ehazlett/interlock`
 * Then start the interlock container:
 
-`docker run -p 80:8080 -d -v /tmp/interlock:/etc/interlock/controller.conf ehazlett/interlock -config /etc/interlock/controller.conf`
+`docker run -p 80:8080 -d -v /tmp/controller.conf:/etc/interlock/controller.conf ehazlett/interlock -config /etc/interlock/controller.conf`
 
 * You should then be able to access `http://<your-host-ip>/haproxy?stats` to see the proxy stats.
 * Add some CNAMEs or /etc/host entries for your IP.  Interlock uses the `hostname` in the container config to add backends to the proxy.
