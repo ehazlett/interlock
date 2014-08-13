@@ -48,6 +48,7 @@ frontend http-default
     stats auth {{ .Config.StatsUser }}:{{ .Config.StatsPassword }}{{ end }}
     stats enable
     stats uri /haproxy?stats
+    stats refresh 5s
     {{ range $host := .Hosts }}acl is_{{ $host.Name }} hdr_end(host) -i {{ $host.Domain }}
     use_backend {{ $host.Name }} if is_{{ $host.Name }}
     {{ end }}
