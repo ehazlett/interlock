@@ -15,7 +15,7 @@ type (
 func (l *EventHandler) Handle(e *citadel.Event) error {
 	logger.Infof("event: date=%s type=%s image=%s container=%s", e.Time.Format(time.RubyDate), e.Type, e.Container.Image.Name, e.Container.ID[:12])
 	switch e.Type {
-	case "start":
+	case "start", "restart":
 		l.handleUpdate(e)
 	case "kill":
 		// add delay to make sure container is removed
