@@ -182,6 +182,7 @@ func (m *Manager) GenerateProxyConfig(isKillEvent bool) (*interlock.ProxyConfig,
 			Addr: addr,
 		}
 		for _, alias := range interlockData.AliasDomains {
+			logger.Infof("adding alias %s for %s", alias, cntId)
 			proxyUpstreams[alias] = append(proxyUpstreams[alias], up)
 		}
 		proxyUpstreams[domain] = append(proxyUpstreams[domain], up)
