@@ -43,10 +43,11 @@ defaults
 
 frontend http-default
     bind *:{{ .Config.Port }}
+    monitor-uri /haproxy?monitor
     {{ if .Config.StatsUser }}stats realm Stats
-    stats auth {{ .Config.StatsUser }}:{{ .Config.StatsPassword }}
+    stats auth {{ .Config.StatsUser }}:{{ .Config.StatsPassword }}{{ end }}
     stats enable
-    stats uri /haproxy?stats{{ end }}
+    stats uri /haproxy?stats
     {{ range $host := .Hosts }}acl is_{{ $host.Name }} hdr_end(host) -i {{ $host.Domain }}
     use_backend {{ $host.Name }} if is_{{ $host.Name }}
     {{ end }}
