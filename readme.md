@@ -44,7 +44,16 @@ Replace `1.2.3.4` in `addr` listed in the engines section with your IP for your 
 * Add some CNAMEs or /etc/host entries for your IP.  Interlock uses the `hostname` in the container config to add backends to the proxy.
 
 # Optional Data
-There is also the ability to send configuration data.  This allows for custom specification of ports (by default interlock will use the first exposed port), DNS aliases (extra domain names that reference a backend) and the ability to "warm" each container before adding.  To do this, specify the options as a JSON payload in the environment variable `INTERLOCK_DATA`.  For example:
+There is also the ability to send configuration data.  This allows for customization of the backends.  To use this, specify the options as a JSON payload in the environment variable `INTERLOCK_DATA`.  For example:
+
+## Data Fields
+
+* `alias_domains`: specify a list of alias domains to add (`{"alias_domains": ["foo.com", "bar.com"]}`)
+* `port`: specify which container port to use for backend (`{"port": 8080}`)
+* `warm`: connect to the container before adding to the backend (`{"warm": true}`)
+* `check`: specify a custom check for the backend (`{"check": "httpchk GET /"}`)
+
+For example:
 
 `docker run -it -P -d -e INTERLOCK_DATA='{"alias_domains": ["foo.com", "example.com"], "port": 8080, "warm": true}' ehazlett/go-demo`
 

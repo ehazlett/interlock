@@ -4,6 +4,7 @@ type (
 	Host struct {
 		Name      string
 		Domain    string
+		Check     string
 		Upstreams []*Upstream
 	}
 	Upstream struct {

@@ -56,6 +56,7 @@ frontend http-default
     balance roundrobin
     option httpclose
     option forwardfor
+    {{ if $host.Check }}option {{ $host.Check }}{{ end }}
     {{ range $i,$up := $host.Upstreams }}server {{$host.Name}}_{{$i}} {{$up.Addr}} check
     {{ end }}
 {{ end }}`
@@ -138,6 +139,7 @@ func (m *Manager) GenerateProxyConfig(isKillEvent bool) (*interlock.ProxyConfig,
 	}
 	var hosts []*interlock.Host
 	proxyUpstreams := map[string][]*interlock.Upstream{}
+	hostChecks := map[string]string{}
 	for _, cnt := range containers {
 		if cnt.Image.Domainname == "" {
 			continue
@@ -156,6 +158,17 @@ func (m *Manager) GenerateProxyConfig(isKillEvent bool) (*interlock.ProxyConfig,
 		domain := cnt.Image.Domainname
 		if hostname != domain && hostname != "" {
 			domain = fmt.Sprintf("%s.%s", hostname, domain)
+		}
+		if interlockData.Check != "" {
+			if val, ok := hostChecks[domain]; ok {
+				// check existing host check for different values
+				if val != interlockData.Check {
+					logger.Warnf("conflicting check specified for %s", domain)
+				}
+			} else {
+				logger.Infof("using custom check for %s: %s", domain, interlockData.Check)
+				hostChecks[domain] = interlockData.Check
+			}
 		}
 		hostAddrUrl, err := url.Parse(cnt.Engine.Addr)
 		if err != nil {
@@ -200,6 +213,7 @@ func (m *Manager) GenerateProxyConfig(isKillEvent bool) (*interlock.ProxyConfig,
 			Name:      name,
 			Domain:    k,
 			Upstreams: v,
+			Check:     hostChecks[k],
 		}
 		logger.Infof("adding host name=%s domain=%s", host.Name, host.Domain)
 		hosts = append(hosts, host)
