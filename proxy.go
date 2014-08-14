@@ -9,7 +9,8 @@ type (
 		Upstreams      []*Upstream
 	}
 	Upstream struct {
-		Addr string
+		Addr          string
+		CheckInterval int
 	}
 	// this is the struct that is used for generation of the proxy config
 	ProxyConfig struct {

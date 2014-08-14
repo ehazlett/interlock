@@ -55,10 +55,9 @@ frontend http-default
 {{ range $host := .Hosts }}backend {{ $host.Name }}
     balance roundrobin
     option forwardfor
-    {{ range $option := $host.BackendOptions }}option {{ $option }}
-    {{ end }}
+    {{ range $option := $host.BackendOptions }}option {{ $option }}{{ end }}
     {{ if $host.Check }}option {{ $host.Check }}{{ end }}
-    {{ range $i,$up := $host.Upstreams }}server {{$host.Name}}_{{$i}} {{$up.Addr}} check
+    {{ range $i,$up := $host.Upstreams }}server {{ $host.Name }}_{{ $i }} {{ $up.Addr }} check {{ $up.CheckInterval }}
     {{ end }}
 {{ end }}`
 )
@@ -168,13 +167,18 @@ func (m *Manager) GenerateProxyConfig(isKillEvent bool) (*interlock.ProxyConfig,
 					logger.Warnf("conflicting check specified for %s", domain)
 				}
 			} else {
-				logger.Infof("using custom check for %s: %s", domain, interlockData.Check)
 				hostChecks[domain] = interlockData.Check
+				logger.Infof("using custom check for %s: %s", domain, interlockData.Check)
 			}
 		}
+		checkInterval := 5000
+		if interlockData.CheckInterval != 0 {
+			checkInterval = interlockData.CheckInterval
+			logger.Infof("using custom check interval for %s: %d", domain, checkInterval)
+		}
 		if len(interlockData.BackendOptions) > 0 {
-			logger.Infof("using backend options for %s: %s", domain, strings.Join(interlockData.BackendOptions, ","))
 			hostBackendOptions[domain] = interlockData.BackendOptions
+			logger.Infof("using backend options for %s: %s", domain, strings.Join(interlockData.BackendOptions, ","))
 		}
 		hostAddrUrl, err := url.Parse(cnt.Engine.Addr)
 		if err != nil {
@@ -200,7 +204,8 @@ func (m *Manager) GenerateProxyConfig(isKillEvent bool) (*interlock.ProxyConfig,
 			}
 		}
 		up := &interlock.Upstream{
-			Addr: addr,
+			Addr:          addr,
+			CheckInterval: checkInterval,
 		}
 		for _, alias := range interlockData.AliasDomains {
 			logger.Infof("adding alias %s for %s", alias, cntId)
