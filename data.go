@@ -7,6 +7,7 @@ type (
 		AliasDomains []string `json:"alias_domains,omitempty"`
 		Warm         bool     `json:"warm,omitempty"`
 		// these are custom vals for hosts
-		Check string `json:"check,omitempty"`
+		Check          string   `json:"check,omitempty"`
+		BackendOptions []string `json:"backend_options,omitempty"`
 	}
 )

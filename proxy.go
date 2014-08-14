@@ -2,10 +2,11 @@ package interlock
 
 type (
 	Host struct {
-		Name      string
-		Domain    string
-		Check     string
-		Upstreams []*Upstream
+		Name           string
+		Domain         string
+		Check          string
+		BackendOptions []string
+		Upstreams      []*Upstream
 	}
 	Upstream struct {
 		Addr string

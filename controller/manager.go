@@ -54,8 +54,9 @@ frontend http-default
     {{ end }}
 {{ range $host := .Hosts }}backend {{ $host.Name }}
     balance roundrobin
-    option httpclose
     option forwardfor
+    {{ range $option := $host.BackendOptions }}option {{ $option }}
+    {{ end }}
     {{ if $host.Check }}option {{ $host.Check }}{{ end }}
     {{ range $i,$up := $host.Upstreams }}server {{$host.Name}}_{{$i}} {{$up.Addr}} check
     {{ end }}
@@ -140,6 +141,7 @@ func (m *Manager) GenerateProxyConfig(isKillEvent bool) (*interlock.ProxyConfig,
 	var hosts []*interlock.Host
 	proxyUpstreams := map[string][]*interlock.Upstream{}
 	hostChecks := map[string]string{}
+	hostBackendOptions := map[string][]string{}
 	for _, cnt := range containers {
 		if cnt.Image.Domainname == "" {
 			continue
@@ -169,6 +171,10 @@ func (m *Manager) GenerateProxyConfig(isKillEvent bool) (*interlock.ProxyConfig,
 				logger.Infof("using custom check for %s: %s", domain, interlockData.Check)
 				hostChecks[domain] = interlockData.Check
 			}
+		}
+		if len(interlockData.BackendOptions) > 0 {
+			logger.Infof("using backend options for %s: %s", domain, strings.Join(interlockData.BackendOptions, ","))
+			hostBackendOptions[domain] = interlockData.BackendOptions
 		}
 		hostAddrUrl, err := url.Parse(cnt.Engine.Addr)
 		if err != nil {
@@ -210,10 +216,11 @@ func (m *Manager) GenerateProxyConfig(isKillEvent bool) (*interlock.ProxyConfig,
 	for k, v := range proxyUpstreams {
 		name := strings.Replace(k, ".", "_", -1)
 		host := &interlock.Host{
-			Name:      name,
-			Domain:    k,
-			Upstreams: v,
-			Check:     hostChecks[k],
+			Name:           name,
+			Domain:         k,
+			Upstreams:      v,
+			Check:          hostChecks[k],
+			BackendOptions: hostBackendOptions[k],
 		}
 		logger.Infof("adding host name=%s domain=%s", host.Name, host.Domain)
 		hosts = append(hosts, host)
@@ -266,15 +273,10 @@ func (m *Manager) Reload() error {
 		pid := strconv.Itoa(p)
 		args = append(args, pid)
 	}
-	//cmd := exec.Command("haproxy", "-f", m.config.ProxyConfigPath, "-p", "/var/run/haproxy.pid", pidKill)
 	cmd := exec.Command("haproxy", args...)
 	if err := cmd.Run(); err != nil {
 		return err
 	}
-	// kill old process
-	//if m.proxyCmd != nil {
-	//	syscall.Kill(m.proxyCmd.Process.Pid, syscall.SIGKILL)
-	//}
 	m.proxyCmd = cmd
 	logger.Info("reloaded proxy")
 	return nil
