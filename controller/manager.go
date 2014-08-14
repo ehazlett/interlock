@@ -55,7 +55,8 @@ frontend http-default
 {{ range $host := .Hosts }}backend {{ $host.Name }}
     balance roundrobin
     option forwardfor
-    {{ range $option := $host.BackendOptions }}option {{ $option }}{{ end }}
+    {{ range $option := $host.BackendOptions }}option {{ $option }}
+    {{ end }}
     {{ if $host.Check }}option {{ $host.Check }}{{ end }}
     {{ range $i,$up := $host.Upstreams }}server {{ $host.Name }}_{{ $i }} {{ $up.Addr }} check {{ $up.CheckInterval }}
     {{ end }}
