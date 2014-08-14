@@ -17,7 +17,7 @@ func (l *EventHandler) Handle(e *citadel.Event) error {
 	switch e.Type {
 	case "start", "restart":
 		l.handleUpdate(e)
-	case "kill":
+	case "stop", "kill":
 		// add delay to make sure container is removed
 		time.Sleep(250 * time.Millisecond)
 		l.handleUpdate(e)
