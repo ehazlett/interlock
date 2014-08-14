@@ -49,7 +49,7 @@ frontend http-default
     stats enable
     stats uri /haproxy?stats
     stats refresh 5s
-    {{ range $host := .Hosts }}acl is_{{ $host.Name }} hdr_dom(host) -i {{ $host.Domain }}
+    {{ range $host := .Hosts }}acl is_{{ $host.Name }} hdr_beg(host) {{ $host.Domain }}
     use_backend {{ $host.Name }} if is_{{ $host.Name }}
     {{ end }}
 {{ range $host := .Hosts }}backend {{ $host.Name }}
