@@ -53,7 +53,7 @@ frontend http-default
     use_backend {{ $host.Name }} if is_{{ $host.Name }}
     {{ end }}
 {{ range $host := .Hosts }}backend {{ $host.Name }}
-    http-response add-header X-Request-Start %[date]
+    http-response add-header X-Request-Start t=%[date]
     balance roundrobin
     option forwardfor
     {{ range $option := $host.BackendOptions }}option {{ $option }}
