@@ -44,7 +44,6 @@ defaults
 frontend http-default
     bind *:{{ .Config.Port }}
     monitor-uri /haproxy?monitor
-    http-request set-header X-Request-Start %[date]
     {{ if .Config.StatsUser }}stats realm Stats
     stats auth {{ .Config.StatsUser }}:{{ .Config.StatsPassword }}{{ end }}
     stats enable
@@ -54,6 +53,7 @@ frontend http-default
     use_backend {{ $host.Name }} if is_{{ $host.Name }}
     {{ end }}
 {{ range $host := .Hosts }}backend {{ $host.Name }}
+    http-response add-header X-Request-Start %[date]
     balance roundrobin
     option forwardfor
     {{ range $option := $host.BackendOptions }}option {{ $option }}
