@@ -1,6 +1,8 @@
 # Interlock
 Dynamic, event-driven HAProxy using [Citadel](https://github.com/citadel/citadel).  Interlock configures backends for HAProxy by listening to Docker events (start/stop, etc).
 
+Note: Interlock requires HAProxy 1.5+
+
 # Usage
 To get started, generate a config (save this as `/tmp/controller.conf`):
 

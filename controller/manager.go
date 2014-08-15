@@ -44,6 +44,7 @@ defaults
 frontend http-default
     bind *:{{ .Config.Port }}
     monitor-uri /haproxy?monitor
+    http-request set-header X-Request-Start %[date]
     {{ if .Config.StatsUser }}stats realm Stats
     stats auth {{ .Config.StatsUser }}:{{ .Config.StatsPassword }}{{ end }}
     stats enable
