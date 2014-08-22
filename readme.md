@@ -59,9 +59,9 @@ There is also the ability to send configuration data.  This allows for customiza
 
 For example:
 
-`docker run -it -P -d -e INTERLOCK_DATA='{"alias_domains": ["foo.com", "example.com"], "port": 8080, "warm": true}' ehazlett/go-demo`
+`docker run -it -P -d --hostname www.example.com -e INTERLOCK_DATA='{"alias_domains": ["foo.com"], "port": 8080, "warm": true}' ehazlett/go-demo`
 
-This will create two alias domains `foo.com` and `example.com`, use the port that was allocated for the container port "8080" and make a GET request to the backend container before adding.
+This will create a backend to access the container at "www.example.com" and an alias domain `foo.com`, use the port that was allocated for the container port "8080" and make a GET request to the backend container before adding.
 
 # Monitoring
 You can use `/haproxy?monitor` to check the status of HAProxy.
