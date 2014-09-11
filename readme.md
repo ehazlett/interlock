@@ -46,7 +46,7 @@ Replace `1.2.3.4` in `addr` listed in the engines section with your IP for your 
 * Add some CNAMEs or /etc/host entries for your IP.  Interlock uses the `hostname` in the container config to add backends to the proxy.
 
 # Optional Data
-There is also the ability to send configuration data.  This allows for customization of the backends.  To use this, specify the options as a JSON payload in the environment variable `INTERLOCK_DATA`.  For example:
+There is also the ability to send configuration data when running containers.  This allows for customization of the backend configuration in HAProxy.  To use this, specify the options as a JSON payload in the environment variable `INTERLOCK_DATA` when launching a container.  For example:
 
 ## Data Fields
 
