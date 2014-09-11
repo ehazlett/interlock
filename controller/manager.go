@@ -135,7 +135,7 @@ func (m *Manager) writeConfig(config *interlock.ProxyConfig) error {
 }
 
 func (m *Manager) GenerateProxyConfig(isKillEvent bool) (*interlock.ProxyConfig, error) {
-	containers, err := m.cluster.ListContainers()
+	containers, err := m.cluster.ListContainers(false)
 	if err != nil {
 		return nil, err
 	}
