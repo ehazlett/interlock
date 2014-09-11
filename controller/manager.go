@@ -21,6 +21,7 @@ import (
 	"github.com/citadel/citadel/cluster"
 	"github.com/citadel/citadel/scheduler"
 	"github.com/ehazlett/interlock"
+	"github.com/shipyard/shipyard/client"
 )
 
 const (
@@ -77,9 +78,6 @@ type (
 func NewManager(cfg *interlock.Config) (*Manager, error) {
 	engines := []*citadel.Engine{}
 	for _, e := range cfg.InterlockEngines {
-		if err := e.Engine.Connect(nil); err != nil {
-			return nil, err
-		}
 		engines = append(engines, e.Engine)
 	}
 	m := &Manager{
@@ -93,11 +91,38 @@ func NewManager(cfg *interlock.Config) (*Manager, error) {
 }
 
 func (m *Manager) init() error {
-	c, err := cluster.New(scheduler.NewResourceManager(), m.engines...)
+	var engines []*citadel.Engine
+	if m.config.ShipyardUrl != "" {
+		cfg := &client.ShipyardConfig{
+			Url:        m.config.ShipyardUrl,
+			ServiceKey: m.config.ShipyardServiceKey,
+		}
+		mgr := client.NewManager(cfg)
+		eng, err := mgr.Engines()
+		if err != nil {
+			return err
+		}
+		for _, e := range eng {
+			engines = append(engines, e.Engine)
+		}
+	} else {
+		engines = m.engines
+	}
+	for _, e := range engines {
+		if err := e.Connect(nil); err != nil {
+			return err
+		}
+		logger.Infof("loaded engine: %s", e.ID)
+	}
+	c, err := cluster.New(scheduler.NewResourceManager(), engines...)
 	if err != nil {
 		return err
 	}
 	m.cluster = c
+	// register handler
+	if err := m.cluster.Events(&EventHandler{Manager: m}); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -291,9 +316,6 @@ func (m *Manager) Reload() error {
 
 func (m *Manager) Run() error {
 	if err := m.UpdateConfig(nil); err != nil {
-		return err
-	}
-	if err := m.cluster.Events(&EventHandler{Manager: m}); err != nil {
 		return err
 	}
 	m.Reload()
