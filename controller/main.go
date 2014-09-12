@@ -12,6 +12,7 @@ import (
 var (
 	configPath         string
 	proxyConfigPath    string
+	proxyPidPath       string
 	proxyPort          int
 	syslogAddr         string
 	shipyardUrl        string
@@ -36,6 +37,7 @@ func init() {
 	flag.StringVar(&shipyardServiceKey, "shipyard-service-key", "", "Shipyard Service Key")
 	flag.StringVar(&configPath, "config", "", "path to config file")
 	flag.StringVar(&proxyConfigPath, "proxy-conf-path", "proxy.conf", "path to proxy file")
+	flag.StringVar(&proxyPidPath, "proxy-pid-path", "proxy.pid", "path to proxy pid file")
 	flag.StringVar(&syslogAddr, "syslog", "", "address to syslog (optional)")
 	flag.IntVar(&proxyPort, "proxy-port", 8080, "proxy listen port")
 	flag.Parse()
@@ -43,18 +45,15 @@ func init() {
 
 func main() {
 	config := &interlock.Config{}
+	config.ProxyConfigPath = proxyConfigPath
+	config.PidPath = proxyPidPath
+	config.Port = proxyPort
 	if shipyardUrl == "" {
 		cfg, err := loadConfig()
 		if err != nil {
 			logger.Fatalf("unable to load config: %s", err)
 		}
 		config = cfg
-	}
-	if proxyConfigPath != "" {
-		config.ProxyConfigPath = proxyConfigPath
-	}
-	if proxyPort != 0 {
-		config.Port = proxyPort
 	}
 	if syslogAddr != "" {
 		config.SyslogAddr = syslogAddr
