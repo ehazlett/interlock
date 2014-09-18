@@ -1,0 +1,20 @@
+{
+ "name": "interlock",
+ "image": "ehazlett/interlock",
+ "version": "0.1",
+ "author": "ehazlett",
+ "description": "Application Router and Load Balancer",
+ "url": "https://github.com/ehazlett/interlock",
+ "config": {
+  "cpus": 0.1,
+  "memory": 32,
+  "ports": [
+    {
+     "proto": "tcp",
+     "port": 80,
+     "container_port": 8080
+    }
+   ],
+  "deploy_per_engine": false
+ }
+}
