@@ -52,6 +52,10 @@ To start Interlock using the Shipyard API:
 
 `docker run -it -p 80:8080 -d ehazlett/interlock -shipyard-url <your-shipyard-url> -shipyard-service-key <your-shipyard-service-key>`
 
+To start Interlock using the Shipyard API in a local host only setup:
+
+`docker run -it -p 80:8080 -d -v /var/run/docker.sock:/docker.sock ehazlett/interlock -shipyard-url <your-shipyard-url> -shipyard-service-key <your-shipyard-service-key>`
+
 Interlock will query the Shipyard API for a list of engines and then automatically connect and start listening for events.
 
 # Optional Data
