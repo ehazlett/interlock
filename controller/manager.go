@@ -184,6 +184,12 @@ func (m *Manager) GenerateProxyConfig(isKillEvent bool) (*interlock.ProxyConfig,
 		}
 		hostname := cnt.Image.Hostname
 		domain := cnt.Image.Domainname
+		if interlockData.Hostname != "" {
+			hostname = interlockData.Hostname
+		}
+		if interlockData.Domain != "" {
+			domain = interlockData.Domain
+		}
 		if hostname != domain && hostname != "" {
 			domain = fmt.Sprintf("%s.%s", hostname, domain)
 		}
