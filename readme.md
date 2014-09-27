@@ -63,6 +63,8 @@ There is also the ability to send configuration data when running containers.  T
 
 ## Data Fields
 
+* `hostname`: override the container hostname -- this is the combined with the domain to create the endpoint
+* `domain`: override the container domain
 * `alias_domains`: specify a list of alias domains to add (`{"alias_domains": ["foo.com", "bar.com"]}`)
 * `port`: specify which container port to use for backend (`{"port": 8080}`)
 * `warm`: connect to the container before adding to the backend (`{"warm": true}`)
