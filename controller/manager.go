@@ -179,7 +179,6 @@ func (m *Manager) GenerateProxyConfig(isKillEvent bool) (*interlock.ProxyConfig,
 				logger.Warnf("%s: unable to parse interlock data: %s", cntId, err)
 			}
 		}
-		logger.Info(interlockData)
 		hostname := cnt.Image.Hostname
 		domain := cnt.Image.Domainname
 		if interlockData.Hostname != "" {
