@@ -17,6 +17,8 @@ var (
 	syslogAddr         string
 	shipyardUrl        string
 	shipyardServiceKey string
+	sslCert            string
+	sslPort            int
 	logger             = logrus.New()
 )
 
@@ -40,6 +42,8 @@ func init() {
 	flag.StringVar(&proxyPidPath, "proxy-pid-path", "proxy.pid", "path to proxy pid file")
 	flag.StringVar(&syslogAddr, "syslog", "", "address to syslog (optional)")
 	flag.IntVar(&proxyPort, "proxy-port", 8080, "proxy listen port")
+	flag.StringVar(&sslCert, "ssl-cert", "", "path to ssl cert (enables SSL)")
+	flag.IntVar(&sslPort, "ssl-port", 8443, "ssl listen port (must have cert above)")
 	flag.Parse()
 }
 
@@ -48,6 +52,7 @@ func main() {
 	config.ProxyConfigPath = proxyConfigPath
 	config.PidPath = proxyPidPath
 	config.Port = proxyPort
+	config.SSLPort = sslPort
 	if shipyardUrl == "" {
 		cfg, err := loadConfig()
 		if err != nil {
@@ -61,6 +66,9 @@ func main() {
 	if shipyardUrl != "" && shipyardServiceKey != "" {
 		config.ShipyardUrl = shipyardUrl
 		config.ShipyardServiceKey = shipyardServiceKey
+	}
+	if sslCert != "" {
+		config.SSLCert = sslCert
 	}
 	m, err := NewManager(config)
 	if err != nil {

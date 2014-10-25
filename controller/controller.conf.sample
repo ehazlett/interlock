@@ -9,6 +9,8 @@
     "stats_user": "stats",
     "stats_password": "password",
     "pid_path": "/tmp/proxy.pid",
+    "ssl_cert": "",
+    "ssl_port": 8443,
     "engines": [
         {
             "engine": {

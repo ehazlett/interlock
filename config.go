@@ -24,6 +24,8 @@ type (
 		StatsUser          string             `json:"stats_user,omitempty"`
 		StatsPassword      string             `json:"stats_password,omitempty"`
 		InterlockEngines   []*InterlockEngine `json:"engines,omitempty"`
+		SSLCert            string             `json:"ssl_cert,omitempty"`
+		SSLPort            int                `json:"ssl_port,omitempty"`
 		ShipyardUrl        string             `json:"shipyard_url,omitempty"`
 		ShipyardServiceKey string             `json:"shipyard_service_key,omitempty"`
 	}

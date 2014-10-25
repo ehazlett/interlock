@@ -44,6 +44,7 @@ defaults
 
 frontend http-default
     bind *:{{ .Config.Port }}
+    {{ if .Config.SSLCert }}bind *:{{ .Config.SSLPort }} ssl crt {{ .Config.SSLCert }}{{end}}
     monitor-uri /haproxy?monitor
     {{ if .Config.StatsUser }}stats realm Stats
     stats auth {{ .Config.StatsUser }}:{{ .Config.StatsPassword }}{{ end }}
