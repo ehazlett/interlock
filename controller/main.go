@@ -75,6 +75,9 @@ func main() {
 		logger.Fatalf("unable to init manager: %s", err)
 	}
 	logger.Infof("Interlock running proxy=:%d", m.config.Port)
+	if m.config.SSLCert != "" {
+		logger.Infof("SSL listener active=:%d", m.config.SSLPort)
+	}
 	if err := m.Run(); err != nil {
 		logger.Fatal(err)
 	}
