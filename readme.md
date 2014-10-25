@@ -8,6 +8,8 @@ To get started, generate a config (save this as `/tmp/controller.conf`):
 
 Replace `1.2.3.4` in `addr` listed in the engines section with your IP for your Docker host.  You must enable TCP in the Docker daemon (see the [Docker Docs](http://docs.docker.com/reference/commandline/cli/) for details).
 
+Note: To enable SSL, enter a valid path for the certificate.
+
 ```
 {
     "port": 8080,
@@ -20,11 +22,13 @@ Replace `1.2.3.4` in `addr` listed in the engines section with your IP for your 
     "stats_user": "stats",
     "stats_password": "stats",
     "pid_path": "/tmp/proxy.pid",
+    "ssl_cert": "/path/to/cert.pem",
+    "ssl_port": 8443,
     "engines": [
         {
             "engine": {
                 "id": "local",
-                "addr": "http://1.2.3.4:4243",
+                "addr": "http://1.2.3.4:2375",
                 "cpus": 1.0,
                 "memory": 1024,
                 "labels": []
@@ -41,6 +45,10 @@ Replace `1.2.3.4` in `addr` listed in the engines section with your IP for your 
 * Then start the interlock container:
 
 `docker run -p 80:8080 -d -v /tmp/controller.conf:/etc/interlock/controller.conf ehazlett/interlock -config /etc/interlock/controller.conf`
+
+If you want SSL support, enter a path to the cert (probably want a mounted volume) and then expose 443:
+
+`docker run -p 80:8080 -p 443:8443 -d -v /tmp/controller.conf:/etc/interlock/controller.conf -v /etc/ssl:/ssl ehazlett/interlock -config /etc/interlock/controller.conf`
 
 * You should then be able to access `http://<your-host-ip>/haproxy?stats` to see the proxy stats.
 * Add some CNAMEs or /etc/host entries for your IP.  Interlock uses the `hostname` in the container config to add backends to the proxy.
