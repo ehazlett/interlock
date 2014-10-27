@@ -7,6 +7,7 @@ type (
 		Check          string
 		BackendOptions []string
 		Upstreams      []*Upstream
+		SSLOnly        bool
 	}
 	Upstream struct {
 		Addr          string

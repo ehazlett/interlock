@@ -44,7 +44,7 @@ defaults
 
 frontend http-default
     bind *:{{ .Config.Port }}
-    {{ if .Config.SSLCert }}bind *:{{ .Config.SSLPort }} ssl crt {{ .Config.SSLCert }}{{end}}
+    {{ if .Config.SSLCert }}bind *:{{ .Config.SSLPort }} ssl crt {{ .Config.SSLCert }}{{ end }}
     monitor-uri /haproxy?monitor
     {{ if .Config.StatsUser }}stats realm Stats
     stats auth {{ .Config.StatsUser }}:{{ .Config.StatsPassword }}{{ end }}
@@ -61,6 +61,7 @@ frontend http-default
     {{ range $option := $host.BackendOptions }}option {{ $option }}
     {{ end }}
     {{ if $host.Check }}option {{ $host.Check }}{{ end }}
+    {{ if $host.SSLOnly }}redirect scheme https if !{ ssl_fc  }{{ end }}
     {{ range $i,$up := $host.Upstreams }}server {{ $host.Name }}_{{ $i }} {{ $up.Addr }} check inter {{ $up.CheckInterval }}
     {{ end }}
 {{ end }}`
@@ -169,6 +170,7 @@ func (m *Manager) GenerateProxyConfig(isKillEvent bool) (*interlock.ProxyConfig,
 	proxyUpstreams := map[string][]*interlock.Upstream{}
 	hostChecks := map[string]string{}
 	hostBackendOptions := map[string][]string{}
+	hostSSLOnly := map[string]bool{}
 	for _, cnt := range containers {
 		cntId := cnt.ID[:12]
 		// load interlock data
@@ -213,6 +215,11 @@ func (m *Manager) GenerateProxyConfig(isKillEvent bool) (*interlock.ProxyConfig,
 		if len(interlockData.BackendOptions) > 0 {
 			hostBackendOptions[domain] = interlockData.BackendOptions
 			logger.Infof("using backend options for %s: %s", domain, strings.Join(interlockData.BackendOptions, ","))
+		}
+		hostSSLOnly[domain] = false
+		if interlockData.SSLOnly {
+			logger.Infof("configuring ssl redirect for %s", domain)
+			hostSSLOnly[domain] = true
 		}
 		hostAddrUrl, err := url.Parse(cnt.Engine.Addr)
 		if err != nil {
@@ -260,6 +267,7 @@ func (m *Manager) GenerateProxyConfig(isKillEvent bool) (*interlock.ProxyConfig,
 			Upstreams:      v,
 			Check:          hostChecks[k],
 			BackendOptions: hostBackendOptions[k],
+			SSLOnly:        hostSSLOnly[k],
 		}
 		logger.Infof("adding host name=%s domain=%s", host.Name, host.Domain)
 		hosts = append(hosts, host)
