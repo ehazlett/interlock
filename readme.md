@@ -24,6 +24,7 @@ Note: To enable SSL, enter a valid path for the certificate.
     "pid_path": "/tmp/proxy.pid",
     "ssl_cert": "/path/to/cert.pem",
     "ssl_port": 8443,
+    "ssl_opts": "no-sslv3 ciphers EECDH+ECDSA+AESGCM:EECDH+aRSA+AESGCM:EECDH+ECDSA+SHA384:EECDH+ECDSA+SHA256:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH+aRSA+RC4:EECDH:EDH+aRSA:RC4:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS",
     "engines": [
         {
             "engine": {
@@ -65,6 +66,24 @@ To start Interlock using the Shipyard API in a local host only setup:
 `docker run -it -p 80:8080 -d -v /var/run/docker.sock:/docker.sock ehazlett/interlock -shipyard-url <your-shipyard-url> -shipyard-service-key <your-shipyard-service-key>`
 
 Interlock will query the Shipyard API for a list of engines and then automatically connect and start listening for events.
+
+# Commandline options
+
+Besides shipyard-* options, you can also pass several optional flags to controller:
+
+* `config` - path to config file (will be ignored if you using shipyard-* flags)
+* `proxy-conf-path` - path to proxy file (will be generated and created)
+* `proxy-pid-path` - path to proxy pid file
+* `syslog` - address to syslog
+* `proxy-port` - proxy listen port. Default: 8080
+* `ssl-cert` - path to single ssl certificate or directory (for SNI). This enables SSL in proxy configuration
+* `ssl-port` - ssl listen port (must have cert above). Default: 8443
+* `ssl-opts` - string of SSL options (eg. ciphers or ssl, tls versions)
+
+Example for SNI (multidomain) SSL with secure ciphers:
+
+`docker run -it -p 80:8080 -d ehazlett/interlock -shipyard-url <your-shipyard-url> -shipyard-service-key <your-shipyard-service-key> -ssl-cert /etc/ssl -ssl-opts "no-sslv3 ciphers EECDH+ECDSA+AESGCM:EECDH+aRSA+AESGCM:EECDH+ECDSA+SHA384:EECDH+ECDSA+SHA256:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH+aRSA+RC4:EECDH:EDH+aRSA:RC4:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS"`
+
 
 # Optional Data
 There is also the ability to send configuration data when running containers.  This allows for customization of the backend configuration in HAProxy.  To use this, specify the options as a JSON payload in the environment variable `INTERLOCK_DATA` when launching a container.  For example:

@@ -26,6 +26,7 @@ type (
 		InterlockEngines   []*InterlockEngine `json:"engines,omitempty"`
 		SSLCert            string             `json:"ssl_cert,omitempty"`
 		SSLPort            int                `json:"ssl_port,omitempty"`
+		SSLOpts            string             `json:"ssl_opts,omitempty"`
 		ShipyardUrl        string             `json:"shipyard_url,omitempty"`
 		ShipyardServiceKey string             `json:"shipyard_service_key,omitempty"`
 	}
