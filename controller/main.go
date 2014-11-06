@@ -18,6 +18,7 @@ var (
 	shipyardUrl        string
 	shipyardServiceKey string
 	sslCert            string
+	sslOpts            string
 	sslPort            int
 	logger             = logrus.New()
 )

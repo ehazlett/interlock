@@ -80,9 +80,11 @@ Besides shipyard-* options, you can also pass several optional flags to controll
 * `ssl-port` - ssl listen port (must have cert above). Default: 8443
 * `ssl-opts` - string of SSL options (eg. ciphers or ssl, tls versions)
 
-Example for SNI (multidomain) SSL with secure ciphers:
+Example for SNI (multidomain) https:
 
-`docker run -it -p 80:8080 -d ehazlett/interlock -shipyard-url <your-shipyard-url> -shipyard-service-key <your-shipyard-service-key> -ssl-cert /etc/ssl -ssl-opts "no-sslv3 ciphers EECDH+ECDSA+AESGCM:EECDH+aRSA+AESGCM:EECDH+ECDSA+SHA384:EECDH+ECDSA+SHA256:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH+aRSA+RC4:EECDH:EDH+aRSA:RC4:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS"`
+`docker run -it -p 80:8080 -d ehazlett/interlock -shipyard-url <your-shipyard-url> -shipyard-service-key <your-shipyard-service-key> -ssl-cert /etc/ssl/default.crt -ssl-opts 'crt /etc/ssl no-sslv3 ciphers EECDH+ECDSA+AESGCM:EECDH+aRSA+AESGCM:EECDH+ECDSA+SHA384:EECDH+ECDSA+SHA256:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH+aRSA+RC4:EECDH:EDH+aRSA:RC4:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS'`
+
+In this example HAProxy will use concatinated certificates from /etc/ssl/<hostname>.crt for SNI requests, falling back to /etc/ssl/default.crt, also we specify secure openssl ciphers and disable SSLv3 support (which vunerable to POODLE attack)
 
 
 # Optional Data
