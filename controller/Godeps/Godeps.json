@@ -1,0 +1,35 @@
+{
+	"ImportPath": "github.com/ehazlett/interlock/controller",
+	"GoVersion": "go1.3.3",
+	"Deps": [
+		{
+			"ImportPath": "code.google.com/p/go.crypto/bcrypt",
+			"Comment": "null-232",
+			"Rev": "7ad4bae3f4670ffa3f967e498c0e2db28564dd7d"
+		},
+		{
+			"ImportPath": "code.google.com/p/go.crypto/blowfish",
+			"Comment": "null-232",
+			"Rev": "7ad4bae3f4670ffa3f967e498c0e2db28564dd7d"
+		},
+		{
+			"ImportPath": "github.com/citadel/citadel",
+			"Comment": "beta4-41-g606f8dd",
+			"Rev": "606f8dde3f4dcf416580f496838cabdbbf5786c7"
+		},
+		{
+			"ImportPath": "github.com/samalba/dockerclient",
+			"Rev": "a79250ae5dc96514cf6b06b8a8b7481164da7d4d"
+		},
+		{
+			"ImportPath": "github.com/shipyard/shipyard",
+			"Comment": "v2.0.3-20-g632cabe",
+			"Rev": "632cabe0c21d7033cda3454b2bc79c5dde60880c"
+		},
+		{
+			"ImportPath": "github.com/sirupsen/logrus",
+			"Comment": "v0.6.0-5-gf92b795",
+			"Rev": "f92b7950b372b1db80bd3527e4d40e42555fe6c2"
+		}
+	]
+}
