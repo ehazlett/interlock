@@ -51,9 +51,18 @@ frontend http-default
     stats enable
     stats uri /haproxy?stats
     stats refresh 5s
+    reqadd X-Forwarded-Proto:\ http
     {{ range $host := .Hosts }}acl is_{{ $host.Name }} hdr_beg(host) {{ $host.Domain }}
     use_backend {{ $host.Name }} if is_{{ $host.Name }}
     {{ end }}
+{{ if .Config.SSLCert }}
+frontend https-default
+    bind *:{{ .Config.SSLPort }} ssl crt {{ .Config.SSLCert }} {{ .Config.SSLOpts }}
+    reqadd X-Forwarded-Proto:\ https
+    {{ range $host := .Hosts }}acl is_{{ $host.Name }} hdr_beg(host) {{ $host.Domain }}
+    use_backend {{ $host.Name }} if is_{{ $host.Name }}
+    {{ end }}
+{{ end }}
 {{ range $host := .Hosts }}backend {{ $host.Name }}
     http-response add-header X-Request-Start %Ts.%ms
     balance roundrobin
