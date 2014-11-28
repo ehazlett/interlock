@@ -20,6 +20,9 @@ var (
 	sslCert            string
 	sslOpts            string
 	sslPort            int
+	engineSslCert      string
+	engineSslCaCert    string
+	engineSslKey       string
 	logger             = logrus.New()
 )
 
@@ -46,6 +49,9 @@ func init() {
 	flag.StringVar(&sslCert, "ssl-cert", "", "path to ssl cert (enables SSL)")
 	flag.IntVar(&sslPort, "ssl-port", 8443, "ssl listen port (must have cert above)")
 	flag.StringVar(&sslOpts, "ssl-opts", "", "string of SSL options (eg. ciphers or tls versions)")
+	flag.StringVar(&engineSslCert, "engine-ssl-cert", "", "Client certificate to use connecting to engines")
+	flag.StringVar(&engineSslKey, "engine-ssl-key", "", "Key to use with engine-ssl-cert")
+	flag.StringVar(&engineSslCaCert, "engine-ssl-cacert", "", "CA Cert to use with engine-ssl-cert")
 	flag.Parse()
 }
 
@@ -56,6 +62,9 @@ func main() {
 	config.Port = proxyPort
 	config.SSLPort = sslPort
 	config.SSLOpts = sslOpts
+	config.EngineSSLCert = engineSslCert
+	config.EngineSSLKey = engineSslKey
+	config.EngineSSLCACert = engineSslCaCert
 	if shipyardUrl == "" {
 		cfg, err := loadConfig()
 		if err != nil {
