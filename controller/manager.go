@@ -2,7 +2,10 @@ package main
 
 import (
 	"bytes"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -110,8 +113,27 @@ func (m *Manager) init() error {
 	} else {
 		engines = m.engines
 	}
+	var tlsConf *tls.Config
+	if m.config.EngineSSLCert != "" {
+		crt, err := tls.LoadX509KeyPair(m.config.EngineSSLCert, m.config.EngineSSLKey)
+		if err != nil {
+			return err
+		}
+		pool := x509.NewCertPool()
+		pemBytes, err := ioutil.ReadFile(m.config.EngineSSLCACert)
+		if err != nil {
+			return err
+		}
+		if !pool.AppendCertsFromPEM(pemBytes) {
+			return errors.New("Could not append CA cert from " + m.config.EngineSSLCACert)
+		}
+		tlsConf = &tls.Config{
+			Certificates: []tls.Certificate{crt},
+			RootCAs:      pool,
+		}
+	}
 	for _, e := range engines {
-		if err := e.Connect(nil); err != nil {
+		if err := e.Connect(tlsConf); err != nil {
 			return err
 		}
 		logger.Infof("loaded engine: %s", e.ID)

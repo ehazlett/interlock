@@ -29,5 +29,8 @@ type (
 		SSLOpts            string             `json:"ssl_opts,omitempty"`
 		ShipyardUrl        string             `json:"shipyard_url,omitempty"`
 		ShipyardServiceKey string             `json:"shipyard_service_key,omitempty"`
+		EngineSSLCert      string             `json:"engine_ssl_cert,omitempty"`
+		EngineSSLCACert    string             `json:"engine_ssl_ca_cert,omitempty"`
+		EngineSSLKey       string             `json:"engine_ssl_key,omitempty"`
 	}
 )
