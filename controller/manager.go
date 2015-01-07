@@ -38,6 +38,8 @@ defaults
     option redispatch
     option httplog
     option dontlognull
+    option http-server-close
+    option forwardfor
     timeout connect {{ .Config.ConnectTimeout }}
     timeout client {{ .Config.ClientTimeout }}
     timeout server {{ .Config.ServerTimeout }}
@@ -57,7 +59,6 @@ frontend http-default
 {{ range $host := .Hosts }}backend {{ $host.Name }}
     http-response add-header X-Request-Start %Ts.%ms
     balance roundrobin
-    option forwardfor
     {{ range $option := $host.BackendOptions }}option {{ $option }}
     {{ end }}
     {{ if $host.Check }}option {{ $host.Check }}{{ end }}
