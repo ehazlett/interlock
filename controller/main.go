@@ -20,6 +20,7 @@ var (
 	sslCert            string
 	sslOpts            string
 	sslPort            int
+	dockerUrl          string
 	logger             = logrus.New()
 )
 
@@ -36,8 +37,7 @@ func loadConfig() (*interlock.Config, error) {
 }
 
 func init() {
-	flag.StringVar(&shipyardUrl, "shipyard-url", "", "Shipyard URL")
-	flag.StringVar(&shipyardServiceKey, "shipyard-service-key", "", "Shipyard Service Key")
+	flag.StringVar(&dockerUrl, "swarm-url", "tcp://127.0.0.1:2375", "Swarm URL")
 	flag.StringVar(&configPath, "config", "", "path to config file")
 	flag.StringVar(&proxyConfigPath, "proxy-conf-path", "proxy.conf", "path to proxy file")
 	flag.StringVar(&proxyPidPath, "proxy-pid-path", "proxy.pid", "path to proxy pid file")
@@ -51,24 +51,14 @@ func init() {
 
 func main() {
 	config := &interlock.Config{}
+	config.DockerUrl = dockerUrl
 	config.ProxyConfigPath = proxyConfigPath
 	config.PidPath = proxyPidPath
 	config.Port = proxyPort
 	config.SSLPort = sslPort
 	config.SSLOpts = sslOpts
-	if shipyardUrl == "" {
-		cfg, err := loadConfig()
-		if err != nil {
-			logger.Fatalf("unable to load config: %s", err)
-		}
-		config = cfg
-	}
 	if syslogAddr != "" {
 		config.SyslogAddr = syslogAddr
-	}
-	if shipyardUrl != "" && shipyardServiceKey != "" {
-		config.ShipyardUrl = shipyardUrl
-		config.ShipyardServiceKey = shipyardServiceKey
 	}
 	if sslCert != "" {
 		config.SSLCert = sslCert

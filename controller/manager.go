@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -17,11 +16,8 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/citadel/citadel"
-	"github.com/citadel/citadel/cluster"
-	"github.com/citadel/citadel/scheduler"
 	"github.com/ehazlett/interlock"
-	"github.com/shipyard/shipyard/client"
+	"github.com/samalba/dockerclient"
 )
 
 const (
@@ -72,61 +68,26 @@ type (
 	Manager struct {
 		mux      sync.Mutex
 		config   *interlock.Config
-		engines  []*citadel.Engine
-		cluster  *cluster.Cluster
 		proxyCmd *exec.Cmd
+		client   *dockerclient.DockerClient
 	}
 )
 
 func NewManager(cfg *interlock.Config) (*Manager, error) {
-	engines := []*citadel.Engine{}
-	for _, e := range cfg.InterlockEngines {
-		engines = append(engines, e.Engine)
-	}
-	m := &Manager{
-		config:  cfg,
-		engines: engines,
-	}
-	if err := m.init(); err != nil {
+	// TODO: handle TLS
+	c, err := dockerclient.NewDockerClient(cfg.DockerUrl, nil)
+	if err != nil {
 		return nil, err
 	}
-	return m, nil
-}
+	m := &Manager{
+		config: cfg,
+		client: c,
+	}
 
-func (m *Manager) init() error {
-	var engines []*citadel.Engine
-	if m.config.ShipyardUrl != "" {
-		cfg := &client.ShipyardConfig{
-			Url:        m.config.ShipyardUrl,
-			ServiceKey: m.config.ShipyardServiceKey,
-		}
-		mgr := client.NewManager(cfg)
-		eng, err := mgr.Engines()
-		if err != nil {
-			return err
-		}
-		for _, e := range eng {
-			engines = append(engines, e.Engine)
-		}
-	} else {
-		engines = m.engines
-	}
-	for _, e := range engines {
-		if err := e.Connect(nil); err != nil {
-			return err
-		}
-		logger.Infof("loaded engine: %s", e.ID)
-	}
-	c, err := cluster.New(scheduler.NewResourceManager(), engines...)
-	if err != nil {
-		return err
-	}
-	m.cluster = c
-	// register handler
-	if err := m.cluster.Events(&EventHandler{Manager: m}); err != nil {
-		return err
-	}
-	return nil
+	evt := NewEventHandler(m)
+	m.client.StartMonitorEvents(evt.Handle)
+
+	return m, nil
 }
 
 func (m *Manager) writeConfig(config *interlock.ProxyConfig) error {
@@ -163,7 +124,7 @@ func (m *Manager) writeConfig(config *interlock.ProxyConfig) error {
 }
 
 func (m *Manager) GenerateProxyConfig(isKillEvent bool) (*interlock.ProxyConfig, error) {
-	containers, err := m.cluster.ListContainers(false)
+	containers, err := m.client.ListContainers(false, false, "")
 	if err != nil {
 		return nil, err
 	}
@@ -173,18 +134,27 @@ func (m *Manager) GenerateProxyConfig(isKillEvent bool) (*interlock.ProxyConfig,
 	hostBackendOptions := map[string][]string{}
 	hostSSLOnly := map[string]bool{}
 	for _, cnt := range containers {
-		cntId := cnt.ID[:12]
+		cntId := cnt.Id[:12]
 		// load interlock data
-		env := cnt.Image.Environment
+		cInfo, err := m.client.InspectContainer(cntId)
+		if err != nil {
+			return nil, err
+		}
+		env := cInfo.Config.Env
 		interlockData := &interlock.InterlockData{}
-		if key, ok := env["INTERLOCK_DATA"]; ok {
-			b := bytes.NewBufferString(key)
-			if err := json.NewDecoder(b).Decode(&interlockData); err != nil {
-				logger.Warnf("%s: unable to parse interlock data: %s", cntId, err)
+		for _, e := range env {
+
+			envParts := strings.Split(e, "=")
+			if envParts[0] == "INTERLOCK_DATA" {
+				b := bytes.NewBufferString(envParts[1])
+				if err := json.NewDecoder(b).Decode(&interlockData); err != nil {
+					logger.Warnf("%s: unable to parse interlock data: %s", cntId, err)
+				}
+				break
 			}
 		}
-		hostname := cnt.Image.Hostname
-		domain := cnt.Image.Domainname
+		hostname := cInfo.Config.Hostname
+		domain := cInfo.Config.Domainname
 		if interlockData.Hostname != "" {
 			hostname = interlockData.Hostname
 		}
@@ -222,26 +192,30 @@ func (m *Manager) GenerateProxyConfig(isKillEvent bool) (*interlock.ProxyConfig,
 			logger.Infof("configuring ssl redirect for %s", domain)
 			hostSSLOnly[domain] = true
 		}
-		hostAddrUrl, err := url.Parse(cnt.Engine.Addr)
-		if err != nil {
-			logger.Warnf("%s: unable to parse engine addr: %s", cntId, err)
-			continue
-		}
-		host := hostAddrUrl.Host
-		hostParts := strings.Split(hostAddrUrl.Host, ":")
-		if len(hostParts) != 1 {
-			host = hostParts[0]
-		}
-		if len(cnt.Ports) == 0 {
+
+		//host := cInfo.NetworkSettings.IpAddress
+		ports := cInfo.NetworkSettings.Ports
+		if len(ports) == 0 {
 			logger.Warnf("%s: no ports exposed", cntId)
 			continue
 		}
-		portDef := cnt.Ports[0]
-		addr := fmt.Sprintf("%s:%d", host, portDef.Port)
+		var portDef dockerclient.PortBinding
+		for _, v := range ports {
+			portDef = dockerclient.PortBinding{
+				HostIp:   v[0].HostIp,
+				HostPort: v[0].HostPort,
+			}
+			break
+		}
+		addr := fmt.Sprintf("%s:%s", portDef.HostIp, portDef.HostPort)
 		if interlockData.Port != 0 {
-			for _, p := range cnt.Ports {
-				if p.ContainerPort == interlockData.Port {
-					addr = fmt.Sprintf("%s:%d", host, p.Port)
+			for k, v := range ports {
+				parts := strings.Split(k, "/")
+				if parts[0] == string(interlockData.Port) {
+					port := v[0]
+					logger.Infof("using port %s", port.HostPort)
+					addr = fmt.Sprintf("%s:%s", port.HostIp, port.HostPort)
+					break
 				}
 			}
 		}
@@ -281,9 +255,9 @@ func (m *Manager) GenerateProxyConfig(isKillEvent bool) (*interlock.ProxyConfig,
 	return cfg, nil
 }
 
-func (m *Manager) UpdateConfig(e *citadel.Event) error {
+func (m *Manager) UpdateConfig(e *dockerclient.Event) error {
 	isKillEvent := false
-	if e != nil && e.Type == "kill" {
+	if e != nil && e.Status == "kill" {
 		isKillEvent = true
 	}
 	cfg, err := m.GenerateProxyConfig(isKillEvent)
