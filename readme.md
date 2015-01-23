@@ -1,5 +1,5 @@
 # Interlock
-Dynamic, event-driven HAProxy using [Citadel](https://github.com/citadel/citadel).  Interlock configures backends for HAProxy by listening to Docker events (start/stop, etc).
+Dynamic, event-driven HAProxy using [Swarm](https://github.com/docker/swarm).  Interlock configures backends for HAProxy by listening to Docker events (start/stop, etc).
 
 Note: Interlock requires HAProxy 1.5+
 
@@ -12,6 +12,7 @@ Note: To enable SSL, enter a valid path for the certificate.
 
 ```
 {
+    "swarm_url": "tcp://127.0.0.1:2375"
     "port": 8080,
     "connect_timeout": 5000,
     "server_timeout": 10000,
@@ -25,20 +26,6 @@ Note: To enable SSL, enter a valid path for the certificate.
     "ssl_cert": "/path/to/cert.pem",
     "ssl_port": 8443,
     "ssl_opts": "no-sslv3 ciphers EECDH+ECDSA+AESGCM:EECDH+aRSA+AESGCM:EECDH+ECDSA+SHA384:EECDH+ECDSA+SHA256:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH+aRSA+RC4:EECDH:EDH+aRSA:RC4:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS",
-    "engines": [
-        {
-            "engine": {
-                "id": "local",
-                "addr": "http://1.2.3.4:2375",
-                "cpus": 1.0,
-                "memory": 1024,
-                "labels": []
-            },
-            "ssl_cert": "",
-            "ssl_key": "",
-            "ca_cert": ""
-        }
-    ]
 }
 ```
 
@@ -54,24 +41,10 @@ If you want SSL support, enter a path to the cert (probably want a mounted volum
 * You should then be able to access `http://<your-host-ip>/haproxy?stats` to see the proxy stats.
 * Add some CNAMEs or /etc/host entries for your IP.  Interlock uses the `hostname` in the container config to add backends to the proxy.
 
-# Shipyard Integration
-There is also support for using the [Shipyard](https://github.com/shipyard/shipyard) API to get a list of engines.  This means you do not need a configuration file.
-
-To start Interlock using the Shipyard API:
-
-`docker run -it -p 80:8080 -d ehazlett/interlock -shipyard-url <your-shipyard-url> -shipyard-service-key <your-shipyard-service-key>`
-
-To start Interlock using the Shipyard API in a local host only setup:
-
-`docker run -it -p 80:8080 -d -v /var/run/docker.sock:/docker.sock ehazlett/interlock -shipyard-url <your-shipyard-url> -shipyard-service-key <your-shipyard-service-key>`
-
-Interlock will query the Shipyard API for a list of engines and then automatically connect and start listening for events.
-
 # Commandline options
 
-Besides shipyard-* options, you can also pass several optional flags to controller:
-
-* `config` - path to config file (will be ignored if you using shipyard-* flags)
+* `swarm-url` - url to swarm (default: tcp://127.0.0.1:2375)
+* `config` - path to config file
 * `proxy-conf-path` - path to proxy file (will be generated and created)
 * `proxy-pid-path` - path to proxy pid file
 * `syslog` - address to syslog
