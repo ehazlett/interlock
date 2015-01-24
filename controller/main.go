@@ -1,9 +1,7 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
-	"os"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/ehazlett/interlock"
@@ -23,18 +21,6 @@ var (
 	swarmUrl           string
 	debug              bool
 )
-
-func loadConfig() (*interlock.Config, error) {
-	var config *interlock.Config
-	f, err := os.Open(configPath)
-	if err != nil {
-		return nil, err
-	}
-	if err := json.NewDecoder(f).Decode(&config); err != nil {
-		return nil, err
-	}
-	return config, nil
-}
 
 func init() {
 	flag.StringVar(&swarmUrl, "swarm-url", "tcp://127.0.0.1:2375", "Swarm URL")
