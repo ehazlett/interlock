@@ -9,7 +9,21 @@
 		},
 		{
 			"ImportPath": "github.com/samalba/dockerclient",
+<<<<<<< Updated upstream
 			"Rev": "d7c9b1f73c3cf79ee9c788488a25af2617f7b23b"
+=======
+			"Rev": "7e4366cfab2f2b44fcb493bee93a156a763d58b6"
+		},
+		{
+			"ImportPath": "github.com/shipyard/shipyard",
+			"Comment": "v2.0.3-20-g632cabe",
+			"Rev": "632cabe0c21d7033cda3454b2bc79c5dde60880c"
+		},
+		{
+			"ImportPath": "github.com/sirupsen/logrus",
+			"Comment": "v0.6.0-5-gf92b795",
+			"Rev": "f92b7950b372b1db80bd3527e4d40e42555fe6c2"
+>>>>>>> Stashed changes
 		}
 	]
 }
