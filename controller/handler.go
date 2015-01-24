@@ -3,6 +3,7 @@ package main
 import (
 	"time"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/samalba/dockerclient"
 )
 
@@ -18,8 +19,8 @@ func NewEventHandler(mgr *Manager) *EventHandler {
 	}
 }
 
-func (l *EventHandler) Handle(e *dockerclient.Event, args ...interface{}) {
-	logger.Infof("event: date=%d type=%s image=%s container=%s", e.Time, e.Status, e.From, e.Id[:12])
+func (l *EventHandler) Handle(e *dockerclient.Event, ec chan error, args ...interface{}) {
+	log.Infof("event: date=%d type=%s image=%s container=%s", e.Time, e.Status, e.From, e.Id[:12])
 	switch e.Status {
 	case "start", "restart":
 		l.handleUpdate(e)

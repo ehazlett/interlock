@@ -2,10 +2,13 @@ package main
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -16,6 +19,7 @@ import (
 	"text/template"
 	"time"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/ehazlett/interlock"
 	"github.com/samalba/dockerclient"
 )
@@ -64,30 +68,27 @@ frontend http-default
 {{ end }}`
 )
 
+var (
+	eventsErrChan = make(chan error)
+)
+
 type (
 	Manager struct {
-		mux      sync.Mutex
-		config   *interlock.Config
-		proxyCmd *exec.Cmd
-		client   *dockerclient.DockerClient
+		mux       sync.Mutex
+		config    *interlock.Config
+		tlsConfig *tls.Config
+		proxyCmd  *exec.Cmd
+		client    *dockerclient.DockerClient
 	}
 )
 
-func NewManager(cfg *interlock.Config) (*Manager, error) {
-	// TODO: handle TLS
-	c, err := dockerclient.NewDockerClient(cfg.DockerUrl, nil)
-	if err != nil {
-		return nil, err
-	}
+func NewManager(cfg *interlock.Config, tlsConfig *tls.Config) *Manager {
 	m := &Manager{
-		config: cfg,
-		client: c,
+		config:    cfg,
+		tlsConfig: tlsConfig,
 	}
 
-	evt := NewEventHandler(m)
-	m.client.StartMonitorEvents(evt.Handle)
-
-	return m, nil
+	return m
 }
 
 func (m *Manager) writeConfig(config *interlock.ProxyConfig) error {
@@ -148,7 +149,7 @@ func (m *Manager) GenerateProxyConfig(isKillEvent bool) (*interlock.ProxyConfig,
 			if envParts[0] == "INTERLOCK_DATA" {
 				b := bytes.NewBufferString(envParts[1])
 				if err := json.NewDecoder(b).Decode(&interlockData); err != nil {
-					logger.Warnf("%s: unable to parse interlock data: %s", cntId, err)
+					log.Warnf("%s: unable to parse interlock data: %s", cntId, err)
 				}
 				break
 			}
@@ -171,32 +172,32 @@ func (m *Manager) GenerateProxyConfig(isKillEvent bool) (*interlock.ProxyConfig,
 			if val, ok := hostChecks[domain]; ok {
 				// check existing host check for different values
 				if val != interlockData.Check {
-					logger.Warnf("conflicting check specified for %s", domain)
+					log.Warnf("conflicting check specified for %s", domain)
 				}
 			} else {
 				hostChecks[domain] = interlockData.Check
-				logger.Infof("using custom check for %s: %s", domain, interlockData.Check)
+				log.Infof("using custom check for %s: %s", domain, interlockData.Check)
 			}
 		}
 		checkInterval := 5000
 		if interlockData.CheckInterval != 0 {
 			checkInterval = interlockData.CheckInterval
-			logger.Infof("using custom check interval for %s: %d", domain, checkInterval)
+			log.Infof("using custom check interval for %s: %d", domain, checkInterval)
 		}
 		if len(interlockData.BackendOptions) > 0 {
 			hostBackendOptions[domain] = interlockData.BackendOptions
-			logger.Infof("using backend options for %s: %s", domain, strings.Join(interlockData.BackendOptions, ","))
+			log.Infof("using backend options for %s: %s", domain, strings.Join(interlockData.BackendOptions, ","))
 		}
 		hostSSLOnly[domain] = false
 		if interlockData.SSLOnly {
-			logger.Infof("configuring ssl redirect for %s", domain)
+			log.Infof("configuring ssl redirect for %s", domain)
 			hostSSLOnly[domain] = true
 		}
 
 		//host := cInfo.NetworkSettings.IpAddress
 		ports := cInfo.NetworkSettings.Ports
 		if len(ports) == 0 {
-			logger.Warnf("%s: no ports exposed", cntId)
+			log.Warnf("%s: no ports exposed", cntId)
 			continue
 		}
 		var portDef dockerclient.PortBinding
@@ -213,7 +214,7 @@ func (m *Manager) GenerateProxyConfig(isKillEvent bool) (*interlock.ProxyConfig,
 				parts := strings.Split(k, "/")
 				if parts[0] == string(interlockData.Port) {
 					port := v[0]
-					logger.Infof("using port %s", port.HostPort)
+					log.Infof("using port %s", port.HostPort)
 					addr = fmt.Sprintf("%s:%s", port.HostIp, port.HostPort)
 					break
 				}
@@ -224,12 +225,12 @@ func (m *Manager) GenerateProxyConfig(isKillEvent bool) (*interlock.ProxyConfig,
 			CheckInterval: checkInterval,
 		}
 		for _, alias := range interlockData.AliasDomains {
-			logger.Infof("adding alias %s for %s", alias, cntId)
+			log.Infof("adding alias %s for %s", alias, cntId)
 			proxyUpstreams[alias] = append(proxyUpstreams[alias], up)
 		}
 		proxyUpstreams[domain] = append(proxyUpstreams[domain], up)
 		if !isKillEvent && interlockData.Warm {
-			logger.Infof("warming %s: %s", cntId, addr)
+			log.Infof("warming %s: %s", cntId, addr)
 			http.Get(fmt.Sprintf("http://%s", addr))
 		}
 
@@ -244,7 +245,7 @@ func (m *Manager) GenerateProxyConfig(isKillEvent bool) (*interlock.ProxyConfig,
 			BackendOptions: hostBackendOptions[k],
 			SSLOnly:        hostSSLOnly[k],
 		}
-		logger.Infof("adding host name=%s domain=%s", host.Name, host.Domain)
+		log.Infof("adding host name=%s domain=%s", host.Name, host.Domain)
 		hosts = append(hosts, host)
 	}
 	// generate config
@@ -290,7 +291,7 @@ func (m *Manager) Reload() error {
 	if m.proxyCmd != nil {
 		p, err := m.getProxyPid()
 		if err != nil {
-			logger.Error(err)
+			log.Error(err)
 		}
 		pid := strconv.Itoa(p)
 		args = append(args, pid)
@@ -300,15 +301,81 @@ func (m *Manager) Reload() error {
 		return err
 	}
 	m.proxyCmd = cmd
-	logger.Info("reloaded proxy")
+	log.Info("proxy reloaded and ready")
 	return nil
 }
 
+func (m *Manager) connect() error {
+	log.Debugf("connecting to swarm on %s", m.config.SwarmUrl)
+	c, err := dockerclient.NewDockerClient(m.config.SwarmUrl, m.tlsConfig)
+	if err != nil {
+		log.Warn(err)
+		return err
+	}
+	m.client = c
+	go m.startEventListener()
+	go m.reconnectOnFail()
+	return nil
+}
+
+func (m *Manager) startEventListener() {
+	evt := NewEventHandler(m)
+	m.client.StartMonitorEvents(evt.Handle, eventsErrChan)
+}
+
+func waitForTCP(addr string) error {
+	log.Debugf("waiting for swarm to become available on %s", addr)
+	for {
+		conn, err := net.DialTimeout("tcp", addr, 1*time.Second)
+		if err != nil {
+			continue
+		}
+		conn.Close()
+		break
+	}
+	return nil
+}
+
+func (m *Manager) reconnectOnFail() {
+	<-eventsErrChan
+	for {
+		log.Warnf("error receiving events; attempting to reconnect")
+		u, err := url.Parse(m.config.SwarmUrl)
+		if err != nil {
+			log.Warnf("unable to parse Swarm URL: %s", err)
+			continue
+		}
+
+		if err := waitForTCP(u.Host); err != nil {
+			log.Warnf("error connecting to Swarm: %s", err)
+			continue
+		}
+
+		if err := m.connect(); err == nil {
+			log.Debugf("re-connected to Swarm: %s", u.Host)
+			// force a reload to make sure we keep things in sync
+			if err := m.Reload(); err != nil {
+				log.Warnf("error during reload: %s", err)
+			}
+			break
+		}
+		time.Sleep(1 * time.Second)
+	}
+}
+
 func (m *Manager) Run() error {
+	if err := m.connect(); err != nil {
+		return err
+	}
+
 	if err := m.UpdateConfig(nil); err != nil {
 		return err
 	}
-	m.Reload()
+
+	if err := m.Reload(); err != nil {
+		return err
+	}
+
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, os.Interrupt)
 	signal.Notify(ch, syscall.SIGTERM)
@@ -317,7 +384,7 @@ func (m *Manager) Run() error {
 		if m.proxyCmd != nil {
 			pid, err := m.getProxyPid()
 			if err != nil {
-				logger.Fatal(err)
+				log.Fatal(err)
 			}
 			syscall.Kill(pid, syscall.SIGTERM)
 		}

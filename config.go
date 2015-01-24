@@ -2,7 +2,7 @@ package interlock
 
 type (
 	Config struct {
-		DockerUrl       string `json:"docker_url,omitempty"`
+		SwarmUrl        string `json:"swarm_url,omitempty"`
 		ProxyConfigPath string `json:"proxy_config_path,omitempty"`
 		Port            int    `json:"port,omitempty"`
 		PidPath         string `json:"pid_path,omitempty"`

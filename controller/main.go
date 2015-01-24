@@ -5,8 +5,8 @@ import (
 	"flag"
 	"os"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/ehazlett/interlock"
-	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -20,8 +20,8 @@ var (
 	sslCert            string
 	sslOpts            string
 	sslPort            int
-	dockerUrl          string
-	logger             = logrus.New()
+	swarmUrl           string
+	debug              bool
 )
 
 func loadConfig() (*interlock.Config, error) {
@@ -37,7 +37,7 @@ func loadConfig() (*interlock.Config, error) {
 }
 
 func init() {
-	flag.StringVar(&dockerUrl, "swarm-url", "tcp://127.0.0.1:2375", "Swarm URL")
+	flag.StringVar(&swarmUrl, "swarm-url", "tcp://127.0.0.1:2375", "Swarm URL")
 	flag.StringVar(&configPath, "config", "", "path to config file")
 	flag.StringVar(&proxyConfigPath, "proxy-conf-path", "proxy.conf", "path to proxy file")
 	flag.StringVar(&proxyPidPath, "proxy-pid-path", "proxy.pid", "path to proxy pid file")
@@ -46,12 +46,17 @@ func init() {
 	flag.StringVar(&sslCert, "ssl-cert", "", "path to ssl cert (enables SSL)")
 	flag.IntVar(&sslPort, "ssl-port", 8443, "ssl listen port (must have cert above)")
 	flag.StringVar(&sslOpts, "ssl-opts", "", "string of SSL options (eg. ciphers or tls versions)")
+	flag.BoolVar(&debug, "debug", false, "enable debug")
 	flag.Parse()
 }
 
 func main() {
+	if debug {
+		log.SetLevel(log.DebugLevel)
+	}
+
 	config := &interlock.Config{}
-	config.DockerUrl = dockerUrl
+	config.SwarmUrl = swarmUrl
 	config.ProxyConfigPath = proxyConfigPath
 	config.PidPath = proxyPidPath
 	config.Port = proxyPort
@@ -63,15 +68,14 @@ func main() {
 	if sslCert != "" {
 		config.SSLCert = sslCert
 	}
-	m, err := NewManager(config)
-	if err != nil {
-		logger.Fatalf("unable to init manager: %s", err)
-	}
-	logger.Infof("Interlock running proxy=:%d", m.config.Port)
+	// TODO: enable TLS
+	m := NewManager(config, nil)
+
+	log.Infof("interlock running proxy=:%d", m.config.Port)
 	if m.config.SSLCert != "" {
-		logger.Infof("SSL listener active=:%d", m.config.SSLPort)
+		log.Infof("ssl listener active=:%d", m.config.SSLPort)
 	}
 	if err := m.Run(); err != nil {
-		logger.Fatal(err)
+		log.Fatal(err)
 	}
 }
