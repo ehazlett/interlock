@@ -201,6 +201,7 @@ func (m *Manager) GenerateProxyConfig(isKillEvent bool) (*interlock.ProxyConfig,
 			continue
 		}
 		var portDef dockerclient.PortBinding
+
 		for _, v := range ports {
 			portDef = dockerclient.PortBinding{
 				HostIp:   v[0].HostIp,
@@ -208,7 +209,13 @@ func (m *Manager) GenerateProxyConfig(isKillEvent bool) (*interlock.ProxyConfig,
 			}
 			break
 		}
+
+		if m.config.ProxyBackendOverrideAddress != "" {
+			portDef.HostIp = m.config.ProxyBackendOverrideAddress
+		}
+
 		addr := fmt.Sprintf("%s:%s", portDef.HostIp, portDef.HostPort)
+
 		if interlockData.Port != 0 {
 			for k, v := range ports {
 				parts := strings.Split(k, "/")
@@ -220,6 +227,7 @@ func (m *Manager) GenerateProxyConfig(isKillEvent bool) (*interlock.ProxyConfig,
 				}
 			}
 		}
+
 		up := &interlock.Upstream{
 			Addr:          addr,
 			CheckInterval: checkInterval,
