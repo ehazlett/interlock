@@ -51,7 +51,7 @@ func getTLSConfig(caCert, cert, key []byte, allowInsecure bool) (*tls.Config, er
 }
 
 func init() {
-	flag.StringVar(&swarmUrl, "swarm-url", "tcp://127.0.0.1:2375", "swarm url")
+	flag.StringVar(&swarmUrl, "swarm", "tcp://127.0.0.1:2375", "swarm url")
 	flag.StringVar(&swarmTlsCaCert, "tlscacert", "", "ca certificate for tls")
 	flag.StringVar(&swarmTlsCert, "tlscert", "", "certificate for tls")
 	flag.StringVar(&swarmTlsKey, "tlskey", "", "key for tls")
