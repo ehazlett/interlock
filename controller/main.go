@@ -4,7 +4,9 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"flag"
+	"fmt"
 	"io/ioutil"
+	"os"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/ehazlett/interlock"
@@ -28,6 +30,7 @@ var (
 	swarmTlsKey                 string
 	allowInsecureTls            bool
 	proxyBackendOverrideAddress string
+	showVersion                 bool
 )
 
 func getTLSConfig(caCert, cert, key []byte, allowInsecure bool) (*tls.Config, error) {
@@ -66,10 +69,16 @@ func init() {
 	flag.IntVar(&sslPort, "ssl-port", 8443, "ssl listen port (must have cert above)")
 	flag.StringVar(&sslOpts, "ssl-opts", "", "string of SSL options (eg. ciphers or tls versions)")
 	flag.BoolVar(&debug, "debug", false, "enable debug")
+	flag.BoolVar(&showVersion, "version", false, "show version and exit")
 	flag.Parse()
 }
 
 func main() {
+	if showVersion {
+		fmt.Printf("interlock %s\n", VERSION)
+		os.Exit(0)
+	}
+
 	if debug {
 		log.SetLevel(log.DebugLevel)
 	}
@@ -118,7 +127,7 @@ func main() {
 
 	m := NewManager(config, tlsConfig)
 
-	log.Infof("interlock running proxy=:%d", m.config.Port)
+	log.Infof("interlock running version=%s proxy=:%d", VERSION, m.config.Port)
 	if m.config.SSLCert != "" {
 		log.Infof("ssl listener active=:%d", m.config.SSLPort)
 	}

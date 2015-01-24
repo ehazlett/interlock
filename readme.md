@@ -4,7 +4,7 @@ Dynamic, event-driven HAProxy using [Swarm](https://github.com/docker/swarm).  I
 Note: Interlock requires HAProxy 1.5+
 
 # Usage
-Run Interlock
+Docker
 
 `docker run -p 80:8080 -d ehazlett/interlock -swarm tcp://1.2.3.4:2375`
 
@@ -30,6 +30,7 @@ If you want SSL support, enter a path to the cert (probably want a mounted volum
 * `tlscacert`: TLS ca certificate to use with swarm (optional)
 * `tlscert`: TLS certificate to use with swarm (optional)
 * `tlskey`: TLS key to use with swarm (options)
+* `version`: show version and exit
 
 Example for SNI (multidomain) https:
 
