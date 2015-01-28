@@ -96,8 +96,6 @@ func NewManager(cfg *interlock.Config) (*Manager, error) {
 }
 
 func (m *Manager) init() error {
-	logger.Infof("in init")
-	fmt.Println("in init")
 	var engines []*citadel.Engine
 	if m.config.ShipyardUrl != "" {
 		cfg := &client.ShipyardConfig{
