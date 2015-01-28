@@ -29,5 +29,6 @@ type (
 		SSLOpts            string             `json:"ssl_opts,omitempty"`
 		ShipyardUrl        string             `json:"shipyard_url,omitempty"`
 		ShipyardServiceKey string             `json:"shipyard_service_key,omitempty"`
+		Sticky	           string	      `json:"sticky,omitempty"`
 	}
 )

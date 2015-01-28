@@ -56,14 +56,16 @@ frontend http-default
     {{ range $host := .Hosts }}acl is_{{ $host.Name }} hdr_beg(host) {{ $host.Domain }}
     use_backend {{ $host.Name }} if is_{{ $host.Name }}
     {{ end }}
+    {{ $sticky := .Config.Sticky }}
 {{ range $host := .Hosts }}backend {{ $host.Name }}
     http-response add-header X-Request-Start %Ts.%ms
     balance roundrobin
+    {{ if eq $sticky "true" }} cookie SERVERID insert indirect nocache {{ end }}
     {{ range $option := $host.BackendOptions }}option {{ $option }}
     {{ end }}
     {{ if $host.Check }}option {{ $host.Check }}{{ end }}
     {{ if $host.SSLOnly }}redirect scheme https if !{ ssl_fc  }{{ end }}
-    {{ range $i,$up := $host.Upstreams }}server {{ $host.Name }}_{{ $i }} {{ $up.Addr }} check inter {{ $up.CheckInterval }}
+    {{ range $i,$up := $host.Upstreams }}server {{ $host.Name }}_{{ $i }} {{ $up.Addr }}   check {{ if eq $sticky "true"}} cookie {{ $host.Name }}_{{ $i }}  {{ end }} inter {{ $up.CheckInterval }}
     {{ end }}
 {{ end }}`
 )
