@@ -24,7 +24,7 @@ func main() {
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:   "plugin-path, p",
-			Usage:  "path for plugins",
+			Usage:  "path for interlock plugins",
 			Value:  defaultPluginPath,
 			EnvVar: "INTERLOCK_PLUGIN_PATH",
 		},

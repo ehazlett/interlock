@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"sync"
@@ -20,11 +21,6 @@ var appCommands = []cli.Command{
 		Usage:  "list available plugins",
 		Action: listPlugins,
 	},
-}
-
-func printErr(err error) {
-	fmt.Fprintf(os.Stdout, "%s\n", err.Error())
-	os.Exit(1)
 }
 
 func getPluginInfo(path string, w io.Writer, wg *sync.WaitGroup, ec chan error) {
@@ -65,12 +61,12 @@ func listPlugins(c *cli.Context) {
 
 	// make sure dir exists
 	if err := os.MkdirAll(pluginPath, 0700); err != nil {
-		printErr(err)
+		log.Fatal(err)
 	}
 
 	plugins, err := ioutil.ReadDir(pluginPath)
 	if err != nil {
-		printErr(err)
+		log.Fatal(err)
 	}
 
 	w := tabwriter.NewWriter(os.Stdout, 5, 1, 3, ' ', 0)
