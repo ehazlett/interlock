@@ -28,6 +28,31 @@ func main() {
 			Value:  defaultPluginPath,
 			EnvVar: "INTERLOCK_PLUGIN_PATH",
 		},
+		cli.StringFlag{
+			Name:   "docker, d",
+			Usage:  "url to docker",
+			Value:  "unix:///var/run/docker.sock",
+			EnvVar: "DOCKER_HOST",
+		},
+		cli.StringFlag{
+			Name:  "tls-ca-cert",
+			Usage: "TLS CA certificate for Docker",
+			Value: "",
+		},
+		cli.StringFlag{
+			Name:  "tls-cert",
+			Usage: "TLS certificate for Docker",
+			Value: "",
+		},
+		cli.StringFlag{
+			Name:  "tls-key",
+			Usage: "TLS key for Docker",
+			Value: "",
+		},
+		cli.BoolFlag{
+			Name:  "allow-insecure",
+			Usage: "allow insecure tls for Docker",
+		},
 	}
 	app.Commands = appCommands
 

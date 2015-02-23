@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -13,6 +15,7 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/ehazlett/interlock"
+	"github.com/samalba/dockerclient"
 )
 
 var appCommands = []cli.Command{
@@ -21,6 +24,62 @@ var appCommands = []cli.Command{
 		Usage:  "list available plugins",
 		Action: listPlugins,
 	},
+}
+
+func getTLSConfig(caCert, cert, key []byte, allowInsecure bool) (*tls.Config, error) {
+	var tlsConfig tls.Config
+	tlsConfig.InsecureSkipVerify = true
+	certPool := x509.NewCertPool()
+
+	certPool.AppendCertsFromPEM(caCert)
+	tlsConfig.RootCAs = certPool
+	keypair, err := tls.X509KeyPair(cert, key)
+	if err != nil {
+		return &tlsConfig, err
+	}
+	tlsConfig.Certificates = []tls.Certificate{keypair}
+	if allowInsecure {
+		tlsConfig.InsecureSkipVerify = true
+	}
+
+	return &tlsConfig, nil
+}
+
+func getDockerClient(c *cli.Context) (*dockerclient.DockerClient, error) {
+	var tlsConfig *tls.Config
+	tlsCaCert := c.GlobalString("tls-ca-cert")
+	tlsCert := c.GlobalString("tls-cert")
+	tlsKey := c.GlobalString("tls-key")
+	allowInsecure := c.GlobalBool("allow-insecure")
+	if tlsCaCert != "" && tlsCert != "" && tlsKey != "" {
+		caCert, err := ioutil.ReadFile(tlsCaCert)
+		if err != nil {
+			return nil, fmt.Errorf("error loading tls ca cert: %s", err)
+		}
+
+		cert, err := ioutil.ReadFile(tlsCert)
+		if err != nil {
+			return nil, fmt.Errorf("error loading tls cert: %s", err)
+		}
+
+		key, err := ioutil.ReadFile(tlsKey)
+		if err != nil {
+			return nil, fmt.Errorf("error loading tls key: %s", err)
+		}
+
+		cfg, err := getTLSConfig(caCert, cert, key, allowInsecure)
+		if err != nil {
+			return nil, fmt.Errorf("error configuring tls: %s", err)
+		}
+		tlsConfig = cfg
+	}
+
+	d, err := dockerclient.NewDockerClient(c.GlobalString("docker"), tlsConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return d, nil
 }
 
 func getPluginInfo(path string, w io.Writer, wg *sync.WaitGroup, ec chan error) {
@@ -55,7 +114,6 @@ func getPluginInfo(path string, w io.Writer, wg *sync.WaitGroup, ec chan error) 
 		}
 	}
 }
-
 func listPlugins(c *cli.Context) {
 	pluginPath := c.GlobalString("plugin-path")
 
@@ -79,9 +137,11 @@ func listPlugins(c *cli.Context) {
 	for _, fi := range plugins {
 		wg.Add(1)
 		go getPluginInfo(filepath.Join(pluginPath, fi.Name()), w, wg, ec)
+
 	}
 
 	wg.Wait()
 
 	w.Flush()
+
 }

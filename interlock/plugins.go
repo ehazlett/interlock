@@ -25,6 +25,7 @@ func (c *PluginCmd) Exec(input *interlock.PluginInput) (*interlock.PluginOutput,
 	}
 
 	cmd := exec.Command(c.Path)
+
 	pipe, err := cmd.StdinPipe()
 	if err != nil {
 		return nil, err

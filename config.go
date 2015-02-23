@@ -18,4 +18,9 @@ type (
 		SSLPort                     int    `json:"ssl_port,omitempty"`
 		SSLOpts                     string `json:"ssl_opts,omitempty"`
 	}
+
+	InterlockConfig struct {
+		Version string   `json:"version,omitempty"`
+		Plugins []Plugin `json:"plugins,omitempty"`
+	}
 )
