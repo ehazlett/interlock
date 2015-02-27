@@ -11,14 +11,16 @@ type (
 		Version string `json:"version,omitempty"`
 		Author  string `json:"author,omitempty"`
 		Url     string `json:"url,omitempty"`
+		Path    string `json:"-"`
 	}
 
 	PluginInput struct {
-		Command string   `json:"command,omitempty"`
-		Args    []string `json:"args,omitempty"`
+		Command string `json:"command,omitempty"`
+		Data    []byte `json:"data,omitempty"`
 	}
 
 	PluginOutput struct {
+		Plugin  Plugin `json:"plugin,omitempty"`
 		Command string `json:"command,omitempty"`
 		Output  []byte `json:"output,omitempty"`
 		Error   []byte `json:"error,omitempty"`

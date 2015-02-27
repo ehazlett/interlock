@@ -1,4 +1,4 @@
-package main
+package plugins
 
 import (
 	"encoding/json"

@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 	"github.com/docker/docker/pkg/homedir"
 	"github.com/ehazlett/interlock"
@@ -21,6 +22,14 @@ func main() {
 	app.Version = interlock.VERSION
 	app.Email = "github.com/ehazlett/interlock"
 	app.Author = "@ehazlett"
+	app.Before = func(c *cli.Context) error {
+		if c.GlobalBool("debug") {
+			log.SetLevel(log.DebugLevel)
+			os.Setenv("DEBUG", "1")
+		}
+
+		return nil
+	}
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:   "plugin-path, p",
@@ -52,6 +61,10 @@ func main() {
 		cli.BoolFlag{
 			Name:  "allow-insecure",
 			Usage: "allow insecure tls for Docker",
+		},
+		cli.BoolFlag{
+			Name:  "debug, D",
+			Usage: "enable debug logging",
 		},
 	}
 	app.Commands = appCommands
