@@ -8,6 +8,8 @@ Docker
 
 `docker run -p 80:8080 -d ehazlett/interlock -swarm tcp://1.2.3.4:2375`
 
+If you're not running Swarm, you'll also need to tell Interlock the IP address of the backends, with `-proxy-backend-override-address <ip-addr>`.
+
 If you want SSL support, enter a path to the cert (probably want a mounted volume) and then expose 443:
 
 `docker run -p 80:8080 -p 443:8443 -d -v /etc/ssl:/ssl ehazlett/interlock -swarm tcp://1.2.3.4:2375 -ssl-cert=/etc/ssl/cert.pem`
