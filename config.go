@@ -20,7 +20,6 @@ type (
 	}
 
 	InterlockConfig struct {
-		Version string   `json:"version,omitempty"`
-		Plugins []Plugin `json:"plugins,omitempty"`
+		Version string `json:"version,omitempty"`
 	}
 )
