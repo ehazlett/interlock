@@ -10,6 +10,8 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/ehazlett/interlock"
+	"github.com/ehazlett/interlock/plugins"
+	_ "github.com/ehazlett/interlock/plugins/example"
 )
 
 var (
@@ -123,6 +125,12 @@ func main() {
 		}
 		tlsConfig = cfg
 
+	}
+
+	for _, p := range plugins.GetPlugins() {
+		log.Debugf("plugin name=%s version=%s",
+			p.Info().Name,
+			p.Info().Version)
 	}
 
 	m := NewManager(config, tlsConfig)
