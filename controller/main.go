@@ -3,37 +3,26 @@ package main
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"flag"
-	"fmt"
-	"io/ioutil"
 	"os"
+	"os/signal"
+	"path/filepath"
+	"syscall"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/ehazlett/interlock"
+	"github.com/codegangsta/cli"
+	"github.com/docker/docker/pkg/homedir"
 	"github.com/ehazlett/interlock/plugins"
 	_ "github.com/ehazlett/interlock/plugins/example"
+	//_ "github.com/ehazlett/interlock/plugins/haproxy"
 )
 
-var (
-	configPath                  string
-	proxyConfigPath             string
-	proxyPidPath                string
-	proxyPort                   int
-	syslogAddr                  string
-	shipyardUrl                 string
-	shipyardServiceKey          string
-	sslCert                     string
-	sslOpts                     string
-	sslPort                     int
-	swarmUrl                    string
-	debug                       bool
-	swarmTlsCaCert              string
-	swarmTlsCert                string
-	swarmTlsKey                 string
-	allowInsecureTls            bool
-	proxyBackendOverrideAddress string
-	showVersion                 bool
-)
+func waitForInterrupt() {
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
+	for _ = range sigChan {
+		os.Exit(0)
+	}
+}
 
 func getTLSConfig(caCert, cert, key []byte, allowInsecure bool) (*tls.Config, error) {
 	// TLS config
@@ -55,91 +44,69 @@ func getTLSConfig(caCert, cert, key []byte, allowInsecure bool) (*tls.Config, er
 	return &tlsConfig, nil
 }
 
-func init() {
-	flag.StringVar(&swarmUrl, "swarm", "tcp://127.0.0.1:2375", "swarm url")
-	flag.StringVar(&swarmTlsCaCert, "tlscacert", "", "ca certificate for tls")
-	flag.StringVar(&swarmTlsCert, "tlscert", "", "certificate for tls")
-	flag.StringVar(&swarmTlsKey, "tlskey", "", "key for tls")
-	flag.BoolVar(&allowInsecureTls, "allow-insecure-tls", false, "allow insecure certificates for TLS")
-	flag.StringVar(&configPath, "config", "", "path to config file")
-	flag.StringVar(&proxyConfigPath, "proxy-conf-path", "proxy.conf", "path to proxy file")
-	flag.StringVar(&proxyPidPath, "proxy-pid-path", "proxy.pid", "path to proxy pid file")
-	flag.StringVar(&proxyBackendOverrideAddress, "proxy-backend-override-address", "", "force proxy to use this address in all backends")
-	flag.StringVar(&syslogAddr, "syslog", "", "address to syslog")
-	flag.IntVar(&proxyPort, "proxy-port", 8080, "proxy listen port")
-	flag.StringVar(&sslCert, "ssl-cert", "", "path to ssl cert (enables SSL)")
-	flag.IntVar(&sslPort, "ssl-port", 8443, "ssl listen port (must have cert above)")
-	flag.StringVar(&sslOpts, "ssl-opts", "", "string of SSL options (eg. ciphers or tls versions)")
-	flag.BoolVar(&debug, "debug", false, "enable debug")
-	flag.BoolVar(&showVersion, "version", false, "show version and exit")
-	flag.Parse()
-}
-
 func main() {
-	if showVersion {
-		fmt.Printf("interlock %s\n", VERSION)
-		os.Exit(0)
-	}
-
-	if debug {
-		log.SetLevel(log.DebugLevel)
-	}
-
-	config := &interlock.Config{}
-	config.SwarmUrl = swarmUrl
-	config.ProxyConfigPath = proxyConfigPath
-	config.ProxyBackendOverrideAddress = proxyBackendOverrideAddress
-	config.PidPath = proxyPidPath
-	config.Port = proxyPort
-	config.SSLPort = sslPort
-	config.SSLOpts = sslOpts
-	if syslogAddr != "" {
-		config.SyslogAddr = syslogAddr
-	}
-	if sslCert != "" {
-		config.SSLCert = sslCert
-	}
-
-	// load tlsconfig
-	var tlsConfig *tls.Config
-	if swarmTlsCaCert != "" && swarmTlsCert != "" && swarmTlsKey != "" {
-		log.Infof("using tls for communication with swarm")
-		caCert, err := ioutil.ReadFile(swarmTlsCaCert)
-		if err != nil {
-			log.Fatalf("error loading ca cert: %s", err)
+	app := cli.NewApp()
+	app.Name = "interlock"
+	app.Version = VERSION
+	app.Author = "@ehazlett"
+	app.Email = ""
+	app.Usage = "event driven docker plugins"
+	app.Before = func(c *cli.Context) error {
+		if c.GlobalBool("debug") {
+			log.SetLevel(log.DebugLevel)
 		}
-
-		cert, err := ioutil.ReadFile(swarmTlsCert)
-		if err != nil {
-			log.Fatalf("error loading cert: %s", err)
-		}
-
-		key, err := ioutil.ReadFile(swarmTlsKey)
-		if err != nil {
-			log.Fatalf("error loading swarm key: %s", err)
-		}
-
-		cfg, err := getTLSConfig(caCert, cert, key, allowInsecureTls)
-		if err != nil {
-			log.Fatalf("error configuring tls: %s", err)
-		}
-		tlsConfig = cfg
-
+		return nil
 	}
-
-	for _, p := range plugins.GetPlugins() {
-		log.Debugf("plugin name=%s version=%s",
-			p.Info().Name,
-			p.Info().Version)
+	app.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:   "swarm-url, s",
+			Value:  "unix:///var/run/docker.sock",
+			Usage:  "swarm addr",
+			EnvVar: "DOCKER_HOST",
+		},
+		cli.StringFlag{
+			Name:  "swarm-tls-ca-cert",
+			Value: "",
+			Usage: "tls ca certificate",
+		},
+		cli.StringFlag{
+			Name:  "swarm-tls-cert",
+			Value: "",
+			Usage: "tls certificate",
+		},
+		cli.StringFlag{
+			Name:  "swarm-tls-key",
+			Value: "",
+			Usage: "tls key",
+		},
+		cli.BoolFlag{
+			Name:  "swarm-allow-insecure",
+			Usage: "enable insecure tls communication",
+		},
+		cli.StringFlag{
+			Name:   "plugin-config-path, p",
+			Value:  filepath.Join(homedir.Get(), ".interlock"),
+			Usage:  "path for plugin specific config files",
+			EnvVar: "INTERLOCK_PLUGIN_CONFIG_PATH",
+		},
+		cli.BoolFlag{
+			Name:  "debug, D",
+			Usage: "enable debug",
+		},
 	}
-
-	m := NewManager(config, tlsConfig)
-
-	log.Infof("interlock running version=%s proxy=:%d", VERSION, m.config.Port)
-	if m.config.SSLCert != "" {
-		log.Infof("ssl listener active=:%d", m.config.SSLPort)
+	// base commands
+	baseCommands := []cli.Command{
+		{
+			Name:   "start",
+			Action: cmdStart,
+		},
 	}
-	if err := m.Run(); err != nil {
+	// plugin supplied commands
+	baseCommands = append(baseCommands, plugins.GetCommands()...)
+
+	app.Commands = baseCommands
+
+	if err := app.Run(os.Args); err != nil {
 		log.Fatal(err)
 	}
 }

@@ -7,7 +7,10 @@ import (
 	"github.com/samalba/dockerclient"
 )
 
-type ExamplePlugin struct{}
+type ExamplePlugin struct {
+	interlockConfig *interlock.Config
+	client          *dockerclient.DockerClient
+}
 
 func init() {
 	plugins.Register(
@@ -20,16 +23,16 @@ func init() {
 		})
 }
 
-func NewPlugin() (interlock.Plugin, error) {
-	return ExamplePlugin{}, nil
+func NewPlugin(interlockConfig *interlock.Config, client *dockerclient.DockerClient) (interlock.Plugin, error) {
+	return ExamplePlugin{interlockConfig: interlockConfig, client: client}, nil
 }
 
 func (p ExamplePlugin) Info() *interlock.PluginInfo {
 	return &interlock.PluginInfo{
-		Name:        name,
-		Version:     version,
-		Description: description,
-		Url:         url,
+		Name:        pluginName,
+		Version:     pluginVersion,
+		Description: pluginDescription,
+		Url:         pluginUrl,
 	}
 }
 

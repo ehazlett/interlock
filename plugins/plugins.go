@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/codegangsta/cli"
 	"github.com/ehazlett/interlock"
 	"github.com/samalba/dockerclient"
 )
@@ -17,14 +18,23 @@ func init() {
 }
 
 type RegisteredPlugin struct {
-	New  func() (interlock.Plugin, error)
+	New  func(config *interlock.Config, client *dockerclient.DockerClient) (interlock.Plugin, error)
 	Info func() *interlock.PluginInfo
 }
 
-func DispatchEvent(event *dockerclient.Event, errorChan chan error) {
+func DispatchEvent(config *interlock.Config, client *dockerclient.DockerClient, event *dockerclient.Event, errorChan chan error) {
 	for _, plugin := range plugins {
-		log.Debugf("dispatching event to plugin: name=%s version=%s",
-			plugin.Info().Name, plugin.Info().Version)
+		p, err := plugin.New(config, client)
+		if err != nil {
+			errorChan <- err
+			continue
+		}
+		log.Infof("dispatching event to plugin: name=%s version=%s",
+			p.Info().Name, p.Info().Version)
+		if err := p.HandleEvent(event); err != nil {
+			errorChan <- err
+			continue
+		}
 	}
 }
 
@@ -37,26 +47,17 @@ func Register(name string, registeredPlugin *RegisteredPlugin) error {
 }
 
 func GetPlugins() map[string]*RegisteredPlugin {
-	//allPlugins := []*interlock.Plugin{}
-	//for _, p := range plugins {
-	//	log.Debug(p.Info())
-	//	plugin, err := p.New()
-	//	if err != nil {
-	//		log.Errorf("error loading plugin: name=%s version=%s error: %s",
-	//			p.Info().Name, p.Info().Version, err)
-	//		continue
-	//	}
-	//	allPlugins = append(allPlugins, &plugin)
-	//}
-	//log.Debug(allPlugins)
-	//return allPlugins
 	return plugins
 }
 
-func NewDriver(name string, info *interlock.PluginInfo) (interlock.Plugin, error) {
+func GetCommands() []cli.Command {
+	return nil
+}
+
+func NewPlugin(name string, config *interlock.Config, client *dockerclient.DockerClient) (interlock.Plugin, error) {
 	plugin, exists := plugins[name]
 	if !exists {
 		return nil, fmt.Errorf("unknown plugin: %s", name)
 	}
-	return plugin.New()
+	return plugin.New(config, client)
 }

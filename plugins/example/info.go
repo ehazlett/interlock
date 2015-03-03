@@ -5,17 +5,17 @@ import (
 )
 
 const (
-	name        = "example"
-	version     = "0.1"
-	description = "example plugin"
-	url         = "https://github.com/ehazlett/interlock"
+	pluginName        = "example"
+	pluginVersion     = "0.1"
+	pluginDescription = "example plugin"
+	pluginUrl         = "https://github.com/ehazlett/interlock"
 )
 
 var (
 	pluginInfo = &interlock.PluginInfo{
-		Name:        name,
-		Version:     version,
-		Description: description,
-		Url:         url,
+		Name:        pluginName,
+		Version:     pluginVersion,
+		Description: pluginDescription,
+		Url:         pluginUrl,
 	}
 )
