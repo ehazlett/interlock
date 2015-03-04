@@ -4,12 +4,22 @@ import (
 	"crypto/tls"
 	"io/ioutil"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"syscall"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 	"github.com/ehazlett/interlock"
 )
+
+func waitForInterrupt() {
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
+	for _ = range sigChan {
+		return
+	}
+}
 
 func cmdStart(c *cli.Context) {
 	swarmUrl := c.GlobalString("swarm-url")
@@ -34,6 +44,14 @@ func cmdStart(c *cli.Context) {
 
 	config := &interlock.Config{}
 	config.SwarmUrl = swarmUrl
+	config.PluginConfigPath = c.GlobalString("plugin-config-path")
+
+	log.Debugf("plugin config path: %s", config.PluginConfigPath)
+
+	// make sure plugin path is created
+	if err := os.MkdirAll(config.PluginConfigPath, 0700); err != nil {
+		log.Fatalf("unable to create plugin config directory: %s", err)
+	}
 
 	// load tlsconfig
 	var tlsConfig *tls.Config
@@ -69,4 +87,9 @@ func cmdStart(c *cli.Context) {
 	}
 
 	waitForInterrupt()
+
+	log.Infof("shutting down")
+	if err := m.Stop(); err != nil {
+		log.Fatal(err)
+	}
 }

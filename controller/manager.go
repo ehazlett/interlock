@@ -104,11 +104,36 @@ func (m *Manager) Run() error {
 	}()
 
 	// plugins
-	for _, p := range plugins.GetPlugins() {
+	enabledPlugins := plugins.GetPlugins()
+	if len(enabledPlugins) == 0 {
+		log.Warnf("no plugins enabled")
+	}
+
+	for _, p := range enabledPlugins {
 		log.Infof("loaded plugin name=%s version=%s",
 			p.Info().Name,
 			p.Info().Version)
 	}
 
+	// custom event to signal startup
+	evt := &dockerclient.Event{
+		Id:     "",
+		Status: "interlock-start",
+		From:   "interlock",
+		Time:   time.Now().UnixNano(),
+	}
+	plugins.DispatchEvent(m.Config, m.Client, evt, eventsErrChan)
+	return nil
+}
+
+func (m *Manager) Stop() error {
+	// custom event to signal shutdown
+	evt := &dockerclient.Event{
+		Id:     "",
+		Status: "interlock-stop",
+		From:   "interlock",
+		Time:   time.Now().UnixNano(),
+	}
+	plugins.DispatchEvent(m.Config, m.Client, evt, eventsErrChan)
 	return nil
 }

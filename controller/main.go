@@ -4,25 +4,13 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"os"
-	"os/signal"
 	"path/filepath"
-	"syscall"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 	"github.com/docker/docker/pkg/homedir"
 	"github.com/ehazlett/interlock/plugins"
-	_ "github.com/ehazlett/interlock/plugins/example"
-	//_ "github.com/ehazlett/interlock/plugins/haproxy"
 )
-
-func waitForInterrupt() {
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
-	for _ = range sigChan {
-		os.Exit(0)
-	}
-}
 
 func getTLSConfig(caCert, cert, key []byte, allowInsecure bool) (*tls.Config, error) {
 	// TLS config

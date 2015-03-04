@@ -17,10 +17,12 @@ func init() {
 	plugins = make(map[string]*RegisteredPlugin)
 }
 
-type RegisteredPlugin struct {
-	New  func(config *interlock.Config, client *dockerclient.DockerClient) (interlock.Plugin, error)
-	Info func() *interlock.PluginInfo
-}
+type (
+	RegisteredPlugin struct {
+		New  func(config *interlock.Config, client *dockerclient.DockerClient) (interlock.Plugin, error)
+		Info func() *interlock.PluginInfo
+	}
+)
 
 func DispatchEvent(config *interlock.Config, client *dockerclient.DockerClient, event *dockerclient.Event, errorChan chan error) {
 	for _, plugin := range plugins {
