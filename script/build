@@ -1,3 +1,12 @@
 #!/bin/bash
+TAG=${1:-}
+
+if [ -z "$TAG" ]; then
+    echo "Usage: $0 <version"
+    echo " Example: $0 2.1.0"
+    exit 1
+fi
+
+echo "Building Interlock $TAG"
 docker build -t interlock-build -f Dockerfile.build .
-docker run -ti --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(pwd):/go/src/github.com/ehazlett/interlock -w /go/src/github.com/ehazlett/interlock/interlock interlock-build make build image
+docker run -ti --rm -e TAG -v /var/run/docker.sock:/var/run/docker.sock -v $(pwd):/go/src/github.com/ehazlett/interlock -w /go/src/github.com/ehazlett/interlock/interlock interlock-build make TAG=$TAG build image

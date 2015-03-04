@@ -104,15 +104,22 @@ func (m *Manager) Run() error {
 	}()
 
 	// plugins
-	enabledPlugins := plugins.GetPlugins()
-	if len(enabledPlugins) == 0 {
+	allPlugins := plugins.GetPlugins()
+	if len(allPlugins) == 0 || len(m.Config.EnabledPlugins) == 0 {
 		log.Warnf("no plugins enabled")
 	}
 
-	for _, p := range enabledPlugins {
-		log.Infof("loaded plugin name=%s version=%s",
-			p.Info().Name,
-			p.Info().Version)
+	enabledPlugins := make(map[string]bool)
+	for _, v := range m.Config.EnabledPlugins {
+		enabledPlugins[v] = true
+	}
+
+	for _, p := range allPlugins {
+		if _, ok := enabledPlugins[p.Info().Name]; ok {
+			log.Infof("loaded plugin name=%s version=%s",
+				p.Info().Name,
+				p.Info().Version)
+		}
 	}
 
 	// custom event to signal startup

@@ -4,11 +4,9 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"os"
-	"path/filepath"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
-	"github.com/docker/docker/pkg/homedir"
 	"github.com/ehazlett/interlock/plugins"
 )
 
@@ -71,11 +69,10 @@ func main() {
 			Name:  "swarm-allow-insecure",
 			Usage: "enable insecure tls communication",
 		},
-		cli.StringFlag{
-			Name:   "plugin-config-path, p",
-			Value:  filepath.Join(homedir.Get(), ".interlock"),
-			Usage:  "path for plugin specific config files",
-			EnvVar: "INTERLOCK_PLUGIN_CONFIG_PATH",
+		cli.StringSliceFlag{
+			Name:  "enabled-plugins, p",
+			Usage: "list of enabled plugins",
+			Value: &cli.StringSlice{},
 		},
 		cli.BoolFlag{
 			Name:  "debug, D",
@@ -87,6 +84,10 @@ func main() {
 		{
 			Name:   "start",
 			Action: cmdStart,
+		},
+		{
+			Name:   "list-plugins",
+			Action: cmdListPlugins,
 		},
 	}
 	// plugin supplied commands

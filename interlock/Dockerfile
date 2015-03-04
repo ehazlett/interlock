@@ -1,6 +1,6 @@
 FROM debian:jessie
 RUN apt-get update
 RUN apt-get install -y haproxy ca-certificates --no-install-recommends
-ADD controller /usr/local/bin/controller
+ADD interlock /usr/local/bin/interlock
 EXPOSE 8080 8443
-ENTRYPOINT ["/usr/local/bin/controller"]
+ENTRYPOINT ["/usr/local/bin/interlock"]

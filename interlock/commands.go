@@ -2,15 +2,18 @@ package main
 
 import (
 	"crypto/tls"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"syscall"
+	"text/tabwriter"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 	"github.com/ehazlett/interlock"
+	"github.com/ehazlett/interlock/plugins"
 )
 
 func waitForInterrupt() {
@@ -44,14 +47,7 @@ func cmdStart(c *cli.Context) {
 
 	config := &interlock.Config{}
 	config.SwarmUrl = swarmUrl
-	config.PluginConfigPath = c.GlobalString("plugin-config-path")
-
-	log.Debugf("plugin config path: %s", config.PluginConfigPath)
-
-	// make sure plugin path is created
-	if err := os.MkdirAll(config.PluginConfigPath, 0700); err != nil {
-		log.Fatalf("unable to create plugin config directory: %s", err)
-	}
+	config.EnabledPlugins = c.GlobalStringSlice("enabled-plugins")
 
 	// load tlsconfig
 	var tlsConfig *tls.Config
@@ -92,4 +88,22 @@ func cmdStart(c *cli.Context) {
 	if err := m.Stop(); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func cmdListPlugins(c *cli.Context) {
+	allPlugins := plugins.GetPlugins()
+	w := tabwriter.NewWriter(os.Stdout, 8, 1, 3, ' ', 0)
+
+	fmt.Fprintln(w, "NAME\tVERSION\tDESCRIPTION\tURL")
+
+	for _, p := range allPlugins {
+		i := p.Info()
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\n",
+			i.Name,
+			i.Version,
+			i.Description,
+			i.Url,
+		)
+	}
+	w.Flush()
 }

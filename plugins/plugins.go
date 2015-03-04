@@ -25,17 +25,26 @@ type (
 )
 
 func DispatchEvent(config *interlock.Config, client *dockerclient.DockerClient, event *dockerclient.Event, errorChan chan error) {
+	enabledPlugins := make(map[string]bool)
+	for _, v := range config.EnabledPlugins {
+		enabledPlugins[v] = true
+	}
+
 	for _, plugin := range plugins {
 		p, err := plugin.New(config, client)
 		if err != nil {
 			errorChan <- err
 			continue
 		}
-		log.Infof("dispatching event to plugin: name=%s version=%s",
-			p.Info().Name, p.Info().Version)
-		if err := p.HandleEvent(event); err != nil {
-			errorChan <- err
-			continue
+
+		// send only if plugin is enabled
+		if _, ok := enabledPlugins[p.Info().Name]; ok {
+			log.Infof("dispatching event to plugin: name=%s version=%s",
+				p.Info().Name, p.Info().Version)
+			if err := p.HandleEvent(event); err != nil {
+				errorChan <- err
+				continue
+			}
 		}
 	}
 }

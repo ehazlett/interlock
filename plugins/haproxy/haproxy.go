@@ -93,48 +93,101 @@ func logMessage(level log.Level, args ...string) {
 	plugins.Log(pluginInfo.Name, level, args...)
 }
 
-func loadPluginConfig(pluginConfigPath string) (*PluginConfig, error) {
+func loadPluginConfig() (*PluginConfig, error) {
 	wd, err := os.Getwd()
 	if err != nil {
 		return nil, err
 	}
 
 	cfg := &PluginConfig{
-		ProxyConfigPath: filepath.Join(wd, "proxy.conf"),
-		Port:            8080,
-		PidPath:         filepath.Join(wd, "proxy.pid"),
-		MaxConn:         2048,
-		ConnectTimeout:  5000,
-		ServerTimeout:   10000,
-		ClientTimeout:   10000,
-		StatsUser:       "stats",
-		StatsPassword:   "interlock",
+		ProxyConfigPath:             filepath.Join(wd, "proxy.conf"),
+		ProxyBackendOverrideAddress: "",
+		Port:           8080,
+		PidPath:        filepath.Join(wd, "proxy.pid"),
+		MaxConn:        2048,
+		ConnectTimeout: 5000,
+		ServerTimeout:  10000,
+		ClientTimeout:  10000,
+		StatsUser:      "stats",
+		StatsPassword:  "interlock",
 	}
 
-	configPath := filepath.Join(pluginConfigPath, fmt.Sprintf("%s.cfg", pluginInfo.Name))
-
-	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		return cfg, nil
-	} else {
-		return nil, err
+	// load custom config via environment
+	proxyConfigPath := os.Getenv("HAPROXY_PROXY_CONFIG_PATH")
+	if proxyConfigPath != "" {
+		cfg.ProxyConfigPath = proxyConfigPath
 	}
 
-	logMessage(log.DebugLevel,
-		fmt.Sprintf("loading config: path=%s", configPath))
-
-	f, err := os.Open(configPath)
-	if err != nil {
-		return nil, err
+	proxyBackendOverrideAddress := os.Getenv("HAPROXY_PROXY_BACKEND_OVERRIDE_ADDRESS")
+	if proxyBackendOverrideAddress != "" {
+		cfg.ProxyBackendOverrideAddress = proxyBackendOverrideAddress
 	}
 
-	if err := json.NewDecoder(f).Decode(&cfg); err != nil {
-		return nil, err
+	port := os.Getenv("HAPROXY_PORT")
+	if port != "" {
+		p, err := strconv.Atoi(port)
+		if err != nil {
+			return nil, err
+		}
+		cfg.Port = p
 	}
+
+	proxyPidPath := os.Getenv("HAPROXY_PID_PATH")
+	if proxyPidPath != "" {
+		cfg.PidPath = proxyPidPath
+	}
+
+	maxConn := os.Getenv("HAPROXY_MAX_CONN")
+	if maxConn != "" {
+		c, err := strconv.Atoi(maxConn)
+		if err != nil {
+			return nil, err
+		}
+		cfg.MaxConn = c
+	}
+
+	connectTimeout := os.Getenv("HAPROXY_CONNECT_TIMEOUT")
+	if connectTimeout != "" {
+		c, err := strconv.Atoi(connectTimeout)
+		if err != nil {
+			return nil, err
+		}
+		cfg.ConnectTimeout = c
+	}
+
+	serverTimeout := os.Getenv("HAPROXY_SERVER_TIMEOUT")
+	if serverTimeout != "" {
+		c, err := strconv.Atoi(serverTimeout)
+		if err != nil {
+			return nil, err
+		}
+		cfg.ServerTimeout = c
+	}
+
+	clientTimeout := os.Getenv("HAPROXY_CLIENT_TIMEOUT")
+	if clientTimeout != "" {
+		c, err := strconv.Atoi(clientTimeout)
+		if err != nil {
+			return nil, err
+		}
+		cfg.ClientTimeout = c
+	}
+
+	statsUser := os.Getenv("HAPROXY_STATS_USER")
+	if statsUser != "" {
+		cfg.StatsUser = statsUser
+	}
+
+	statsPassword := os.Getenv("HAPROXY_STATS_PASSWORD")
+	if statsPassword != "" {
+		cfg.StatsPassword = statsPassword
+	}
+
 	return cfg, nil
 }
 
 func NewPlugin(interlockConfig *interlock.Config, client *dockerclient.DockerClient) (interlock.Plugin, error) {
-	pluginConfig, err := loadPluginConfig(interlockConfig.PluginConfigPath)
+	pluginConfig, err := loadPluginConfig()
 	if err != nil {
 		return nil, err
 	}

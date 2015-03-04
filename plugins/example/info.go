@@ -8,7 +8,7 @@ const (
 	pluginName        = "example"
 	pluginVersion     = "0.1"
 	pluginDescription = "example plugin"
-	pluginUrl         = "https://github.com/ehazlett/interlock"
+	pluginUrl         = "https://github.com/ehazlett/interlock/tree/master/plugins/example"
 )
 
 var (
