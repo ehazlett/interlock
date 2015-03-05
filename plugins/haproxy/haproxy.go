@@ -110,6 +110,9 @@ func loadPluginConfig() (*PluginConfig, error) {
 		ClientTimeout:  10000,
 		StatsUser:      "stats",
 		StatsPassword:  "interlock",
+		SSLCert:        "",
+		SSLPort:        8443,
+		SSLOpts:        "",
 	}
 
 	// load custom config via environment
@@ -181,6 +184,25 @@ func loadPluginConfig() (*PluginConfig, error) {
 	statsPassword := os.Getenv("HAPROXY_STATS_PASSWORD")
 	if statsPassword != "" {
 		cfg.StatsPassword = statsPassword
+	}
+
+	sslPort := os.Getenv("HAPROXY_SSL_PORT")
+	if sslPort != "" {
+		p, err := strconv.Atoi(sslPort)
+		if err != nil {
+			return nil, err
+		}
+		cfg.SSLPort = p
+	}
+
+	sslCert := os.Getenv("HAPROXY_SSL_CERT")
+	if sslCert != "" {
+		cfg.SSLCert = sslCert
+	}
+
+	sslOpts := os.Getenv("HAPROXY_SSL_OPTS")
+	if sslOpts != "" {
+		cfg.SSLOpts = sslOpts
 	}
 
 	return cfg, nil

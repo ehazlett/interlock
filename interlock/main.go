@@ -70,8 +70,8 @@ func main() {
 			Usage: "enable insecure tls communication",
 		},
 		cli.StringSliceFlag{
-			Name:  "enabled-plugins, p",
-			Usage: "list of enabled plugins",
+			Name:  "plugin, p",
+			Usage: "enable plugin",
 			Value: &cli.StringSlice{},
 		},
 		cli.BoolFlag{
