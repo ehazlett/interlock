@@ -2,7 +2,7 @@
 TAG=${1:-}
 
 if [ -z "$TAG" ]; then
-    echo "Usage: $0 <version"
+    echo "Usage: $0 <version>"
     echo " Example: $0 2.1.0"
     exit 1
 fi

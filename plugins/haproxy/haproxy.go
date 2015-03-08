@@ -68,6 +68,7 @@ frontend http-default
 
 var (
 	eventsErrChan = make(chan error)
+	proxyCmd      *exec.Cmd
 )
 
 type HaproxyPlugin struct {
@@ -75,7 +76,6 @@ type HaproxyPlugin struct {
 	pluginConfig    *PluginConfig
 	client          *dockerclient.DockerClient
 	mux             sync.Mutex
-	proxyCmd        *exec.Cmd
 }
 
 func init() {
@@ -264,7 +264,7 @@ func (p HaproxyPlugin) HandleEvent(event *dockerclient.Event) error {
 		time.Sleep(250 * time.Millisecond)
 	case "interlock-stop":
 		// stop haproxy
-		if p.proxyCmd != nil {
+		if proxyCmd != nil {
 			pid, err := p.getProxyPid()
 			if err != nil {
 				return err
@@ -491,7 +491,7 @@ func (p HaproxyPlugin) getProxyPid() (int, error) {
 
 func (p HaproxyPlugin) reload() error {
 	args := []string{"-D", "-f", p.pluginConfig.ProxyConfigPath, "-p", p.pluginConfig.PidPath, "-sf"}
-	if p.proxyCmd != nil {
+	if proxyCmd != nil {
 		p, err := p.getProxyPid()
 		if err != nil {
 			log.Error(err)
@@ -509,7 +509,7 @@ func (p HaproxyPlugin) reload() error {
 	if err := cmd.Run(); err != nil {
 		return err
 	}
-	p.proxyCmd = cmd
+	proxyCmd = cmd
 
 	logMessage(log.InfoLevel, "proxy reloaded and ready")
 	return nil
