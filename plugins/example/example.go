@@ -1,6 +1,8 @@
 package example
 
 import (
+	"fmt"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/ehazlett/interlock"
 	"github.com/ehazlett/interlock/plugins"
@@ -37,8 +39,11 @@ func (p ExamplePlugin) Info() *interlock.PluginInfo {
 }
 
 func (p ExamplePlugin) HandleEvent(event *dockerclient.Event) error {
-	log.Debugf("name=%s action=received event=%s time=%d",
-		pluginInfo.Name, event.Id, event.Time,
+	plugins.Log(pluginInfo.Name, log.InfoLevel,
+		fmt.Sprintf("action=received event=%s time=%d",
+			event.Id,
+			event.Time,
+		),
 	)
 	return nil
 }
