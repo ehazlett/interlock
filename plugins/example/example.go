@@ -30,12 +30,7 @@ func NewPlugin(interlockConfig *interlock.Config, client *dockerclient.DockerCli
 }
 
 func (p ExamplePlugin) Info() *interlock.PluginInfo {
-	return &interlock.PluginInfo{
-		Name:        pluginName,
-		Version:     pluginVersion,
-		Description: pluginDescription,
-		Url:         pluginUrl,
-	}
+	return pluginInfo
 }
 
 func (p ExamplePlugin) HandleEvent(event *dockerclient.Event) error {

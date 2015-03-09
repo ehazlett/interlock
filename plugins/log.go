@@ -9,7 +9,7 @@ import (
 
 // Log logs a plugin message prefixing the message with the plugin name
 func Log(name string, level log.Level, args ...string) {
-	msg := fmt.Sprintf("[%s] %s", name, strings.Join(args, " "))
+	msg := fmt.Sprintf("[%s] %v", name, strings.Join(args, " "))
 	var logger func(string, ...interface{})
 	switch level {
 	case log.DebugLevel:

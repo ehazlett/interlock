@@ -39,8 +39,12 @@ func DispatchEvent(config *interlock.Config, client *dockerclient.DockerClient, 
 
 		// send only if plugin is enabled
 		if _, ok := enabledPlugins[p.Info().Name]; ok {
-			log.Infof("dispatching event to plugin: name=%s version=%s",
-				p.Info().Name, p.Info().Version)
+			Log("interlock", log.InfoLevel,
+				fmt.Sprintf("dispatching event to plugin: name=%s version=%s",
+					p.Info().Name,
+					p.Info().Version,
+				),
+			)
 			if err := p.HandleEvent(event); err != nil {
 				errorChan <- err
 				continue

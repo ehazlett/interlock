@@ -68,6 +68,14 @@ func (client *MockClient) StopAllMonitorEvents() {
 	client.Mock.Called()
 }
 
+func (client *MockClient) StartMonitorStats(cb dockerclient.StatCallback, ec chan error, args ...interface{}) {
+	client.Mock.Called(cb, ec, args)
+}
+
+func (client *MockClient) StopAllMonitorStats() {
+	client.Mock.Called()
+}
+
 func (client *MockClient) Version() (*dockerclient.Version, error) {
 	args := client.Mock.Called()
 	return args.Get(0).(*dockerclient.Version), args.Error(1)
@@ -78,8 +86,8 @@ func (client *MockClient) PullImage(name string, auth *dockerclient.AuthConfig) 
 	return args.Error(0)
 }
 
-func (client *MockClient) RemoveContainer(id string, force bool) error {
-	args := client.Mock.Called(id, force)
+func (client *MockClient) RemoveContainer(id string, force, volumes bool) error {
+	args := client.Mock.Called(id, force, volumes)
 	return args.Error(0)
 }
 

@@ -16,7 +16,7 @@ import (
 )
 
 // Callback used to listen to Docker's events
-func eventCallback(event *dockerclient.Event, args ...interface{}) {
+func eventCallback(event *dockerclient.Event, ec chan error, args ...interface{}) {
 	log.Printf("Received event: %#v\n", *event)
 }
 
@@ -57,7 +57,7 @@ func main() {
 	docker.StopContainer(containerId, 5)
 
 	// Listen to events
-	docker.StartMonitorEvents(eventCallback)
+	docker.StartMonitorEvents(eventCallback, nil)
 	time.Sleep(3600 * time.Second)
 }
 ```
