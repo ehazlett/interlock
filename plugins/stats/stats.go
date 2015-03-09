@@ -79,11 +79,6 @@ func NewPlugin(interlockConfig *interlock.Config, client *dockerclient.DockerCli
 	}
 	p.pluginConfig = cfg
 
-	// check all containers to see if stats are needed
-	if err := p.initialize(); err != nil {
-		return nil, err
-	}
-
 	// handle errorChan
 	go func() {
 		for {
@@ -247,6 +242,11 @@ func (p StatsPlugin) startStats(id string) error {
 }
 
 func (p StatsPlugin) HandleEvent(event *dockerclient.Event) error {
+	// check all containers to see if stats are needed
+	if err := p.initialize(); err != nil {
+		return err
+	}
+
 	t := time.Now()
 	if err := p.sendStat(p.pluginConfig.StatsPrefix+".all.events", 1, &t); err != nil {
 		plugins.Log(pluginInfo.Name, log.ErrorLevel, err.Error())
