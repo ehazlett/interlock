@@ -78,7 +78,39 @@ func NewPlugin(interlockConfig *interlock.Config, client *dockerclient.DockerCli
 		return nil, err
 	}
 	p.pluginConfig = cfg
+
+	// check all containers to see if stats are needed
+	if err := p.initialize(); err != nil {
+		return nil, err
+	}
+
+	// handle errorChan
+	go func() {
+		for {
+			err := <-errorChan
+			plugins.Log(pluginInfo.Name,
+				log.ErrorLevel,
+				err.Error(),
+			)
+		}
+	}()
+
 	return p, nil
+}
+
+func (p StatsPlugin) initialize() error {
+	containers, err := p.client.ListContainers(false, false, "")
+	if err != nil {
+		return err
+	}
+
+	for _, c := range containers {
+		if err := p.startStats(c.Id); err != nil {
+			errorChan <- err
+		}
+	}
+
+	return nil
 }
 
 func (p StatsPlugin) handleStats(id string, cb dockerclient.StatCallback, ec chan error, args ...interface{}) {
@@ -183,14 +215,13 @@ func (p StatsPlugin) sendEventStats(id string, stats *dockerclient.Stats, ec cha
 		plugins.Log(pluginInfo.Name,
 			log.DebugLevel,
 			fmt.Sprintf("stat t=%d id=%s key=%s value=%v",
-				timestamp,
+				timestamp.UnixNano(),
 				id,
 				s.Key,
 				s.Value,
 			),
 		)
 		m := fmt.Sprintf("%s.%s", statBasePath, s.Key)
-		plugins.Log(pluginInfo.Name, log.DebugLevel, m)
 		if err := p.sendStat(m, s.Value, &timestamp); err != nil {
 			ec <- err
 		}
@@ -199,24 +230,30 @@ func (p StatsPlugin) sendEventStats(id string, stats *dockerclient.Stats, ec cha
 	return
 }
 
+func (p StatsPlugin) startStats(id string) error {
+	// get container info for event
+	c, err := p.client.InspectContainer(id)
+	if err != nil {
+		return err
+	}
+	// match regex to start monitoring
+	if p.pluginConfig.ImageNameFilter.MatchString(c.Config.Image) {
+		plugins.Log(pluginInfo.Name, log.DebugLevel,
+			fmt.Sprintf("gathering stats: image=%s id=%s", c.Image, c.Id[:12]))
+		go p.handleStats(id, p.sendEventStats, errorChan, nil)
+	}
+
+	return nil
+}
+
 func (p StatsPlugin) HandleEvent(event *dockerclient.Event) error {
 	t := time.Now()
 	if err := p.sendStat(p.pluginConfig.StatsPrefix+".all.events", 1, &t); err != nil {
 		plugins.Log(pluginInfo.Name, log.ErrorLevel, err.Error())
 	}
 	if event.Status == "start" {
-		// get container info for event
-		c, err := p.client.InspectContainer(event.Id)
-		if err != nil {
+		if err := p.startStats(event.Id); err != nil {
 			return err
-		}
-
-		fmt.Println(c.Config.Image)
-		// match regex to start monitoring
-		if p.pluginConfig.ImageNameFilter.MatchString(c.Config.Image) {
-			plugins.Log(pluginInfo.Name, log.DebugLevel,
-				fmt.Sprintf("gathering stats: image=%s id=%s", c.Image, c.Id[:12]))
-			go p.handleStats(event.Id, p.sendEventStats, errorChan, nil)
 		}
 	}
 	return nil
