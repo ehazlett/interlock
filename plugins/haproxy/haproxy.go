@@ -398,11 +398,13 @@ func (p HaproxyPlugin) GenerateProxyConfig(isKillEvent bool) (*ProxyConfig, erro
 		var portDef dockerclient.PortBinding
 
 		for _, v := range ports {
-			portDef = dockerclient.PortBinding{
-				HostIp:   v[0].HostIp,
-				HostPort: v[0].HostPort,
+			if len(v) > 0 {
+				portDef = dockerclient.PortBinding{
+					HostIp:   v[0].HostIp,
+					HostPort: v[0].HostPort,
+				}
+				break
 			}
-			break
 		}
 
 		if p.pluginConfig.ProxyBackendOverrideAddress != "" {
