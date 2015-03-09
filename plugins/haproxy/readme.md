@@ -7,6 +7,25 @@ the same hostname to the proper HAProxy backend.
 
  > Note: Interlock requires HAProxy 1.5+
 
+# Configuration
+The following configuration is available through environment variables:
+
+- `HAPROXY_PROXY_CONFIG_PATH`: HAProxy generated config file path
+- `HAPROXY_PROXY_BACKEND_OVERRIDE_ADDRESS`: Manually set the proxy backend address -- this is needed if not using Swarm (i.e. only Docker)
+- `HAPROXY_PORT`: Port to serve (default: `8080`)
+- `HAPROXY_PID_PATH`: HAProxy pid path
+- `HAPROXY_MAX_CONN`: Max connections (default: `2048`)
+- `HAPROXY_CONNECT_TIMEOUT`: Connection timeout (default: `5000`)
+- `HAPROXY_SERVER_TIMEOUT`: Server connection timeout (default: `10000`)
+- `HAPROXY_CLIENT_TIMEOUT`: Client connection timeout (default: `10000`)
+- `HAPROXY_STATS_USER`: HAProxy admin username (default: `stats`)
+- `HAPROXY_STATS_PASSWORD`: HAProxy admin password (default: `interlock`)
+- `HAPROXY_SSL_PORT`: HAProxy SSL port (default: `8443`)
+- `HAPROXY_SSL_CERT`: Path to SSL certificate for HAProxy
+- `HAPROXY_SSL_OPTS`: SSL options for HAProxy
+
+> Note: environment variables are optional.  There are sensible defaults provided.
+
 # Usage
 `docker run -p 80:8080 -d ehazlett/interlock --swarm-url tcp://1.2.3.4:2375 --plugin haproxy start`
 
