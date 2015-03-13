@@ -158,39 +158,58 @@ func (p StatsPlugin) sendEventStats(id string, stats *dockerclient.Stats, ec cha
 	if len(id) > 12 {
 		id = id[:12]
 	}
-	statBasePath := p.pluginConfig.StatsPrefix + ".containers." + id
+	cInfo, err := p.client.InspectContainer(id)
+	if err != nil {
+		ec <- err
+		return
+	}
+	cName := cInfo.Name[1:]
+	cNamePath := fmt.Sprintf(cName)
+
+	if cInfo.Node.ID != "" {
+		cNamePath = fmt.Sprintf("nodes.%s.%s", cInfo.Node.Name, cName)
+	}
+
+	statBasePath := p.pluginConfig.StatsPrefix + ".containers." + cNamePath
 	type containerStat struct {
 		Key   string
 		Value interface{}
 	}
+
+	memPercent := float64(stats.MemoryStats.Usage) / float64(stats.MemoryStats.Limit) * 100.0
+
 	statData := []containerStat{
 		{
-			Key:   "cpu.usage.totalUsage",
+			Key:   "cpu.totalUsage",
 			Value: stats.CpuStats.CpuUsage.TotalUsage,
 		},
 		{
-			Key:   "cpu.usage.usageInKernelmode",
+			Key:   "cpu.usageInKernelmode",
 			Value: stats.CpuStats.CpuUsage.UsageInKernelmode,
 		},
 		{
-			Key:   "cpu.usage.usageInUsermode",
+			Key:   "cpu.usageInUsermode",
 			Value: stats.CpuStats.CpuUsage.UsageInUsermode,
 		},
 		{
-			Key:   "memory.stats.usage",
+			Key:   "memory.usage",
 			Value: stats.MemoryStats.Usage,
 		},
 		{
-			Key:   "memory.stats.maxUsage",
+			Key:   "memory.maxUsage",
 			Value: stats.MemoryStats.MaxUsage,
 		},
 		{
-			Key:   "memory.stats.failcnt",
+			Key:   "memory.failcnt",
 			Value: stats.MemoryStats.Failcnt,
 		},
 		{
-			Key:   "memory.stats.limit",
+			Key:   "memory.limit",
 			Value: stats.MemoryStats.Limit,
+		},
+		{
+			Key:   "memory.percent",
+			Value: memPercent,
 		},
 		{
 			Key:   "network.rxBytes",
@@ -269,7 +288,7 @@ func (p StatsPlugin) HandleEvent(event *dockerclient.Event) error {
 	}
 
 	t := time.Now()
-	if err := p.sendStat(p.pluginConfig.StatsPrefix+".all.events", 1, &t); err != nil {
+	if err := p.sendStat(p.pluginConfig.StatsPrefix+".cluster.events", 1, &t); err != nil {
 		plugins.Log(pluginInfo.Name, log.ErrorLevel, err.Error())
 	}
 

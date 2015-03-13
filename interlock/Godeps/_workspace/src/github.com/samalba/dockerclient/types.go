@@ -92,7 +92,16 @@ type ContainerInfo struct {
 		FinishedAt time.Time
 		Ghost      bool
 	}
-	Image           string
+	Image string
+	Node  struct {
+		ID     string
+		IP     string
+		Addr   string
+		Name   string
+		Cpus   int
+		Memory int
+		Labels map[string]string
+	}
 	NetworkSettings struct {
 		IpAddress   string
 		IpPrefixLen int

@@ -14,7 +14,7 @@
 		},
 		{
 			"ImportPath": "github.com/samalba/dockerclient",
-			"Rev": "d505c65842e6f4975344d17d06470c795a68b458"
+			"Rev": "e1a9e2f8d38f462752ef1e55720dc57b1e42d20e"
 		}
 	]
 }

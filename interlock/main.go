@@ -45,10 +45,9 @@ func main() {
 	}
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
-			Name:   "swarm-url, s",
-			Value:  "unix:///var/run/docker.sock",
-			Usage:  "swarm addr",
-			EnvVar: "DOCKER_HOST",
+			Name:  "swarm-url, s",
+			Value: "unix:///var/run/docker.sock",
+			Usage: "swarm addr",
 		},
 		cli.StringFlag{
 			Name:  "swarm-tls-ca-cert",

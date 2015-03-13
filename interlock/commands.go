@@ -31,15 +31,17 @@ func cmdStart(c *cli.Context) {
 	swarmTlsKey := c.GlobalString("swarm-tls-key")
 	allowInsecureTls := c.GlobalBool("swarm-allow-insecure")
 
+	// only load env vars if no args
 	// check environment for docker client config
 	envDockerHost := os.Getenv("DOCKER_HOST")
-	if envDockerHost != "" {
+	if swarmUrl == "" && envDockerHost != "" {
 		swarmUrl = envDockerHost
 	}
 
+	// only load env vars if no args
 	envDockerCertPath := os.Getenv("DOCKER_CERT_PATH")
 	envDockerTlsVerify := os.Getenv("DOCKER_TLS_VERIFY")
-	if envDockerCertPath != "" && envDockerTlsVerify != "" {
+	if swarmTlsCaCert == "" && envDockerCertPath != "" && envDockerTlsVerify != "" {
 		swarmTlsCaCert = filepath.Join(envDockerCertPath, "ca.pem")
 		swarmTlsCert = filepath.Join(envDockerCertPath, "cert.pem")
 		swarmTlsKey = filepath.Join(envDockerCertPath, "key.pem")
