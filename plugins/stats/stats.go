@@ -2,9 +2,11 @@ package stats
 
 import (
 	"fmt"
+	"math"
 	"net"
 	"os"
 	"regexp"
+	"strconv"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -45,6 +47,7 @@ func loadPluginConfig() (*PluginConfig, error) {
 		CarbonAddress:   "",
 		StatsPrefix:     "docker.stats",
 		ImageNameFilter: defaultImageNameFilter,
+		Interval:        10,
 	}
 
 	// load custom config via environment
@@ -68,6 +71,15 @@ func loadPluginConfig() (*PluginConfig, error) {
 		cfg.ImageNameFilter = r
 	}
 
+	interval := os.Getenv("STATS_INTERVAL")
+	if interval != "" {
+		i, err := strconv.Atoi(interval)
+		if err != nil {
+			return nil, err
+		}
+		cfg.Interval = i
+	}
+
 	return cfg, nil
 }
 
@@ -89,6 +101,8 @@ func NewPlugin(interlockConfig *interlock.Config, client *dockerclient.DockerCli
 			)
 		}
 	}()
+
+	plugins.Log(pluginInfo.Name, log.InfoLevel, fmt.Sprintf("sending stats every %d seconds", cfg.Interval))
 
 	return p, nil
 }
@@ -134,6 +148,13 @@ func (p StatsPlugin) sendStat(path string, value interface{}, t *time.Time) erro
 }
 
 func (p StatsPlugin) sendEventStats(id string, stats *dockerclient.Stats, ec chan error, args ...interface{}) {
+	timestamp := time.Now()
+	// report every n seconds
+	rem := math.Mod(float64(timestamp.Second()), float64(p.pluginConfig.Interval))
+	if rem != 0 {
+		return
+	}
+
 	if len(id) > 12 {
 		id = id[:12]
 	}
@@ -205,7 +226,7 @@ func (p StatsPlugin) sendEventStats(id string, stats *dockerclient.Stats, ec cha
 		},
 	}
 
-	timestamp := time.Now()
+	// send every n seconds
 	for _, s := range statData {
 		plugins.Log(pluginInfo.Name,
 			log.DebugLevel,
@@ -251,6 +272,7 @@ func (p StatsPlugin) HandleEvent(event *dockerclient.Event) error {
 	if err := p.sendStat(p.pluginConfig.StatsPrefix+".all.events", 1, &t); err != nil {
 		plugins.Log(pluginInfo.Name, log.ErrorLevel, err.Error())
 	}
+
 	if event.Status == "start" {
 		if err := p.startStats(event.Id); err != nil {
 			return err

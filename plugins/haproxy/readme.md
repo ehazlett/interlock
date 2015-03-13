@@ -51,7 +51,7 @@ In this example HAProxy will use concatinated certificates from /etc/ssl/<hostna
 This will create the container and make it available via `http://test.local`.
 Note: you will have to create an entry in your local hosts file to resolve.
 
-# Extra Data
+# Interlock Data
 The HAProxy plugin can use additional data from a container's `INTERLOCK_DATA` 
 environment variable.  This must be specified as a JSON payload in the variable.
 The following options are available:

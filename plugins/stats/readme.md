@@ -7,3 +7,4 @@ The following configuration is available through environment variables:
 - `STATS_CARBON_ADDRESS`: Carbon receiver address (i.e. `1.2.3.4:2003`)
 - `STATS_PREFIX`: Stat prefix (default: `docker.stats`)
 - `STATS_IMAGE_NAME_FILTER`: Regex to match against container image name to gather stats (default: `.*` - all containers)
+- `STATS_INTERVAL`: Interval (in seconds) to send stats to Carbon (default: `10`)
