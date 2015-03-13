@@ -336,65 +336,82 @@ func (p HaproxyPlugin) GenerateProxyConfig(isKillEvent bool) (*ProxyConfig, erro
 		if err != nil {
 			return nil, err
 		}
+
 		env := cInfo.Config.Env
 		interlockData := &interlock.InterlockData{}
-		for _, e := range env {
 
+		for _, e := range env {
 			envParts := strings.Split(e, "=")
 			if envParts[0] == "INTERLOCK_DATA" {
 				b := bytes.NewBufferString(envParts[1])
 				if err := json.NewDecoder(b).Decode(&interlockData); err != nil {
-					log.Warnf("%s: unable to parse interlock data: %s", cntId, err)
+					logMessage(log.WarnLevel,
+						fmt.Sprintf("%s: unable to parse interlock data: %s", cntId, err))
 				}
 				break
 			}
 		}
 		hostname := cInfo.Config.Hostname
 		domain := cInfo.Config.Domainname
+
 		if interlockData.Hostname != "" {
 			hostname = interlockData.Hostname
 		}
+
 		if interlockData.Domain != "" {
 			domain = interlockData.Domain
 		}
+
 		if domain == "" {
 			continue
 		}
+
 		if hostname != domain && hostname != "" {
 			domain = fmt.Sprintf("%s.%s", hostname, domain)
 		}
+
 		if interlockData.Check != "" {
 			if val, ok := hostChecks[domain]; ok {
 				// check existing host check for different values
 				if val != interlockData.Check {
-					log.Warnf("conflicting check specified for %s", domain)
+					logMessage(log.WarnLevel,
+						fmt.Sprintf("conflicting check specified for %s", domain))
 				}
 			} else {
 				hostChecks[domain] = interlockData.Check
-				log.Infof("using custom check for %s: %s", domain, interlockData.Check)
+				logMessage(log.DebugLevel,
+					fmt.Sprintf("using custom check for %s: %s", domain, interlockData.Check))
 			}
 		}
+
 		checkInterval := 5000
+
 		if interlockData.CheckInterval != 0 {
 			checkInterval = interlockData.CheckInterval
-			log.Infof("using custom check interval for %s: %d", domain, checkInterval)
+			logMessage(log.DebugLevel,
+				fmt.Sprintf("using custom check interval for %s: %d", domain, checkInterval))
 		}
+
 		if len(interlockData.BackendOptions) > 0 {
 			hostBackendOptions[domain] = interlockData.BackendOptions
-			log.Infof("using backend options for %s: %s", domain, strings.Join(interlockData.BackendOptions, ","))
+			logMessage(log.DebugLevel,
+				fmt.Sprintf("using backend options for %s: %s", domain, strings.Join(interlockData.BackendOptions, ",")))
 		}
+
 		hostSSLOnly[domain] = false
 		if interlockData.SSLOnly {
-			log.Infof("configuring ssl redirect for %s", domain)
+			logMessage(log.DebugLevel,
+				fmt.Sprintf("configuring ssl redirect for %s", domain))
 			hostSSLOnly[domain] = true
 		}
 
 		//host := cInfo.NetworkSettings.IpAddress
 		ports := cInfo.NetworkSettings.Ports
 		if len(ports) == 0 {
-			log.Warnf("%s: no ports exposed", cntId)
+			logMessage(log.WarnLevel, fmt.Sprintf("%s: no ports exposed", cntId))
 			continue
 		}
+
 		var portDef dockerclient.PortBinding
 
 		for _, v := range ports {
@@ -414,11 +431,13 @@ func (p HaproxyPlugin) GenerateProxyConfig(isKillEvent bool) (*ProxyConfig, erro
 		addr := fmt.Sprintf("%s:%s", portDef.HostIp, portDef.HostPort)
 
 		if interlockData.Port != 0 {
+			interlockPort := fmt.Sprintf("%d", interlockData.Port)
 			for k, v := range ports {
 				parts := strings.Split(k, "/")
-				if parts[0] == string(interlockData.Port) {
+				if parts[0] == interlockPort {
 					port := v[0]
-					log.Infof("using port %s", port.HostPort)
+					logMessage(log.DebugLevel,
+						fmt.Sprintf("%s: found specified port %s exposed as %s", domain, interlockPort, port.HostPort))
 					addr = fmt.Sprintf("%s:%s", port.HostIp, port.HostPort)
 					break
 				}
@@ -429,13 +448,20 @@ func (p HaproxyPlugin) GenerateProxyConfig(isKillEvent bool) (*ProxyConfig, erro
 			Addr:          addr,
 			CheckInterval: checkInterval,
 		}
+
+		logMessage(log.InfoLevel,
+			fmt.Sprintf("%s: upstream=%s", domain, addr))
+
 		for _, alias := range interlockData.AliasDomains {
-			log.Infof("adding alias %s for %s", alias, cntId)
+			logMessage(log.DebugLevel,
+				fmt.Sprintf("adding alias %s for %s", alias, cntId))
 			proxyUpstreams[alias] = append(proxyUpstreams[alias], up)
 		}
+
 		proxyUpstreams[domain] = append(proxyUpstreams[domain], up)
 		if !isKillEvent && interlockData.Warm {
-			log.Infof("warming %s: %s", cntId, addr)
+			logMessage(log.DebugLevel,
+				fmt.Sprintf("warming %s: %s", cntId, addr))
 			http.Get(fmt.Sprintf("http://%s", addr))
 		}
 
@@ -450,7 +476,8 @@ func (p HaproxyPlugin) GenerateProxyConfig(isKillEvent bool) (*ProxyConfig, erro
 			BackendOptions: hostBackendOptions[k],
 			SSLOnly:        hostSSLOnly[k],
 		}
-		log.Infof("adding host name=%s domain=%s", host.Name, host.Domain)
+		logMessage(log.DebugLevel,
+			fmt.Sprintf("adding host name=%s domain=%s", host.Name, host.Domain))
 		hosts = append(hosts, host)
 	}
 	// generate config
