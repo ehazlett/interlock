@@ -259,6 +259,10 @@ func (p HaproxyPlugin) handleUpdate(event *dockerclient.Event) error {
 
 func (p HaproxyPlugin) HandleEvent(event *dockerclient.Event) error {
 	switch event.Status {
+	case "start", "interlock-start":
+		if err := p.handleUpdate(event); err != nil {
+			return err
+		}
 	case "stop", "kill", "die":
 		// add delay to make sure container is removed
 		time.Sleep(250 * time.Millisecond)
@@ -275,10 +279,6 @@ func (p HaproxyPlugin) HandleEvent(event *dockerclient.Event) error {
 		// wait for stop
 		time.Sleep(1 * time.Second)
 		return nil
-	}
-
-	if err := p.handleUpdate(event); err != nil {
-		return err
 	}
 
 	return nil
