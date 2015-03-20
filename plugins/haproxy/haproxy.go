@@ -100,7 +100,6 @@ func loadPluginConfig() (*PluginConfig, error) {
 	}
 
 	cfg := &PluginConfig{
-		BalanceAlgorithm:            "roundrobin",
 		ProxyConfigPath:             filepath.Join(wd, "proxy.conf"),
 		ProxyBackendOverrideAddress: "",
 		Port:           8080,
@@ -117,11 +116,6 @@ func loadPluginConfig() (*PluginConfig, error) {
 	}
 
 	// load custom config via environment
-	proxyBalanceAlgorithm := os.Getenv("HAPROXY_PROXY_BALANCE_ALGORITHM")
-	if proxyBalanceAlgorithm != "" {
-		cfg.BalanceAlgorithm = proxyBalanceAlgorithm
-	}
-
 	proxyConfigPath := os.Getenv("HAPROXY_PROXY_CONFIG_PATH")
 	if proxyConfigPath != "" {
 		cfg.ProxyConfigPath = proxyConfigPath
