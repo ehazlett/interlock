@@ -1,0 +1,20 @@
+{
+	"ImportPath": "github.com/ehazlett/interlock/interlock",
+	"GoVersion": "go1.4.1",
+	"Deps": [
+		{
+			"ImportPath": "github.com/Sirupsen/logrus",
+			"Comment": "v0.6.0-5-gf92b795",
+			"Rev": "f92b7950b372b1db80bd3527e4d40e42555fe6c2"
+		},
+		{
+			"ImportPath": "github.com/codegangsta/cli",
+			"Comment": "1.2.0-66-g6086d79",
+			"Rev": "6086d7927ec35315964d9fea46df6c04e6d697c1"
+		},
+		{
+			"ImportPath": "github.com/samalba/dockerclient",
+			"Rev": "e1a9e2f8d38f462752ef1e55720dc57b1e42d20e"
+		}
+	]
+}
