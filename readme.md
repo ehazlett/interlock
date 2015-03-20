@@ -4,6 +4,10 @@ Dynamic, event-driven Docker plugin system using [Swarm](https://github.com/dock
 # Usage
 Run `docker run ehazlett/interlock list-plugins` to show available plugins.
 
+Example:
+
+`docker run -P ehazlett/interlock -s tcp://1.2.3.4:2375 --plugin example start`
+
 # Commandline options
 
 - `--swarm-url`: url to swarm (default: tcp://127.0.0.1:2375)
