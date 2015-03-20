@@ -56,7 +56,7 @@ frontend http-default
     {{ end }}
 {{ range $host := .Hosts }}backend {{ $host.Name }}
     http-response add-header X-Request-Start %Ts.%ms
-    balance {{ .PluginConfig.BalanceAlgorithm }}
+    balance {{ $host.BalanceAlgorithm }}
     {{ range $option := $host.BackendOptions }}option {{ $option }}
     {{ end }}
     {{ if $host.Check }}option {{ $host.Check }}{{ end }}
@@ -333,6 +333,7 @@ func (p HaproxyPlugin) GenerateProxyConfig(isKillEvent bool) (*ProxyConfig, erro
 	var hosts []*Host
 	proxyUpstreams := map[string][]*Upstream{}
 	hostChecks := map[string]string{}
+	hostBalanceAlgorithms := map[string]string{}
 	hostBackendOptions := map[string][]string{}
 	hostSSLOnly := map[string]bool{}
 	for _, cnt := range containers {
@@ -344,7 +345,7 @@ func (p HaproxyPlugin) GenerateProxyConfig(isKillEvent bool) (*ProxyConfig, erro
 		}
 
 		env := cInfo.Config.Env
-		interlockData := &interlock.InterlockData{}
+		interlockData := &InterlockData{}
 
 		for _, e := range env {
 			envParts := strings.Split(e, "=")
@@ -396,6 +397,12 @@ func (p HaproxyPlugin) GenerateProxyConfig(isKillEvent bool) (*ProxyConfig, erro
 			checkInterval = interlockData.CheckInterval
 			logMessage(log.DebugLevel,
 				fmt.Sprintf("using custom check interval for %s: %d", domain, checkInterval))
+		}
+
+		hostBalanceAlgorithms[domain] = "roundrobin"
+
+		if interlockData.BalanceAlgorithm != "" {
+			hostBalanceAlgorithms[domain] = interlockData.BalanceAlgorithm
 		}
 
 		if len(interlockData.BackendOptions) > 0 {
@@ -475,12 +482,13 @@ func (p HaproxyPlugin) GenerateProxyConfig(isKillEvent bool) (*ProxyConfig, erro
 	for k, v := range proxyUpstreams {
 		name := strings.Replace(k, ".", "_", -1)
 		host := &Host{
-			Name:           name,
-			Domain:         k,
-			Upstreams:      v,
-			Check:          hostChecks[k],
-			BackendOptions: hostBackendOptions[k],
-			SSLOnly:        hostSSLOnly[k],
+			Name:             name,
+			Domain:           k,
+			Upstreams:        v,
+			Check:            hostChecks[k],
+			BalanceAlgorithm: hostBalanceAlgorithms[k],
+			BackendOptions:   hostBackendOptions[k],
+			SSLOnly:          hostSSLOnly[k],
 		}
 		logMessage(log.DebugLevel,
 			fmt.Sprintf("adding host name=%s domain=%s", host.Name, host.Domain))

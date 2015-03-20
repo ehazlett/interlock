@@ -2,12 +2,13 @@ package haproxy
 
 type (
 	Host struct {
-		Name           string
-		Domain         string
-		Check          string
-		BackendOptions []string
-		Upstreams      []*Upstream
-		SSLOnly        bool
+		Name             string
+		Domain           string
+		Check            string
+		BackendOptions   []string
+		Upstreams        []*Upstream
+		SSLOnly          bool
+		BalanceAlgorithm string
 	}
 	Upstream struct {
 		Addr          string

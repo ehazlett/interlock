@@ -1,7 +1,6 @@
 package haproxy
 
 type PluginConfig struct {
-	BalanceAlgorithm            string `json:"balance_algorithm,omitempty"`
 	ProxyConfigPath             string `json:"proxy_config_path,omitempty"`
 	ProxyBackendOverrideAddress string `json:"proxy_backend_override_address,omitempty"`
 	ConnectTimeout              int    `json:"connect_timeout,omitempty"`
