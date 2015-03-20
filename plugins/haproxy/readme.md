@@ -5,11 +5,12 @@ the plugin will create a backend using the hostname and exposed port from the
 container.  The plugin will take care of adding multiple containers using
 the same hostname to the proper HAProxy backend.
 
- > Note: Interlock requires HAProxy 1.5+
+ > Note: Interlock HAProxy plugin requires HAProxy 1.5+
 
 # Configuration
 The following configuration is available through environment variables:
 
+- `HAPROXY_BALANCE_ALGORITHM`: Specify balancing algorithm (default: `roundrobin`) http://cbonte.github.io/haproxy-dconv/configuration-1.5.html#balance
 - `HAPROXY_PROXY_CONFIG_PATH`: HAProxy generated config file path
 - `HAPROXY_PROXY_BACKEND_OVERRIDE_ADDRESS`: Manually set the proxy backend address -- this is needed if not using Swarm (i.e. only Docker)
 - `HAPROXY_PORT`: Port to serve (default: `8080`)
