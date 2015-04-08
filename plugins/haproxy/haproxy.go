@@ -228,10 +228,6 @@ func (p HaproxyPlugin) Init() error {
 		return err
 	}
 
-	if err := p.reload(); err != nil {
-		return err
-	}
-
 	return nil
 }
 
