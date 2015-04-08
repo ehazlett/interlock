@@ -9,6 +9,8 @@ type (
 		Upstreams        []*Upstream
 		SSLOnly          bool
 		BalanceAlgorithm string
+		Mode             string
+		PublicPort       int
 	}
 	Upstream struct {
 		Addr          string

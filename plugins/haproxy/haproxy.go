@@ -51,16 +51,23 @@ frontend http-default
     stats enable
     stats uri /haproxy?stats
     stats refresh 5s
-    {{ range $host := .Hosts }}acl is_{{ $host.Name }} hdr_beg(host) {{ $host.Domain }}
+    {{ range $host := .Hosts  }}{{ if eq $host.Mode "http"  }}acl is_{{ $host.Name  }} hdr_beg(host) {{ $host.Domain  }}
     use_backend {{ $host.Name }} if is_{{ $host.Name }}
     {{ end }}
-{{ range $host := .Hosts }}backend {{ $host.Name }}
+    {{ end }}
+{{ range $host := .Hosts  }}{{ if eq $host.Mode "tcp"  }}listen {{ $host.Name  }} :{{ $host.PublicPort  }}{{ else  }}backend {{ $host.Name  }}{{ end  }}
+    {{ if eq $host.Mode "http"  }}
     http-response add-header X-Request-Start %Ts.%ms
     balance {{ $host.BalanceAlgorithm }}
+    {{ else }}
+    mode tcp
+    {{ end }}
     {{ range $option := $host.BackendOptions }}option {{ $option }}
     {{ end }}
-    {{ if $host.Check }}option {{ $host.Check }}{{ end }}
+    {{ if eq $host.Mode "http"  }}
     {{ if $host.SSLOnly }}redirect scheme https if !{ ssl_fc  }{{ end }}
+    {{ end }}
+    {{ if $host.Check }}option {{ $host.Check }}{{ end }}
     {{ range $i,$up := $host.Upstreams }}server {{ $host.Name }}_{{ $i }} {{ $up.Addr }} check inter {{ $up.CheckInterval }}
     {{ end }}
 {{ end }}`
@@ -318,6 +325,10 @@ func (p HaproxyPlugin) GenerateProxyConfig(isKillEvent bool) (*ProxyConfig, erro
 	hostBalanceAlgorithms := map[string]string{}
 	hostBackendOptions := map[string][]string{}
 	hostSSLOnly := map[string]bool{}
+	domains := map[string]string{}
+	hostModes := map[string]string{}
+	hostPublicPorts := map[string]int{}
+
 	for _, cnt := range containers {
 		cntId := cnt.Id[:12]
 		// load interlock data
@@ -340,6 +351,7 @@ func (p HaproxyPlugin) GenerateProxyConfig(isKillEvent bool) (*ProxyConfig, erro
 				break
 			}
 		}
+
 		hostname := cInfo.Config.Hostname
 		domain := cInfo.Config.Domainname
 
@@ -351,23 +363,36 @@ func (p HaproxyPlugin) GenerateProxyConfig(isKillEvent bool) (*ProxyConfig, erro
 			domain = interlockData.Domain
 		}
 
-		if domain == "" {
+		if domain == "" && interlockData.Mode != "tcp" {
 			continue
 		}
+
+		if domain == "" {
+			domain = "tcp"
+		}
+
+		domains[hostname] = domain
 
 		if hostname != domain && hostname != "" {
 			domain = fmt.Sprintf("%s.%s", hostname, domain)
 		}
 
+		if interlockData.Mode == "tcp" && interlockData.PublicPort == 0 {
+			log.Warnf("%s: cannot use a public port 0", hostname)
+			continue
+		}
+
+		hostPublicPorts[hostname] = interlockData.PublicPort
+
 		if interlockData.Check != "" {
-			if val, ok := hostChecks[domain]; ok {
+			if val, ok := hostChecks[hostname]; ok {
 				// check existing host check for different values
 				if val != interlockData.Check {
 					logMessage(log.WarnLevel,
 						fmt.Sprintf("conflicting check specified for %s", domain))
 				}
 			} else {
-				hostChecks[domain] = interlockData.Check
+				hostChecks[hostname] = interlockData.Check
 				logMessage(log.DebugLevel,
 					fmt.Sprintf("using custom check for %s: %s", domain, interlockData.Check))
 			}
@@ -381,26 +406,31 @@ func (p HaproxyPlugin) GenerateProxyConfig(isKillEvent bool) (*ProxyConfig, erro
 				fmt.Sprintf("using custom check interval for %s: %d", domain, checkInterval))
 		}
 
-		hostBalanceAlgorithms[domain] = "roundrobin"
+		hostBalanceAlgorithms[hostname] = "roundrobin"
 
 		if interlockData.BalanceAlgorithm != "" {
-			hostBalanceAlgorithms[domain] = interlockData.BalanceAlgorithm
+			hostBalanceAlgorithms[hostname] = interlockData.BalanceAlgorithm
 		}
 
 		if len(interlockData.BackendOptions) > 0 {
-			hostBackendOptions[domain] = interlockData.BackendOptions
+			hostBackendOptions[hostname] = interlockData.BackendOptions
 			logMessage(log.DebugLevel,
 				fmt.Sprintf("using backend options for %s: %s", domain, strings.Join(interlockData.BackendOptions, ",")))
 		}
 
-		hostSSLOnly[domain] = false
+		hostSSLOnly[hostname] = false
 		if interlockData.SSLOnly {
 			logMessage(log.DebugLevel,
 				fmt.Sprintf("configuring ssl redirect for %s", domain))
-			hostSSLOnly[domain] = true
+			hostSSLOnly[hostname] = true
 		}
 
-		//host := cInfo.NetworkSettings.IpAddress
+		hostModes[hostname] = "http"
+		if interlockData.Mode != "" {
+			hostModes[hostname] = interlockData.Mode
+
+		}
+
 		ports := cInfo.NetworkSettings.Ports
 		if len(ports) == 0 {
 			logMessage(log.WarnLevel, fmt.Sprintf("%s: no ports exposed", cntId))
@@ -453,7 +483,7 @@ func (p HaproxyPlugin) GenerateProxyConfig(isKillEvent bool) (*ProxyConfig, erro
 			proxyUpstreams[alias] = append(proxyUpstreams[alias], up)
 		}
 
-		proxyUpstreams[domain] = append(proxyUpstreams[domain], up)
+		proxyUpstreams[hostname] = append(proxyUpstreams[hostname], up)
 		if !isKillEvent && interlockData.Warm {
 			logMessage(log.DebugLevel,
 				fmt.Sprintf("warming %s: %s", cntId, addr))
@@ -465,15 +495,17 @@ func (p HaproxyPlugin) GenerateProxyConfig(isKillEvent bool) (*ProxyConfig, erro
 		name := strings.Replace(k, ".", "_", -1)
 		host := &Host{
 			Name:             name,
-			Domain:           k,
+			Domain:           domains[k],
 			Upstreams:        v,
 			Check:            hostChecks[k],
 			BalanceAlgorithm: hostBalanceAlgorithms[k],
 			BackendOptions:   hostBackendOptions[k],
 			SSLOnly:          hostSSLOnly[k],
+			Mode:             hostModes[k],
+			PublicPort:       hostPublicPorts[k],
 		}
 		logMessage(log.DebugLevel,
-			fmt.Sprintf("adding host name=%s domain=%s", host.Name, host.Domain))
+			fmt.Sprintf("adding host name=%s mode=%s domain=%s", host.Name, host.Mode, host.Domain))
 		hosts = append(hosts, host)
 	}
 	// generate config

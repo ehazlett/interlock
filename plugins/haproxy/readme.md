@@ -81,8 +81,10 @@ The following options are available:
 - `check_interval`: specify the interval (in ms) when to run the health check (`{"check_interval": 10000}`)  default: 5000
 - `ssl_only`: configure redirect to SSL for backend (`{"ssl_only": true}`)
 - `balance_algorithm`: haproxy balancing algorithm (default: `roundrobin`) http://cbonte.github.io/haproxy-dconv/configuration-1.5.html#balance
+- `mode`: set the backend mode (`http` / `tcp`)
+- `public_port`: (tcp only) set the public port for the container when using tcp mode
 
-For example:
+For example (http):
 
 ```
 docker run -ti \
@@ -94,6 +96,16 @@ docker run -ti \
 ```
 
 This will create a backend to access the container at "www.example.com" and an alias domain `foo.com`, use the port that was allocated for the container port "8080" and make a GET request to the backend container before adding.
+
+Example (tcp):
+
+```
+docker run -ti \
+    -P \
+    -d \
+    -e INTERLOCK_DATA='{"mode": "tcp", "public_port": 6379}' \
+    redis
+```
 
 # Monitoring
 You can use `/haproxy?monitor` to check the status of HAProxy.

@@ -14,4 +14,6 @@ type InterlockData struct {
 	// these are custom vals for hosts
 	Check          string   `json:"check,omitempty"`
 	BackendOptions []string `json:"backend_options,omitempty"`
+	Mode           string   `json:"mode,omitempty"`
+	PublicPort     int      `json:"public_port,omitempty"`
 }
