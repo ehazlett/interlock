@@ -8,6 +8,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 	"github.com/ehazlett/interlock/plugins"
+	"github.com/ehazlett/interlock/version"
 )
 
 func getTLSConfig(caCert, cert, key []byte, allowInsecure bool) (*tls.Config, error) {
@@ -33,7 +34,7 @@ func getTLSConfig(caCert, cert, key []byte, allowInsecure bool) (*tls.Config, er
 func main() {
 	app := cli.NewApp()
 	app.Name = "interlock"
-	app.Version = VERSION
+	app.Version = version.VERSION + " (" + version.GITCOMMIT + ")"
 	app.Author = "@ehazlett"
 	app.Email = ""
 	app.Usage = "event driven docker plugins"

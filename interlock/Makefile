@@ -2,6 +2,7 @@ CGO_ENABLED=0
 GOOS=linux
 GOARCH=amd64
 TAG=${TAG:-latest}
+COMMIT=`git rev-parse --short HEAD`
 
 all: deps build
 
@@ -12,7 +13,7 @@ clean:
 	@rm -rf Godeps/_workspace interlock
 
 build:
-	@godep go build -a -tags 'netgo' -ldflags '-w -linkmode external -extldflags -static' .
+	@godep go build -a -tags 'netgo' -ldflags "-w -X github.com/ehazlett/interlock/version.GITCOMMIT $(COMMIT) -linkmode external -extldflags -static" .
 
 image: build
 	@echo Building Interlock image $(TAG)
