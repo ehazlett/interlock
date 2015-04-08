@@ -223,14 +223,6 @@ func NewPlugin(interlockConfig *interlock.Config, client *dockerclient.DockerCli
 	return plugin, nil
 }
 
-func (p HaproxyPlugin) Init() error {
-	if err := p.updateConfig(nil); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (p HaproxyPlugin) Info() *interlock.PluginInfo {
 	return &interlock.PluginInfo{
 		Name:        pluginName,
@@ -255,7 +247,7 @@ func (p HaproxyPlugin) handleUpdate(event *dockerclient.Event) error {
 
 func (p HaproxyPlugin) HandleEvent(event *dockerclient.Event) error {
 	switch event.Status {
-	case "start", "interlock-start":
+	case "start":
 		if err := p.handleUpdate(event); err != nil {
 			return err
 		}
@@ -523,14 +515,14 @@ func (p HaproxyPlugin) getProxyPid() (int, error) {
 }
 
 func (p HaproxyPlugin) reload() error {
-	args := []string{"-D", "-f", p.pluginConfig.ProxyConfigPath, "-p", p.pluginConfig.PidPath, "-sf"}
+	args := []string{"-D", "-f", p.pluginConfig.ProxyConfigPath, "-p", p.pluginConfig.PidPath}
 	if proxyCmd != nil {
-		p, err := p.getProxyPid()
+		proxyPid, err := p.getProxyPid()
 		if err != nil {
 			log.Error(err)
 		}
-		pid := strconv.Itoa(p)
-		args = append(args, pid)
+		pid := strconv.Itoa(proxyPid)
+		args = append(args, []string{"-sf", pid}...)
 	}
 
 	haproxyPath, err := exec.LookPath("haproxy")
