@@ -10,7 +10,7 @@ the same hostname to the proper HAProxy backend.
 # Configuration
 The following configuration is available through environment variables:
 
-- `HAPROXY_PROXY_CONFIG_PATH`: HAProxy generated config file path
+- `HAPROXY_PROXY_CONFIG_PATH`: HAProxy generated config file path (default: `/proxy.conf`)
 - `HAPROXY_PROXY_BACKEND_OVERRIDE_ADDRESS`: Manually set the proxy backend address -- this is needed if not using Swarm (i.e. only Docker)
 - `HAPROXY_PORT`: Port to serve (default: `8080`)
 - `HAPROXY_PID_PATH`: HAProxy pid path
@@ -27,14 +27,29 @@ The following configuration is available through environment variables:
 > Note: environment variables are optional.  There are sensible defaults provided.
 
 # Usage
+
+An example run of an Interlock container using the `haproxy` plugin is as follows:
+
 `docker run -p 80:8080 -d ehazlett/interlock --swarm-url tcp://1.2.3.4:2375 --plugin haproxy start`
+
+Some things to note about this running container:
+
+- You should then be able to access `http://<your-host-ip>/haproxy?stats` to see
+  the proxy stats.  As noted in the above "Configuration" section, the default
+  username for this page is `stats` and the default password is `interlock`.
+- Interlock logs to STDOUT, so you can view the Interlock logs with `docker logs
+  <container-name>`.
+- If you wish to see the configuration file which Interlock has generated for
+  HAProxy, it is located at `/proxy.conf` by default.  `docker exec -it
+  <interlock-container-name> cat /proxy.conf` is an example of a command which will
+  print it.
+- You can add some CNAMEs or `/etc/host` entries for your IP.  Interlock will
+  use the `hostname` value specified in the container config to add backends to
+  the proxy.
 
 If you want SSL support, enter a path to the cert (probably want a mounted volume) and then expose 443:
 
 `docker run -p 80:8080 -p 443:8443 -d -v /etc/ssl:/ssl -e HAPROXY_SSL_CERT=/etc/ssl/cert.pem ehazlett/interlock --swarm-url tcp://1.2.3.4:2375 --plugin haproxy start`
-
-- You should then be able to access `http://<your-host-ip>/haproxy?stats` to see the proxy stats.
-- Add some CNAMEs or /etc/host entries for your IP.  Interlock uses the `hostname` in the container config to add backends to the proxy.
 
 Example for SNI (multidomain) https:
 
