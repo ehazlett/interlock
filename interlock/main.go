@@ -34,7 +34,7 @@ func getTLSConfig(caCert, cert, key []byte, allowInsecure bool) (*tls.Config, er
 func main() {
 	app := cli.NewApp()
 	app.Name = "interlock"
-	app.Version = version.VERSION + " (" + version.GITCOMMIT + ")"
+	app.Version = version.FULL_VERSION
 	app.Author = "@ehazlett"
 	app.Email = ""
 	app.Usage = "event driven docker plugins"

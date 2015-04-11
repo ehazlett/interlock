@@ -5,4 +5,6 @@ var (
 
 	// GITCOMMIT will be overwritten automatically by the build system
 	GITCOMMIT = "HEAD"
+
+	FULL_VERSION = VERSION + " (" + GITCOMMIT + ")"
 )

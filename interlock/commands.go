@@ -14,6 +14,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/ehazlett/interlock"
 	"github.com/ehazlett/interlock/plugins"
+	"github.com/ehazlett/interlock/version"
 )
 
 func waitForInterrupt() {
@@ -79,7 +80,7 @@ func cmdStart(c *cli.Context) {
 
 	m := NewManager(config, tlsConfig)
 
-	log.Infof("interlock running version=%s", VERSION)
+	log.Infof("interlock running version=%s", version.FULL_VERSION)
 	if err := m.Run(); err != nil {
 		log.Fatal(err)
 	}
