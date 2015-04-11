@@ -247,7 +247,7 @@ func (p HaproxyPlugin) handleUpdate(event *dockerclient.Event) error {
 
 func (p HaproxyPlugin) HandleEvent(event *dockerclient.Event) error {
 	switch event.Status {
-	case "start":
+	case "start", "interlock-start":
 		if err := p.handleUpdate(event); err != nil {
 			return err
 		}
@@ -515,6 +515,8 @@ func (p HaproxyPlugin) getProxyPid() (int, error) {
 }
 
 func (p HaproxyPlugin) reload() error {
+	p.mux.Lock()
+	defer p.mux.Unlock()
 	args := []string{"-D", "-f", p.pluginConfig.ProxyConfigPath, "-p", p.pluginConfig.PidPath}
 	if proxyCmd != nil {
 		proxyPid, err := p.getProxyPid()
