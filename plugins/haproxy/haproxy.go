@@ -69,6 +69,8 @@ frontend http-default
 var (
 	eventsErrChan = make(chan error)
 	proxyCmd      *exec.Cmd
+	reloadChan    = make(chan bool)
+	jobs          = 0
 )
 
 type HaproxyPlugin struct {
@@ -76,6 +78,7 @@ type HaproxyPlugin struct {
 	pluginConfig    *PluginConfig
 	client          *dockerclient.DockerClient
 	mux             sync.Mutex
+	reloaded        bool
 }
 
 func init() {
@@ -218,9 +221,27 @@ func NewPlugin(interlockConfig *interlock.Config, client *dockerclient.DockerCli
 		pluginConfig:    pluginConfig,
 		interlockConfig: interlockConfig,
 		client:          client,
+		reloaded:        false,
 	}
 
+	plugin.Init()
+
 	return plugin, nil
+}
+
+func (p HaproxyPlugin) Init() {
+	go func() {
+		<-reloadChan
+
+		logMessage(log.DebugLevel, fmt.Sprintf("reload chan: reload triggered"))
+		if err := p.reload(); err != nil {
+			logMessage(log.ErrorLevel, fmt.Sprintf("error reloading: %s", err))
+		}
+
+		time.Sleep(250 * time.Millisecond)
+	}()
+
+	time.Sleep(500 * time.Millisecond)
 }
 
 func (p HaproxyPlugin) Info() *interlock.PluginInfo {
@@ -232,13 +253,21 @@ func (p HaproxyPlugin) Info() *interlock.PluginInfo {
 	}
 }
 
+func (p HaproxyPlugin) handleReload() {
+	jobs -= 1
+
+	logMessage(log.DebugLevel, fmt.Sprintf("jobs: %d", jobs))
+
+	if jobs == 0 {
+		reloadChan <- true
+	}
+}
+
 func (p HaproxyPlugin) handleUpdate(event *dockerclient.Event) error {
 	logMessage(log.DebugLevel, "update request received")
-	if err := p.updateConfig(event); err != nil {
-		return err
-	}
+	defer p.handleReload()
 
-	if err := p.reload(); err != nil {
+	if err := p.updateConfig(event); err != nil {
 		return err
 	}
 
@@ -247,13 +276,18 @@ func (p HaproxyPlugin) handleUpdate(event *dockerclient.Event) error {
 
 func (p HaproxyPlugin) HandleEvent(event *dockerclient.Event) error {
 	switch event.Status {
-	case "start", "interlock-start":
+	case "start":
+		jobs = jobs + 1
 		if err := p.handleUpdate(event); err != nil {
 			return err
 		}
 	case "stop", "kill", "die":
-		// add delay to make sure container is removed
+		jobs = jobs + 1
+		// delay to make sure container is removed
 		time.Sleep(250 * time.Millisecond)
+		if err := p.handleUpdate(event); err != nil {
+			return err
+		}
 	case "interlock-stop":
 		// stop haproxy
 		if proxyCmd != nil {
@@ -538,6 +572,7 @@ func (p HaproxyPlugin) reload() error {
 	}
 	proxyCmd = cmd
 
+	time.Sleep(100 * time.Millisecond)
 	logMessage(log.InfoLevel, "proxy reloaded and ready")
 	return nil
 }
