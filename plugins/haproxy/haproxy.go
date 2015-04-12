@@ -71,6 +71,7 @@ var (
 	proxyCmd      *exec.Cmd
 	reloadChan    = make(chan bool)
 	jobs          = 0
+	reloaded      = false
 )
 
 type HaproxyPlugin struct {
@@ -78,7 +79,6 @@ type HaproxyPlugin struct {
 	pluginConfig    *PluginConfig
 	client          *dockerclient.DockerClient
 	mux             sync.Mutex
-	reloaded        bool
 }
 
 func init() {
@@ -221,7 +221,6 @@ func NewPlugin(interlockConfig *interlock.Config, client *dockerclient.DockerCli
 		pluginConfig:    pluginConfig,
 		interlockConfig: interlockConfig,
 		client:          client,
-		reloaded:        false,
 	}
 
 	plugin.Init()
@@ -239,6 +238,21 @@ func (p HaproxyPlugin) Init() {
 		}
 
 		time.Sleep(250 * time.Millisecond)
+	}()
+
+	// so this is here because the events from swarm seem to happen
+	// at different times causing a race at startup where
+	// sometimes the proxy will not reload until an event is fired;
+	// this makes sure the initial reload happens
+
+	go func() {
+		time.Sleep(1 * time.Second)
+		if !reloaded {
+			if err := p.HandleEvent(&dockerclient.Event{Status: "start"}); err != nil {
+				logMessage(log.ErrorLevel, fmt.Sprintf("error during initial start: %s", err))
+			}
+		}
+
 	}()
 
 	time.Sleep(500 * time.Millisecond)
@@ -573,6 +587,7 @@ func (p HaproxyPlugin) reload() error {
 	proxyCmd = cmd
 
 	time.Sleep(100 * time.Millisecond)
+	reloaded = true
 	logMessage(log.InfoLevel, "proxy reloaded and ready")
 	return nil
 }
