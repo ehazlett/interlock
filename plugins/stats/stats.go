@@ -102,8 +102,6 @@ func NewPlugin(interlockConfig *interlock.Config, client *dockerclient.DockerCli
 		}
 	}()
 
-	plugins.Log(pluginInfo.Name, log.InfoLevel, fmt.Sprintf("sending stats every %d seconds", cfg.Interval))
-
 	return p, nil
 }
 
@@ -118,6 +116,8 @@ func (p StatsPlugin) initialize() error {
 			errorChan <- err
 		}
 	}
+
+	plugins.Log(pluginInfo.Name, log.InfoLevel, fmt.Sprintf("sending stats every %d seconds", p.pluginConfig.Interval))
 
 	return nil
 }
