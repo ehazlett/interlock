@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -223,40 +222,10 @@ func NewPlugin(interlockConfig *interlock.Config, client *dockerclient.DockerCli
 		client:          client,
 	}
 
-	//plugin.Init()
-
 	return plugin, nil
 }
 
 func (p HaproxyPlugin) Init() error {
-	go func() {
-		<-reloadChan
-
-		logMessage(log.DebugLevel, fmt.Sprintf("reload chan: reload triggered"))
-		if err := p.reload(); err != nil {
-			logMessage(log.ErrorLevel, fmt.Sprintf("error reloading: %s", err))
-		}
-
-		time.Sleep(250 * time.Millisecond)
-	}()
-
-	// so this is here because the events from swarm seem to happen
-	// at different times causing a race at startup where
-	// sometimes the proxy will not reload until an event is fired;
-	// this makes sure the initial reload happens
-
-	go func() {
-		time.Sleep(1 * time.Second)
-		if !reloaded {
-			if err := p.HandleEvent(&dockerclient.Event{Status: "start"}); err != nil {
-				logMessage(log.ErrorLevel, fmt.Sprintf("error during initial start: %s", err))
-			}
-		}
-
-	}()
-
-	time.Sleep(500 * time.Millisecond)
-
 	return nil
 }
 
@@ -364,7 +333,7 @@ func (p HaproxyPlugin) writeConfig(config *ProxyConfig) error {
 	return nil
 }
 
-func (p HaproxyPlugin) GenerateProxyConfig(isKillEvent bool) (*ProxyConfig, error) {
+func (p HaproxyPlugin) GenerateProxyConfig() (*ProxyConfig, error) {
 	logMessage(log.DebugLevel, "generating proxy config")
 
 	containers, err := p.client.ListContainers(false, false, "")
@@ -513,12 +482,6 @@ func (p HaproxyPlugin) GenerateProxyConfig(isKillEvent bool) (*ProxyConfig, erro
 		}
 
 		proxyUpstreams[domain] = append(proxyUpstreams[domain], up)
-		if !isKillEvent && interlockData.Warm {
-			logMessage(log.DebugLevel,
-				fmt.Sprintf("warming %s: %s", cntId, addr))
-			http.Get(fmt.Sprintf("http://%s", addr))
-		}
-
 	}
 	for k, v := range proxyUpstreams {
 		name := strings.Replace(k, ".", "_", -1)
@@ -544,12 +507,7 @@ func (p HaproxyPlugin) GenerateProxyConfig(isKillEvent bool) (*ProxyConfig, erro
 }
 
 func (p HaproxyPlugin) updateConfig(e *dockerclient.Event) error {
-	isKillEvent := false
-	if e != nil && e.Status == "kill" {
-		isKillEvent = true
-	}
-
-	cfg, err := p.GenerateProxyConfig(isKillEvent)
+	cfg, err := p.GenerateProxyConfig()
 	if err != nil {
 		return err
 	}
