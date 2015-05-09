@@ -75,7 +75,6 @@ The following options are available:
 - `domain`: override the container domain
 - `alias_domains`: specify a list of alias domains to add (`{"alias_domains": ["foo.com", "bar.com"]}`)
 - `port`: specify which container port to use for backend (`{"port": 8080}`)
-- `warm`: connect to the container before adding to the backend (`{"warm": true}`)
 - `check`: specify a custom check for the backend (`{"check": "httpchk GET /"}`)
 - `backend_options`: specify a list of additional options for the backend (`{"backend_options": ["forceclose", "http-no-delay"]}`) -- see http://cbonte.github.io/haproxy-dconv/configuration-1.5.html#4.1
 - `check_interval`: specify the interval (in ms) when to run the health check (`{"check_interval": 10000}`)  default: 5000
