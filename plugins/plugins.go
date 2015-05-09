@@ -76,3 +76,7 @@ func NewPlugin(name string, config *interlock.Config, client *dockerclient.Docke
 	}
 	return plugin.New(config, client)
 }
+
+func SetEnabledPlugins(p map[string]*RegisteredPlugin) {
+	plugins = p
+}

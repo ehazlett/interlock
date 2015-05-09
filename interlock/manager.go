@@ -109,18 +109,18 @@ func (m *Manager) Run() error {
 		log.Warnf("no plugins enabled")
 	}
 
-	enabledPlugins := make(map[string]bool)
-	for _, v := range m.Config.EnabledPlugins {
-		enabledPlugins[v] = true
-	}
+	enabledPlugins := make(map[string]*plugins.RegisteredPlugin)
 
-	for _, p := range allPlugins {
-		if _, ok := enabledPlugins[p.Info().Name]; ok {
-			log.Infof("loaded plugin name=%s version=%s",
+	for _, v := range m.Config.EnabledPlugins {
+		if p, ok := allPlugins[v]; ok {
+			log.Infof("loading plugin name=%s version=%s",
 				p.Info().Name,
 				p.Info().Version)
+			enabledPlugins[v] = p
 		}
 	}
+
+	plugins.SetEnabledPlugins(enabledPlugins)
 
 	// custom event to signal startup
 	evt := &dockerclient.Event{

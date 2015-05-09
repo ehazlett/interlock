@@ -42,3 +42,7 @@ func (p ExamplePlugin) HandleEvent(event *dockerclient.Event) error {
 	)
 	return nil
 }
+
+func (p ExamplePlugin) Init() error {
+	return nil
+}

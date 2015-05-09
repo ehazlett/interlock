@@ -122,6 +122,10 @@ func (p StatsPlugin) initialize() error {
 	return nil
 }
 
+func (p StatsPlugin) Init() error {
+	return nil
+}
+
 func (p StatsPlugin) handleStats(id string, cb dockerclient.StatCallback, ec chan error, args ...interface{}) {
 	go p.client.StartMonitorStats(id, cb, ec, args)
 }

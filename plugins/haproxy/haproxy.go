@@ -223,12 +223,12 @@ func NewPlugin(interlockConfig *interlock.Config, client *dockerclient.DockerCli
 		client:          client,
 	}
 
-	plugin.Init()
+	//plugin.Init()
 
 	return plugin, nil
 }
 
-func (p HaproxyPlugin) Init() {
+func (p HaproxyPlugin) Init() error {
 	go func() {
 		<-reloadChan
 
@@ -256,6 +256,8 @@ func (p HaproxyPlugin) Init() {
 	}()
 
 	time.Sleep(500 * time.Millisecond)
+
+	return nil
 }
 
 func (p HaproxyPlugin) Info() *interlock.PluginInfo {
@@ -267,22 +269,31 @@ func (p HaproxyPlugin) Info() *interlock.PluginInfo {
 	}
 }
 
-func (p HaproxyPlugin) handleReload() {
+func (p HaproxyPlugin) handleReload() error {
 	jobs -= 1
 
 	logMessage(log.DebugLevel, fmt.Sprintf("jobs: %d", jobs))
 
 	if jobs == 0 {
-		reloadChan <- true
+		logMessage(log.DebugLevel, fmt.Sprintf("reload triggered"))
+		if err := p.reload(); err != nil {
+			logMessage(log.ErrorLevel, fmt.Sprintf("error reloading: %s", err))
+			return err
+		}
+
+		time.Sleep(250 * time.Millisecond)
 	}
+
+	return nil
 }
 
 func (p HaproxyPlugin) handleUpdate(event *dockerclient.Event) error {
 	logMessage(log.DebugLevel, "update request received")
+
 	defer p.handleReload()
 
 	if err := p.updateConfig(event); err != nil {
-		return err
+		log.Warn(err)
 	}
 
 	return nil
@@ -290,7 +301,7 @@ func (p HaproxyPlugin) handleUpdate(event *dockerclient.Event) error {
 
 func (p HaproxyPlugin) HandleEvent(event *dockerclient.Event) error {
 	switch event.Status {
-	case "start":
+	case "start", "interlock-start":
 		jobs = jobs + 1
 		if err := p.handleUpdate(event); err != nil {
 			return err
@@ -537,13 +548,16 @@ func (p HaproxyPlugin) updateConfig(e *dockerclient.Event) error {
 	if e != nil && e.Status == "kill" {
 		isKillEvent = true
 	}
+
 	cfg, err := p.GenerateProxyConfig(isKillEvent)
 	if err != nil {
 		return err
 	}
+
 	if err := p.writeConfig(cfg); err != nil {
 		return err
 	}
+
 	return nil
 }
 

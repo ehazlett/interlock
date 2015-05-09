@@ -13,5 +13,6 @@ type PluginInfo struct {
 
 type Plugin interface {
 	Info() *PluginInfo
+	Init() error
 	HandleEvent(event *dockerclient.Event) error
 }
