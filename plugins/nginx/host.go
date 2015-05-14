@@ -2,6 +2,11 @@ package nginx
 
 type Host struct {
 	ServerNames []string
-	ListenPort  int
+	Port        int
+	SSLPort     int
+	SSL         bool
+	SSLCert     string
+	SSLCertKey  string
+	SSLOnly     bool
 	Upstream    *Upstream
 }

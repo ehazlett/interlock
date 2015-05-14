@@ -55,22 +55,24 @@ func loadPluginConfig() (*PluginConfig, error) {
 		return nil, err
 	}
 
+	// TODO: finish options in config template
 	cfg := &PluginConfig{
 		ProxyConfigPath:             "/etc/nginx/nginx.conf",
 		ProxyBackendOverrideAddress: "",
-		Port:                8080,
+		Port:                80,
 		PidPath:             filepath.Join(wd, "nginx.pid"),
 		MaxConnections:      1024,
 		MaxProcesses:        2,
-		ProxyConnectTimeout: 60000,
-		ProxySendTimeout:    60000,
-		ProxyReadTimeout:    60000,
+		ProxyConnectTimeout: 600,
+		ProxySendTimeout:    600,
+		ProxyReadTimeout:    600,
+		SendTimeout:         600,
 		User:                "www-data",
 		RLimitNoFile:        65535,
-		SendTimeout:         60000,
-		SSLCert:             "",
-		SSLPort:             8443,
-		SSLOpts:             "",
+		SSLCertDir:          "/etc/nginx/ssl",
+		SSLPort:             443,
+		SSLCiphers:          "HIGH:!aNULL:!MD5",
+		SSLProtocols:        "SSLv3 TLSv1 TLSv1.1 TLSv1.2",
 	}
 
 	// load custom config via environment
@@ -170,14 +172,19 @@ func loadPluginConfig() (*PluginConfig, error) {
 		cfg.SSLPort = p
 	}
 
-	sslCert := os.Getenv("NGINX_SSL_CERT")
-	if sslCert != "" {
-		cfg.SSLCert = sslCert
+	sslCertDir := os.Getenv("NGINX_SSL_CERT_DIR")
+	if sslCertDir != "" {
+		cfg.SSLCertDir = sslCertDir
 	}
 
-	sslOpts := os.Getenv("NGINX_SSL_OPTS")
-	if sslOpts != "" {
-		cfg.SSLOpts = sslOpts
+	sslCiphers := os.Getenv("NGINX_SSL_CIPHERS")
+	if sslCiphers != "" {
+		cfg.SSLCiphers = sslCiphers
+	}
+
+	sslProtocols := os.Getenv("NGINX_SSL_PROTOCOLS")
+	if sslProtocols != "" {
+		cfg.SSLProtocols = sslProtocols
 	}
 
 	user := os.Getenv("NGINX_USER")
@@ -290,6 +297,9 @@ func (p NginxPlugin) generateNginxConfig() (*NginxConfig, error) {
 	upstreamServers := map[string][]string{}
 	serverNames := map[string][]string{}
 	//hostBalanceAlgorithms := map[string]string{}
+	hostSSL := map[string]bool{}
+	hostSSLCert := map[string]string{}
+	hostSSLCertKey := map[string]string{}
 	hostSSLOnly := map[string]bool{}
 
 	for _, c := range containers {
@@ -339,11 +349,29 @@ func (p NginxPlugin) generateNginxConfig() (*NginxConfig, error) {
 			serverNames[domain] = []string{domain}
 		}
 
+		hostSSL[domain] = interlockData.SSL
+
 		hostSSLOnly[domain] = false
 		if interlockData.SSLOnly {
 			logMessage(log.DebugLevel,
 				fmt.Sprintf("configuring ssl redirect for %s", domain))
 			hostSSLOnly[domain] = true
+		}
+
+		// set cert paths
+		baseCertPath := p.pluginConfig.SSLCertDir
+		if interlockData.SSLCert != "" {
+			certPath := filepath.Join(baseCertPath, interlockData.SSLCert)
+			logMessage(log.InfoLevel,
+				fmt.Sprintf("ssl cert for %s: %s", domain, certPath))
+			hostSSLCert[domain] = certPath
+		}
+
+		if interlockData.SSLCertKey != "" {
+			keyPath := filepath.Join(baseCertPath, interlockData.SSLCert)
+			logMessage(log.InfoLevel,
+				fmt.Sprintf("ssl key for %s: %s", domain, keyPath))
+			hostSSLCertKey[domain] = keyPath
 		}
 
 		ports := cInfo.NetworkSettings.Ports
@@ -400,7 +428,12 @@ func (p NginxPlugin) generateNginxConfig() (*NginxConfig, error) {
 		h := &Host{
 			ServerNames: serverNames[k],
 			// TODO: make configurable for TCP via InterlockData
-			ListenPort: p.pluginConfig.Port,
+			Port:       p.pluginConfig.Port,
+			SSLPort:    p.pluginConfig.SSLPort,
+			SSL:        hostSSL[k],
+			SSLCert:    hostSSLCert[k],
+			SSLCertKey: hostSSLCertKey[k],
+			SSLOnly:    hostSSLOnly[k],
 		}
 
 		servers := []*Server{}
@@ -461,10 +494,8 @@ func (p NginxPlugin) writeConfig(config *NginxConfig) error {
 	defer f.Close()
 
 	t := template.New("nginx")
-	tmpl, err := t.Parse(nginxConfTemplate)
-	if err != nil {
-		return err
-	}
+	tmpl := template.Must(t.Parse(nginxConfTemplate))
+	// validate parse
 
 	var c bytes.Buffer
 	if err := tmpl.Execute(&c, config); err != nil {

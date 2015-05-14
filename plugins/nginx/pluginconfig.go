@@ -12,8 +12,9 @@ type PluginConfig struct {
 	RLimitNoFile                int    `json:"rlimit_no_file,omitempty"`
 	Port                        int    `json:"port,omitempty"`
 	PidPath                     string `json:"pid_path,omitempty"`
-	SSLCert                     string `json:"ssl_cert,omitempty"`
+	SSLCertDir                  string `json:"ssl_cert_dir,omitempty"`
 	SSLPort                     int    `json:"ssl_port,omitempty"`
-	SSLOpts                     string `json:"ssl_opts,omitempty"`
+	SSLCiphers                  string `json:"ssl_ciphers,omitempty"`
+	SSLProtocols                string `json:"ssl_protocols,omitempty"`
 	User                        string `json:"user,omitempty"`
 }

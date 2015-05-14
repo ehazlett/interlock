@@ -30,6 +30,14 @@ http {
     keepalive_timeout  65;
 
     #gzip  on;
+    proxy_connect_timeout {{ .ProxyConnectTimeout }};
+    proxy_send_timeout {{ .ProxySendTimeout }};
+    proxy_read_timeout {{ .ProxyReadTimeout }};
+    send_timeout {{ .SendTimeout }};
+
+    # ssl
+    ssl_ciphers {{ .SSLCiphers }};
+    ssl_protocols {{ .SSLProtocols }};
 
     # default host return 503
     server {
@@ -43,7 +51,12 @@ http {
         {{ end }}
     }
     server {
-        listen {{ $host.ListenPort }};
+        listen {{ $host.Port }};
+        {{ if $host.SSL }}listen {{ .SSLPort }};
+        ssl on;
+        ssl_certificate {{ $host.SSLCert }};
+        ssl_certificate_key {{ $host.SSLCertKey }};
+        {{ end }}
         server_name{{ range $name := $host.ServerNames }} {{ $name }}{{ end }};
 
         location / {
@@ -51,5 +64,7 @@ http {
         }
     }
     {{ end }}
+
+    include /etc/nginx/conf.d/*.conf;
 }
 `
