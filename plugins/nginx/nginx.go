@@ -301,6 +301,7 @@ func (p NginxPlugin) generateNginxConfig() (*NginxConfig, error) {
 	hostSSLCert := map[string]string{}
 	hostSSLCertKey := map[string]string{}
 	hostSSLOnly := map[string]bool{}
+	hostWebsocketEndpoints := map[string][]string{}
 
 	for _, c := range containers {
 		cntId := c.Id[:12]
@@ -412,6 +413,11 @@ func (p NginxPlugin) generateNginxConfig() (*NginxConfig, error) {
 			}
 		}
 
+		// websocket endpoints
+		for _, ws := range interlockData.WebsocketEndpoints {
+			hostWebsocketEndpoints[domain] = append(hostWebsocketEndpoints[domain], ws)
+		}
+
 		logMessage(log.InfoLevel,
 			fmt.Sprintf("%s: upstream=%s", domain, addr))
 
@@ -428,12 +434,13 @@ func (p NginxPlugin) generateNginxConfig() (*NginxConfig, error) {
 		h := &Host{
 			ServerNames: serverNames[k],
 			// TODO: make configurable for TCP via InterlockData
-			Port:       p.pluginConfig.Port,
-			SSLPort:    p.pluginConfig.SSLPort,
-			SSL:        hostSSL[k],
-			SSLCert:    hostSSLCert[k],
-			SSLCertKey: hostSSLCertKey[k],
-			SSLOnly:    hostSSLOnly[k],
+			Port:               p.pluginConfig.Port,
+			SSLPort:            p.pluginConfig.SSLPort,
+			SSL:                hostSSL[k],
+			SSLCert:            hostSSLCert[k],
+			SSLCertKey:         hostSSLCertKey[k],
+			SSLOnly:            hostSSLOnly[k],
+			WebsocketEndpoints: hostWebsocketEndpoints[k],
 		}
 
 		servers := []*Server{}

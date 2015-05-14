@@ -39,6 +39,11 @@ http {
     ssl_ciphers {{ .SSLCiphers }};
     ssl_protocols {{ .SSLProtocols }};
 
+    map $http_upgrade $connection_upgrade {
+        default upgrade;
+        ''      close;
+    }
+
     # default host return 503
     server {
             listen {{ .Port }};
@@ -62,6 +67,15 @@ http {
         location / {
             proxy_pass http://{{ $host.Upstream.Name }};
         }
+
+        {{ range $ws := $host.WebsocketEndpoints }}
+        location {{ $ws }} {
+            proxy_pass http://{{ $host.Upstream.Name }};
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection $connection_upgrade;
+        }
+        {{ end }}
     }
     {{ end }}
 
