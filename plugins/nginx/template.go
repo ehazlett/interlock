@@ -79,6 +79,11 @@ http {
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection $connection_upgrade;
         }
+
+        location /nginx_status {
+            stub_status on;
+            access_log off;
+        }
         {{ end }}
         {{ end }}
     }
@@ -100,6 +105,11 @@ http {
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection $connection_upgrade;
+        }
+
+        location /nginx_status {
+            stub_status on;
+            access_log off;
         }
         {{ end }}
     }
