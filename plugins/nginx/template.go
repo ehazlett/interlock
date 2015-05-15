@@ -58,11 +58,28 @@ http {
     }
     server {
         listen {{ $host.Port }};
-        {{ if $host.SSL }}listen {{ .SSLPort }};
+        server_name{{ range $name := $host.ServerNames }} {{ $name }}{{ end }};
+        {{ if $host.SSLOnly }}return 301 https://$server_name$request_uri;{{ else }}
+        location / {
+            proxy_pass http://{{ $host.Upstream.Name }};
+        }
+
+        {{ range $ws := $host.WebsocketEndpoints }}
+        location {{ $ws }} {
+            proxy_pass http://{{ $host.Upstream.Name }};
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection $connection_upgrade;
+        }
+        {{ end }}
+        {{ end }}
+    }
+    {{ if $host.SSL }}
+    server {
+        listen {{ .SSLPort }};
         ssl on;
         ssl_certificate {{ $host.SSLCert }};
         ssl_certificate_key {{ $host.SSLCertKey }};
-        {{ end }}
         server_name{{ range $name := $host.ServerNames }} {{ $name }}{{ end }};
 
         location / {
@@ -78,6 +95,7 @@ http {
         }
         {{ end }}
     }
+    {{ end }}
     {{ end }}
 
     include /etc/nginx/conf.d/*.conf;
