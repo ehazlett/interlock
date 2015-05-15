@@ -21,3 +21,9 @@ Example:
 # Plugins
 See the [Plugins](https://github.com/ehazlett/interlock/tree/master/plugins)
 directory for available plugins and their corresponding readme.md for usage.
+
+| Name | Description |
+|-----|-----|
+| [Example](https://github.com/ehazlett/interlock/tree/master/plugins/example) | Example Plugin for Reference|
+| [HAProxy](https://github.com/ehazlett/interlock/tree/master/plugins/haproxy) | [HAProxy](http://www.haproxy.org/) Load Balancer |
+| [Stats](https://github.com/ehazlett/interlock/tree/master/plugins/stats) | Container stat forwarding to [Carbon](http://graphite.wikidot.com/carbon) |
