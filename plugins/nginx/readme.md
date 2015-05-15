@@ -43,3 +43,31 @@ Then run a container using `INTERLOCK_DATA` to specify the certificate name to u
 
 `docker run --rm -P --hostname foo.local -e INTERLOCK_DATA='{"ssl":true,"ssl_certificate":"evanhazlett.com.pem","ssl_certificate_key":"evanhazlett.com.key"}' ehazlett/docker-demo`
 
+# Interlock Data
+The HAProxy plugin can use additional data from a container's `INTERLOCK_DATA` 
+environment variable.  This must be specified as a JSON payload in the variable.
+The following options are available:
+
+- `hostname`: override the container hostname -- this is the combined with the domain to create the endpoint
+- `domain`: override the container domain
+- `alias_domains`: specify a list of alias domains to add (`{"alias_domains": ["foo.com", "bar.com"]}`)
+- `port`: specify which container port to use for backend (`{"port": 8080}`)
+- `ssl`: configure SSL for backend (`{"ssl": true}`)
+- `ssl_only`: configure redirect to SSL for backend (`{"ssl_only": true}`)
+- `websocket_endpoints`: list of endpoints to proxy websockets (`{"websocket_endpoints": ["/exec"]}`)
+
+For example:
+
+```
+docker run -ti \
+    -P \
+    -d \
+    --hostname www.example.com \
+    -e INTERLOCK_DATA='{"alias_domains": ["foo.com"], "port": 8080}' \
+    ehazlett/go-demo
+```
+
+This will create a backend to access the container at "www.example.com" and an alias domain `foo.com` and use the port that was allocated for the container port "8080".
+
+# Monitoring
+You can use `/nginx_status` to check the status of Nginx.

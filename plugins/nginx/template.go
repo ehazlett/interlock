@@ -48,7 +48,15 @@ http {
     # default host return 503
     server {
             listen {{ .Port }};
-            return 503;
+
+            location / {
+                return 503;
+            }
+
+            location /nginx_status {
+                stub_status on;
+                access_log off;
+            }
     }
 
     {{ range $host := .Hosts }}
