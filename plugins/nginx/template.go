@@ -48,6 +48,7 @@ http {
     # default host return 503
     server {
             listen {{ .Port }};
+            server_name _;
 
             location / {
                 return 503;
