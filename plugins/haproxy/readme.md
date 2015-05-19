@@ -49,7 +49,7 @@ Some things to note about this running container:
 
 If you want SSL support, enter a path to the cert (probably want a mounted volume) and then expose 443:
 
-`docker run -p 80:8080 -p 443:8443 -d -v /etc/ssl:/ssl -e HAPROXY_SSL_CERT=/etc/ssl/cert.pem ehazlett/interlock --swarm-url tcp://1.2.3.4:2375 --plugin haproxy start`
+`docker run -p 80:8080 -p 443:8443 -d -v /etc/ssl:/ssl -e HAPROXY_SSL_CERT=/ssl/cert.pem ehazlett/interlock --swarm-url tcp://1.2.3.4:2375 --plugin haproxy start`
 
 Example for SNI (multidomain) https:
 
