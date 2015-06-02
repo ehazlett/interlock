@@ -28,3 +28,6 @@ directory for available plugins and their corresponding readme.md for usage.
 | [HAProxy](https://github.com/ehazlett/interlock/tree/master/plugins/haproxy) | [HAProxy](http://www.haproxy.org/) Load Balancer |
 | [Nginx](https://github.com/ehazlett/interlock/tree/master/plugins/nginx) | [Nginx](http://nginx.org) Load Balancer |
 | [Stats](https://github.com/ehazlett/interlock/tree/master/plugins/stats) | Container stat forwarding to [Carbon](http://graphite.wikidot.com/carbon) |
+
+# License
+Licensed under the Apache License, Version 2.0. See LICENSE for full license text.
