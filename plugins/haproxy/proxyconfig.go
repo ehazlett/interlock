@@ -11,6 +11,7 @@ type (
 		BalanceAlgorithm string
 	}
 	Upstream struct {
+                Container     string
 		Addr          string
 		CheckInterval int
 	}

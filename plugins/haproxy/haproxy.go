@@ -60,7 +60,7 @@ frontend http-default
     {{ end }}
     {{ if $host.Check }}option {{ $host.Check }}{{ end }}
     {{ if $host.SSLOnly }}redirect scheme https if !{ ssl_fc  }{{ end }}
-    {{ range $i,$up := $host.Upstreams }}server {{ $host.Name }}_{{ $i }} {{ $up.Addr }} check inter {{ $up.CheckInterval }}
+    {{ range $i,$up := $host.Upstreams }}server {{ $up.Container }} {{ $up.Addr }} check inter {{ $up.CheckInterval }}
     {{ end }}
 {{ end }}`
 )
@@ -467,13 +467,15 @@ func (p HaproxyPlugin) GenerateProxyConfig() (*ProxyConfig, error) {
 			}
 		}
 
+	 	container_name := cInfo.Name[1:]
 		up := &Upstream{
 			Addr:          addr,
+                        Container:     container_name,
 			CheckInterval: checkInterval,
 		}
 
 		logMessage(log.InfoLevel,
-			fmt.Sprintf("%s: upstream=%s", domain, addr))
+			fmt.Sprintf("%s: upstream=%s container=%s", domain, addr, container_name))
 
 		for _, alias := range interlockData.AliasDomains {
 			logMessage(log.DebugLevel,
