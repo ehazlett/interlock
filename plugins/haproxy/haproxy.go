@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -370,6 +371,8 @@ func (p HaproxyPlugin) GenerateProxyConfig() (*ProxyConfig, error) {
 		}
 		hostname := cInfo.Config.Hostname
 		domain := cInfo.Config.Domainname
+		image := cInfo.Image
+		created, _ := time.Parse(time.RFC3339Nano, cInfo.Created)
 
 		if interlockData.Hostname != "" {
 			hostname = interlockData.Hostname
@@ -467,15 +470,17 @@ func (p HaproxyPlugin) GenerateProxyConfig() (*ProxyConfig, error) {
 			}
 		}
 
-	 	container_name := cInfo.Name[1:]
+		container_name := cInfo.Name[1:]
 		up := &Upstream{
 			Addr:          addr,
-                        Container:     container_name,
+			Container:     container_name,
 			CheckInterval: checkInterval,
+			Image:         image,
+			Created:       created,
 		}
 
 		logMessage(log.InfoLevel,
-			fmt.Sprintf("%s: upstream=%s container=%s", domain, addr, container_name))
+			fmt.Sprintf("%s: upstream=%s container=%s created=%s image=%s", domain, addr, container_name, created.String(), image))
 
 		for _, alias := range interlockData.AliasDomains {
 			logMessage(log.DebugLevel,
@@ -487,10 +492,11 @@ func (p HaproxyPlugin) GenerateProxyConfig() (*ProxyConfig, error) {
 	}
 	for k, v := range proxyUpstreams {
 		name := strings.Replace(k, ".", "_", -1)
+		upstreams := ensureSingleUpstreamVersion(v)
 		host := &Host{
 			Name:             name,
 			Domain:           k,
-			Upstreams:        v,
+			Upstreams:        upstreams,
 			Check:            hostChecks[k],
 			BalanceAlgorithm: hostBalanceAlgorithms[k],
 			BackendOptions:   hostBackendOptions[k],
@@ -506,6 +512,31 @@ func (p HaproxyPlugin) GenerateProxyConfig() (*ProxyConfig, error) {
 		PluginConfig: p.pluginConfig,
 	}
 	return cfg, nil
+}
+
+// Ensure that all the supplied upstreams are running the same container version.  If they are not, then filter
+// out the older variety.  That is, only return upstreams that are running the same version as the newest
+// upstream.
+func ensureSingleUpstreamVersion(ups []*Upstream) (ret []*Upstream) {
+	if len(ups) < 1 {
+		return
+	}
+	sort.Sort(ByCreatedTime(ups))
+	lastUpstream := ups[len(ups)-1]
+	if lastUpstream == nil {
+		return
+	}
+	imageToKeep := lastUpstream.Image
+	for _, u := range ups {
+		if u != nil {
+			if u.Image == imageToKeep {
+				ret = append(ret, u)
+			} else {
+				logMessage(log.InfoLevel, fmt.Sprintf("Encountered %s running older container version: %s (newest is %s)", u.Container, u.Image, imageToKeep))
+			}
+		}
+	}
+	return
 }
 
 func (p HaproxyPlugin) updateConfig(e *dockerclient.Event) error {
