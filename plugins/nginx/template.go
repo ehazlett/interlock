@@ -18,6 +18,7 @@ http {
     include       /etc/nginx/mime.types;
     default_type  application/octet-stream;
     server_names_hash_bucket_size 128;
+    client_max_body_size 2048M;
 
     log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
                       '$status $body_bytes_sent "$http_referer" '
