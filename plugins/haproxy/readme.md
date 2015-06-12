@@ -51,6 +51,14 @@ Some things to note about this running container:
   use the `hostname` value specified in the container config to add backends to
   the proxy.
 
+## Machine
+
+If you used Machine to create your Swarm, you can use this command to start interlock:
+
+`docker run -p 80:8080 -d -v /etc/docker:/etc/docker ehazlett/interlock --swarm-url $DOCKER_HOST --swarm-tls-ca-cert=/etc/docker/ca.pem --swarm-tls-cert=/etc/docker/server.pem --swarm-tls-key=/etc/docker/server-key.pem --plugin haproxy start`
+
+## SSL
+
 If you want SSL support, enter a path to the cert (probably want a mounted volume) and then expose 443:
 
 `docker run -p 80:8080 -p 443:8443 -d -v /etc/ssl:/ssl -e HAPROXY_SSL_CERT=/ssl/cert.pem ehazlett/interlock --swarm-url tcp://1.2.3.4:2375 --plugin haproxy start`
