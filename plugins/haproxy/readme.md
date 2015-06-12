@@ -1,9 +1,13 @@
 # HAProxy
 The HAProxy plugin adds an event driven load balancer and reverse proxy for
-Docker.  This works by listening on the event stream.  When an event is received,
-the plugin will create a backend using the hostname and exposed port from the
-container.  The plugin will take care of adding multiple containers using
-the same hostname to the proper HAProxy backend.
+Docker.  It adds automatically adds containers that are running in a Swarm to
+HAProxy.
+
+This works by listening on the event stream for containers being created. When a
+container is created, the plugin will create an HAProxy backend if the container
+has a hostname and at least one exposed port.  The plugin will take care of
+adding multiple containers using the same hostname to the proper HAProxy
+backend.
 
  > Note: Interlock HAProxy plugin requires HAProxy 1.5+
 
