@@ -470,17 +470,17 @@ func (p HaproxyPlugin) GenerateProxyConfig() (*ProxyConfig, error) {
 			}
 		}
 
-		container_name := cInfo.Name[1:]
+		containerName := cInfo.Name[1:]
 		up := &Upstream{
 			Addr:          addr,
-			Container:     container_name,
+			Container:     containerName,
 			CheckInterval: checkInterval,
 			Image:         image,
 			Created:       created,
 		}
 
 		logMessage(log.InfoLevel,
-			fmt.Sprintf("%s: upstream=%s container=%s created=%s image=%s", domain, addr, container_name, created.String(), image))
+			fmt.Sprintf("%s: upstream=%s container=%s created=%s image=%s", domain, addr, containerName, created.String(), image))
 
 		for _, alias := range interlockData.AliasDomains {
 			logMessage(log.DebugLevel,
@@ -517,14 +517,15 @@ func (p HaproxyPlugin) GenerateProxyConfig() (*ProxyConfig, error) {
 // Ensure that all the supplied upstreams are running the same container version.  If they are not, then filter
 // out the older variety.  That is, only return upstreams that are running the same version as the newest
 // upstream.
-func ensureSingleUpstreamVersion(ups []*Upstream) (ret []*Upstream) {
+func ensureSingleUpstreamVersion(ups []*Upstream) []*Upstream {
+	var ret []*Upstream
 	if len(ups) < 1 {
-		return
+		return ret
 	}
 	sort.Sort(ByCreatedTime(ups))
 	lastUpstream := ups[len(ups)-1]
 	if lastUpstream == nil {
-		return
+		return ret
 	}
 	imageToKeep := lastUpstream.Image
 	for _, u := range ups {
@@ -536,7 +537,7 @@ func ensureSingleUpstreamVersion(ups []*Upstream) (ret []*Upstream) {
 			}
 		}
 	}
-	return
+	return ret
 }
 
 func (p HaproxyPlugin) updateConfig(e *dockerclient.Event) error {
