@@ -369,7 +369,7 @@ func (p NginxPlugin) generateNginxConfig() (*NginxConfig, error) {
 		}
 
 		if interlockData.SSLCertKey != "" {
-			keyPath := filepath.Join(baseCertPath, interlockData.SSLCert)
+			keyPath := filepath.Join(baseCertPath, interlockData.SSLCertKey)
 			logMessage(log.InfoLevel,
 				fmt.Sprintf("ssl key for %s: %s", domain, keyPath))
 			hostSSLCertKey[domain] = keyPath
