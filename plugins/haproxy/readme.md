@@ -1,6 +1,6 @@
 # HAProxy
 The HAProxy plugin adds an event driven load balancer and reverse proxy for
-Docker.  It adds automatically adds containers that are running in a Swarm to
+Docker.  It automatically adds containers that are running in a Swarm to
 HAProxy.
 
 This works by listening on the event stream for containers being created. When a
