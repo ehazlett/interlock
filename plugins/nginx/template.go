@@ -71,7 +71,7 @@ http {
     server {
         listen {{ $host.Port }};
         server_name{{ range $name := $host.ServerNames }} {{ $name }}{{ end }};
-        {{ if $host.SSLOnly }}return 301 https://$server_name$request_uri;{{ else }}
+        {{ if $host.SSLOnly }}return 302 https://$server_name$request_uri;{{ else }}
         location / {
             proxy_pass http://{{ $host.Upstream.Name }};
         }
