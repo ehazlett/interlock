@@ -6,6 +6,7 @@ type (
 		Domain           string
 		Check            string
 		BackendOptions   []string
+		BackendParams    []string
 		Upstreams        []*Upstream
 		SSLOnly          bool
 		BalanceAlgorithm string

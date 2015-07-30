@@ -58,6 +58,8 @@ frontend http-default
     balance {{ $host.BalanceAlgorithm }}
     {{ range $option := $host.BackendOptions }}option {{ $option }}
     {{ end }}
+    {{ range $param := $host.BackendParams }}{{ $param }}
+    {{ end }}
     {{ if $host.Check }}option {{ $host.Check }}{{ end }}
     {{ if $host.SSLOnly }}redirect scheme https if !{ ssl_fc  }{{ end }}
     {{ range $i,$up := $host.Upstreams }}server {{ $up.Container }} {{ $up.Addr }} check inter {{ $up.CheckInterval }}
@@ -345,6 +347,7 @@ func (p HaproxyPlugin) GenerateProxyConfig() (*ProxyConfig, error) {
 	hostChecks := map[string]string{}
 	hostBalanceAlgorithms := map[string]string{}
 	hostBackendOptions := map[string][]string{}
+	hostBackendParams := map[string][]string{}
 	hostSSLOnly := map[string]bool{}
 	for _, cnt := range containers {
 		cntId := cnt.Id[:12]
@@ -421,6 +424,12 @@ func (p HaproxyPlugin) GenerateProxyConfig() (*ProxyConfig, error) {
 				fmt.Sprintf("using backend options for %s: %s", domain, strings.Join(interlockData.BackendOptions, ",")))
 		}
 
+		if len(interlockData.BackendParams) > 0 {
+			hostBackendParams[domain] = interlockData.BackendParams
+			logMessage(log.DebugLevel,
+				fmt.Sprintf("using backend params for %s: %s", domain, strings.Join(interlockData.BackendParams, ",")))
+		}
+
 		hostSSLOnly[domain] = false
 		if interlockData.SSLOnly {
 			logMessage(log.DebugLevel,
@@ -494,6 +503,7 @@ func (p HaproxyPlugin) GenerateProxyConfig() (*ProxyConfig, error) {
 			Check:            hostChecks[k],
 			BalanceAlgorithm: hostBalanceAlgorithms[k],
 			BackendOptions:   hostBackendOptions[k],
+			BackendParams:    hostBackendParams[k],
 			SSLOnly:          hostSSLOnly[k],
 		}
 		logMessage(log.DebugLevel,

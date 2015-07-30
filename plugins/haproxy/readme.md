@@ -88,7 +88,8 @@ The following options are available:
 - `alias_domains`: specify a list of alias domains to add (`{"alias_domains": ["foo.com", "bar.com"]}`)
 - `port`: specify which container port to use for backend (`{"port": 8080}`)
 - `check`: specify a custom check for the backend (`{"check": "httpchk GET /"}`)
-- `backend_options`: specify a list of additional options for the backend (`{"backend_options": ["forceclose", "http-no-delay"]}`) -- see http://cbonte.github.io/haproxy-dconv/configuration-1.5.html#4.1
+- `backend_options`: specify a list of additional options for the backend (`{"backend_options": ["forceclose", "http-no-delay"]}`) -- see http://cbonte.github.io/haproxy-dconv/configuration-1.5.html#4.1 -- these only work for the keywords that begin with `option`.
+- `backend_params`: specify a list of additional lines for the backend section of the config (`{"backend_params": ["http-request set-header X-Foo Bar"]}`) -- see http://cbonte.github.io/haproxy-dconv/configuration-1.5.html#4.1 -- this works for anything that can be specified in a 'backend'.
 - `check_interval`: specify the interval (in ms) when to run the health check (`{"check_interval": 10000}`)  default: 5000
 - `ssl_only`: configure redirect to SSL for backend (`{"ssl_only": true}`)
 - `balance_algorithm`: haproxy balancing algorithm (default: `roundrobin`) http://cbonte.github.io/haproxy-dconv/configuration-1.5.html#balance
