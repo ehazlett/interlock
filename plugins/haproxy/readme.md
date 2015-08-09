@@ -78,6 +78,8 @@ In this example HAProxy will use concatinated certificates from /etc/ssl/<hostna
 This will create the container and make it available via `http://test.local`.
 Note: you will have to create an entry in your local hosts file to resolve.
 
+You can start multiple containers runnign the same image, and they will be load-balanced. Note that if you start a container running a different version, the older containers will be removed from the load balancer, so only the newer version will serve traffic.  This ensures that all backends are running the same code.
+
 # Interlock Data
 The HAProxy plugin can use additional data from a container's `INTERLOCK_DATA` 
 environment variable.  This must be specified as a JSON payload in the variable.
