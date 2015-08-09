@@ -464,23 +464,23 @@ func (p HaproxyPlugin) GenerateProxyConfig() (*ProxyConfig, error) {
 					port := v[0]
 					logMessage(log.DebugLevel,
 						fmt.Sprintf("%s: found specified port %s exposed as %s", domain, interlockPort, port.HostPort))
-					addr = fmt.Sprintf("%s:%s", port.HostIp, port.HostPort)
+					addr = fmt.Sprintf("%s:%s", portDef.HostIp, port.HostPort)
 					break
 				}
 			}
 		}
 
-		containerName := cInfo.Name[1:]
+		container_name := cInfo.Name[1:]
 		up := &Upstream{
 			Addr:          addr,
-			Container:     containerName,
+			Container:     container_name,
 			CheckInterval: checkInterval,
 			Image:         image,
 			Created:       created,
 		}
 
 		logMessage(log.InfoLevel,
-			fmt.Sprintf("%s: upstream=%s container=%s created=%s image=%s", domain, addr, containerName, created.String(), image))
+			fmt.Sprintf("%s: upstream=%s container=%s created=%s image=%s", domain, addr, container_name, created.String(), image))
 
 		for _, alias := range interlockData.AliasDomains {
 			logMessage(log.DebugLevel,

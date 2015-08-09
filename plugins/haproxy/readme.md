@@ -1,9 +1,13 @@
 # HAProxy
 The HAProxy plugin adds an event driven load balancer and reverse proxy for
-Docker.  This works by listening on the event stream.  When an event is received,
-the plugin will create a backend using the hostname and exposed port from the
-container.  The plugin will take care of adding multiple containers using
-the same hostname to the proper HAProxy backend.
+Docker.  It automatically adds containers that are running in a Swarm to
+HAProxy.
+
+This works by listening on the event stream for containers being created. When a
+container is created, the plugin will create an HAProxy backend if the container
+has a hostname and at least one exposed port.  The plugin will take care of
+adding multiple containers using the same hostname to the proper HAProxy
+backend.
 
  > Note: Interlock HAProxy plugin requires HAProxy 1.5+
 
@@ -46,6 +50,14 @@ Some things to note about this running container:
 - You can add some CNAMEs or `/etc/host` entries for your IP.  Interlock will
   use the `hostname` value specified in the container config to add backends to
   the proxy.
+
+## Machine
+
+If you used Machine to create your Swarm, you can use this command to start interlock:
+
+`docker run -p 80:8080 -d -v /etc/docker:/etc/docker ehazlett/interlock --swarm-url $DOCKER_HOST --swarm-tls-ca-cert=/etc/docker/ca.pem --swarm-tls-cert=/etc/docker/server.pem --swarm-tls-key=/etc/docker/server-key.pem --plugin haproxy start`
+
+## SSL
 
 If you want SSL support, enter a path to the cert (probably want a mounted volume) and then expose 443:
 

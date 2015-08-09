@@ -18,6 +18,7 @@ http {
     include       /etc/nginx/mime.types;
     default_type  application/octet-stream;
     server_names_hash_bucket_size 128;
+    client_max_body_size 2048M;
 
     log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
                       '$status $body_bytes_sent "$http_referer" '
@@ -34,6 +35,8 @@ http {
     proxy_connect_timeout {{ .ProxyConnectTimeout }};
     proxy_send_timeout {{ .ProxySendTimeout }};
     proxy_read_timeout {{ .ProxyReadTimeout }};
+    proxy_set_header        X-Real-IP       $remote_addr;
+    proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
     send_timeout {{ .SendTimeout }};
 
     # ssl
@@ -68,7 +71,7 @@ http {
     server {
         listen {{ $host.Port }};
         server_name{{ range $name := $host.ServerNames }} {{ $name }}{{ end }};
-        {{ if $host.SSLOnly }}return 301 https://$server_name$request_uri;{{ else }}
+        {{ if $host.SSLOnly }}return 302 https://$server_name$request_uri;{{ else }}
         location / {
             proxy_pass http://{{ $host.Upstream.Name }};
         }
