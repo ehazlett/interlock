@@ -8,6 +8,7 @@ type Host struct {
 	SSLCert            string
 	SSLCertKey         string
 	SSLOnly            bool
+	SSLBackend         bool
 	Upstream           *Upstream
 	WebsocketEndpoints []string
 }
