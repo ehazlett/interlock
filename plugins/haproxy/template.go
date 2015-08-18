@@ -23,6 +23,9 @@ defaults
 frontend http-default
     bind *:{{ .PluginConfig.Port }}
     {{ if .PluginConfig.SSLCert }}bind *:{{ .PluginConfig.SSLPort }} ssl crt {{ .PluginConfig.SSLCert }} {{ .PluginConfig.SSLOpts }}{{ end }}
+    # the following is for legacy transition; will be removed in a later version
+    bind *:8080
+    bind *:8443
     monitor-uri /haproxy?monitor
     {{ if .PluginConfig.StatsUser }}stats realm Stats
     stats auth {{ .PluginConfig.StatsUser }}:{{ .PluginConfig.StatsPassword }}{{ end }}
