@@ -301,6 +301,7 @@ func (p NginxPlugin) generateNginxConfig() (*NginxConfig, error) {
 	hostSSLCert := map[string]string{}
 	hostSSLCertKey := map[string]string{}
 	hostSSLOnly := map[string]bool{}
+	hostSSLBackend := map[string]bool{}
 	hostWebsocketEndpoints := map[string][]string{}
 
 	for _, c := range containers {
@@ -357,6 +358,14 @@ func (p NginxPlugin) generateNginxConfig() (*NginxConfig, error) {
 			logMessage(log.DebugLevel,
 				fmt.Sprintf("configuring ssl redirect for %s", domain))
 			hostSSLOnly[domain] = true
+		}
+
+		// check ssl backend
+		hostSSLBackend[domain] = false
+		if interlockData.SSLBackend {
+			logMessage(log.DebugLevel,
+				fmt.Sprintf("configuring ssl backend for %s", domain))
+			hostSSLBackend[domain] = true
 		}
 
 		// set cert paths
@@ -440,6 +449,7 @@ func (p NginxPlugin) generateNginxConfig() (*NginxConfig, error) {
 			SSLCert:            hostSSLCert[k],
 			SSLCertKey:         hostSSLCertKey[k],
 			SSLOnly:            hostSSLOnly[k],
+			SSLBackend:         hostSSLBackend[k],
 			WebsocketEndpoints: hostWebsocketEndpoints[k],
 		}
 

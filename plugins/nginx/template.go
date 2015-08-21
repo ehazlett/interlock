@@ -73,12 +73,12 @@ http {
         server_name{{ range $name := $host.ServerNames }} {{ $name }}{{ end }};
         {{ if $host.SSLOnly }}return 302 https://$server_name$request_uri;{{ else }}
         location / {
-            proxy_pass http://{{ $host.Upstream.Name }};
+            {{ if $host.SSLBackend }}proxy_pass https://{{ $host.Upstream.Name }};{{ else }}proxy_pass http://{{ $host.Upstream.Name }};{{ end }}
         }
 
         {{ range $ws := $host.WebsocketEndpoints }}
         location {{ $ws }} {
-            proxy_pass http://{{ $host.Upstream.Name }};
+            {{ if $host.SSLBackend }}proxy_pass https://{{ $host.Upstream.Name }};{{ else }}proxy_pass http://{{ $host.Upstream.Name }};{{ end }}
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection $connection_upgrade;
@@ -100,12 +100,12 @@ http {
         server_name{{ range $name := $host.ServerNames }} {{ $name }}{{ end }};
 
         location / {
-            proxy_pass http://{{ $host.Upstream.Name }};
+            {{ if $host.SSLBackend }}proxy_pass https://{{ $host.Upstream.Name }};{{ else }}proxy_pass http://{{ $host.Upstream.Name }};{{ end }}
         }
 
         {{ range $ws := $host.WebsocketEndpoints }}
         location {{ $ws }} {
-            proxy_pass http://{{ $host.Upstream.Name }};
+            {{ if $host.SSLBackend }}proxy_pass https://{{ $host.Upstream.Name }};{{ else }}proxy_pass http://{{ $host.Upstream.Name }};{{ end }}
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection $connection_upgrade;

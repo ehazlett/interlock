@@ -16,7 +16,7 @@ The following configuration is available through environment variables:
 
 - `HAPROXY_PROXY_CONFIG_PATH`: HAProxy generated config file path (default: `/proxy.conf`)
 - `HAPROXY_PROXY_BACKEND_OVERRIDE_ADDRESS`: Manually set the proxy backend address -- this is needed if not using Swarm (i.e. only Docker)
-- `HAPROXY_PORT`: Port to serve (default: `8080`)
+- `HAPROXY_PORT`: Port to serve (default: `80`)
 - `HAPROXY_PID_PATH`: HAProxy pid path
 - `HAPROXY_MAX_CONN`: Max connections (default: `2048`)
 - `HAPROXY_CONNECT_TIMEOUT`: Connection timeout (default: `5000`)
@@ -24,7 +24,7 @@ The following configuration is available through environment variables:
 - `HAPROXY_CLIENT_TIMEOUT`: Client connection timeout (default: `10000`)
 - `HAPROXY_STATS_USER`: HAProxy admin username (default: `stats`)
 - `HAPROXY_STATS_PASSWORD`: HAProxy admin password (default: `interlock`)
-- `HAPROXY_SSL_PORT`: HAProxy SSL port (default: `8443`)
+- `HAPROXY_SSL_PORT`: HAProxy SSL port (default: `443`)
 - `HAPROXY_SSL_CERT`: Path to SSL certificate for HAProxy
 - `HAPROXY_SSL_OPTS`: SSL options for HAProxy
 
@@ -34,7 +34,7 @@ The following configuration is available through environment variables:
 
 An example run of an Interlock container using the `haproxy` plugin is as follows:
 
-`docker run -p 80:8080 -d ehazlett/interlock --swarm-url tcp://1.2.3.4:2375 --plugin haproxy start`
+`docker run -p 80:80 -d ehazlett/interlock --swarm-url tcp://1.2.3.4:2375 --plugin haproxy start`
 
 Some things to note about this running container:
 
@@ -55,18 +55,18 @@ Some things to note about this running container:
 
 If you used Machine to create your Swarm, you can use this command to start interlock:
 
-`docker run -p 80:8080 -d -v /etc/docker:/etc/docker ehazlett/interlock --swarm-url $DOCKER_HOST --swarm-tls-ca-cert=/etc/docker/ca.pem --swarm-tls-cert=/etc/docker/server.pem --swarm-tls-key=/etc/docker/server-key.pem --plugin haproxy start`
+`docker run -p 80:80 -d -v /etc/docker:/etc/docker ehazlett/interlock --swarm-url $DOCKER_HOST --swarm-tls-ca-cert=/etc/docker/ca.pem --swarm-tls-cert=/etc/docker/server.pem --swarm-tls-key=/etc/docker/server-key.pem --plugin haproxy start`
 
 ## SSL
 
 If you want SSL support, enter a path to the cert (probably want a mounted volume) and then expose 443:
 
-`docker run -p 80:8080 -p 443:8443 -d -v /etc/ssl:/ssl -e HAPROXY_SSL_CERT=/ssl/cert.pem ehazlett/interlock --swarm-url tcp://1.2.3.4:2375 --plugin haproxy start`
+`docker run -p 80:80 -p 443:443 -d -v /etc/ssl:/ssl -e HAPROXY_SSL_CERT=/ssl/cert.pem ehazlett/interlock --swarm-url tcp://1.2.3.4:2375 --plugin haproxy start`
 
 Example for SNI (multidomain) https:
 
 ```
-docker run -it -p 80:8080 -p 443:8443 -d -v /etc/ssl:/etc/ssl -e HAPROXY_SSL_CERT=/etc/ssl/default.crt \
+docker run -it -p 80:80 -p 443:443 -d -v /etc/ssl:/etc/ssl -e HAPROXY_SSL_CERT=/etc/ssl/default.crt \
     -e HAPROXY_SSL_OPTIONS='crt /etc/ssl no-sslv3 ciphers EECDH+ECDSA+AESGCM:EECDH+aRSA+AESGCM:EECDH+ECDSA+SHA384:EECDH+ECDSA+SHA256:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH+aRSA+RC4:EECDH:EDH+aRSA:RC4:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS' ehazlett/interlock --swarm-url tcp://1.2.3.4:2375 -p haproxy start
 ```
 
@@ -92,6 +92,8 @@ The following options are available:
 - `check_interval`: specify the interval (in ms) when to run the health check (`{"check_interval": 10000}`)  default: 5000
 - `ssl_only`: configure redirect to SSL for backend (`{"ssl_only": true}`)
 - `balance_algorithm`: haproxy balancing algorithm (default: `roundrobin`) http://cbonte.github.io/haproxy-dconv/configuration-1.5.html#balance
+- `ssl_backend`: Configure backend to use SSL (default: `false`)
+- `ssl_backend_tls_verify`: TLS verification mode for backend (`all` or `none`; default: `none`)
 
 For example:
 

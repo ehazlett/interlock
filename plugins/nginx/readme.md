@@ -54,6 +54,7 @@ The following options are available:
 - `port`: specify which container port to use for backend (`{"port": 8080}`)
 - `ssl`: configure SSL for backend (`{"ssl": true}`)
 - `ssl_only`: configure redirect to SSL for backend (`{"ssl_only": true}`)
+- `ssl_backend`: configure backend to use SSL (default: `false`)
 - `websocket_endpoints`: list of endpoints to proxy websockets (`{"websocket_endpoints": ["/exec"]}`)
 
 For example:

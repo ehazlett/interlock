@@ -21,50 +21,6 @@ import (
 	"github.com/samalba/dockerclient"
 )
 
-const (
-	haproxyTmpl = `# managed by interlock
-global
-    {{ if .PluginConfig.SyslogAddr }}log {{ .PluginConfig.SyslogAddr }} local0
-    log-send-hostname{{ end }}
-    maxconn {{ .PluginConfig.MaxConn }}
-    pidfile {{ .PluginConfig.PidPath }}
-
-defaults
-    mode http
-    retries 3
-    option redispatch
-    option httplog
-    option dontlognull
-    option http-server-close
-    option forwardfor
-    timeout connect {{ .PluginConfig.ConnectTimeout }}
-    timeout client {{ .PluginConfig.ClientTimeout }}
-    timeout server {{ .PluginConfig.ServerTimeout }}
-
-frontend http-default
-    bind *:{{ .PluginConfig.Port }}
-    {{ if .PluginConfig.SSLCert }}bind *:{{ .PluginConfig.SSLPort }} ssl crt {{ .PluginConfig.SSLCert }} {{ .PluginConfig.SSLOpts }}{{ end }}
-    monitor-uri /haproxy?monitor
-    {{ if .PluginConfig.StatsUser }}stats realm Stats
-    stats auth {{ .PluginConfig.StatsUser }}:{{ .PluginConfig.StatsPassword }}{{ end }}
-    stats enable
-    stats uri /haproxy?stats
-    stats refresh 5s
-    {{ range $host := .Hosts }}acl is_{{ $host.Name }} hdr_beg(host) {{ $host.Domain }}
-    use_backend {{ $host.Name }} if is_{{ $host.Name }}
-    {{ end }}
-{{ range $host := .Hosts }}backend {{ $host.Name }}
-    http-response add-header X-Request-Start %Ts.%ms
-    balance {{ $host.BalanceAlgorithm }}
-    {{ range $option := $host.BackendOptions }}option {{ $option }}
-    {{ end }}
-    {{ if $host.Check }}option {{ $host.Check }}{{ end }}
-    {{ if $host.SSLOnly }}redirect scheme https if !{ ssl_fc  }{{ end }}
-    {{ range $i,$up := $host.Upstreams }}server {{ $up.Container }} {{ $up.Addr }} check inter {{ $up.CheckInterval }}
-    {{ end }}
-{{ end }}`
-)
-
 var (
 	eventsErrChan = make(chan error)
 	proxyCmd      *exec.Cmd
@@ -104,7 +60,7 @@ func loadPluginConfig() (*PluginConfig, error) {
 	cfg := &PluginConfig{
 		ProxyConfigPath:             filepath.Join(wd, "proxy.conf"),
 		ProxyBackendOverrideAddress: "",
-		Port:           8080,
+		Port:           80,
 		PidPath:        filepath.Join(wd, "proxy.pid"),
 		MaxConn:        2048,
 		ConnectTimeout: 5000,
@@ -113,7 +69,7 @@ func loadPluginConfig() (*PluginConfig, error) {
 		StatsUser:      "stats",
 		StatsPassword:  "interlock",
 		SSLCert:        "",
-		SSLPort:        8443,
+		SSLPort:        443,
 		SSLOpts:        "",
 	}
 
@@ -346,6 +302,8 @@ func (p HaproxyPlugin) GenerateProxyConfig() (*ProxyConfig, error) {
 	hostBalanceAlgorithms := map[string]string{}
 	hostBackendOptions := map[string][]string{}
 	hostSSLOnly := map[string]bool{}
+	hostSSLBackend := map[string]bool{}
+	hostSSLBackendTLSVerify := map[string]string{}
 	for _, cnt := range containers {
 		cntId := cnt.Id[:12]
 		// load interlock data
@@ -428,6 +386,21 @@ func (p HaproxyPlugin) GenerateProxyConfig() (*ProxyConfig, error) {
 			hostSSLOnly[domain] = true
 		}
 
+		// ssl backend
+		hostSSLBackend[domain] = false
+		if interlockData.SSLBackend {
+			hostSSLBackend[domain] = true
+
+			sslBackendTLSVerify := "none"
+			if interlockData.SSLBackendTLSVerify != "" {
+				sslBackendTLSVerify = interlockData.SSLBackendTLSVerify
+			}
+			hostSSLBackendTLSVerify[domain] = sslBackendTLSVerify
+
+			logMessage(log.DebugLevel,
+				fmt.Sprintf("configuring ssl backend for %s verify=%s", domain, sslBackendTLSVerify))
+		}
+
 		//host := cInfo.NetworkSettings.IpAddress
 		ports := cInfo.NetworkSettings.Ports
 		if len(ports) == 0 {
@@ -488,13 +461,15 @@ func (p HaproxyPlugin) GenerateProxyConfig() (*ProxyConfig, error) {
 	for k, v := range proxyUpstreams {
 		name := strings.Replace(k, ".", "_", -1)
 		host := &Host{
-			Name:             name,
-			Domain:           k,
-			Upstreams:        v,
-			Check:            hostChecks[k],
-			BalanceAlgorithm: hostBalanceAlgorithms[k],
-			BackendOptions:   hostBackendOptions[k],
-			SSLOnly:          hostSSLOnly[k],
+			Name:                name,
+			Domain:              k,
+			Upstreams:           v,
+			Check:               hostChecks[k],
+			BalanceAlgorithm:    hostBalanceAlgorithms[k],
+			BackendOptions:      hostBackendOptions[k],
+			SSLOnly:             hostSSLOnly[k],
+			SSLBackend:          hostSSLBackend[k],
+			SSLBackendTLSVerify: hostSSLBackendTLSVerify[k],
 		}
 		logMessage(log.DebugLevel,
 			fmt.Sprintf("adding host name=%s domain=%s", host.Name, host.Domain))
