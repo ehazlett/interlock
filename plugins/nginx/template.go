@@ -51,6 +51,9 @@ http {
     # default host return 503
     server {
             listen {{ .Port }};
+            {{ if ne .Port 8080 }}
+            listen 8080;
+            {{ end }}
             server_name _;
 
             location / {
@@ -70,6 +73,10 @@ http {
     }
     server {
         listen {{ $host.Port }};
+        {{ if ne $host.Port 8080 }}
+        listen 8080;
+        {{ end }}
+
         server_name{{ range $name := $host.ServerNames }} {{ $name }}{{ end }};
         {{ if $host.SSLOnly }}return 302 https://$server_name$request_uri;{{ else }}
         location / {
@@ -94,6 +101,9 @@ http {
     {{ if $host.SSL }}
     server {
         listen {{ .SSLPort }};
+        {{ if ne .SSLPort 8443 }}
+        listen 8443;
+        {{ end }}
         ssl on;
         ssl_certificate {{ $host.SSLCert }};
         ssl_certificate_key {{ $host.SSLCertKey }};
