@@ -16,10 +16,10 @@ image: build
 	@echo Building Interlock image $(TAG)
 	@docker build -t ehazlett/interlock:$(TAG) .
 
-release: deps build image
+release: build image
 	@docker push ehazlett/interlock:$(TAG)
 
 test: clean 
 	@godep go test -v ./...
 
-.PHONY: all deps build clean image test release
+.PHONY: all build clean image test release
