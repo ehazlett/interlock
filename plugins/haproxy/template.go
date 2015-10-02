@@ -35,7 +35,14 @@ frontend http-default
     {{ range $host := .Hosts }}acl is_{{ $host.Name }} hdr_beg(host) {{ $host.Domain }}
     use_backend {{ $host.Name }} if is_{{ $host.Name }}
     {{ end }}
-{{ range $host := .Hosts }}backend {{ $host.Name }}
+{{ range $host := .Hosts }} {{ if $host.ListenOnTcpPort }}listen {{ $host.Name }}-tcp :{{ $host.TcpPort }}
+    mode tcp
+    option tcplog
+    balance roundrobin
+		{{ range $i,$up := $host.Upstreams }}server {{ $up.Container }} {{ $up.Addr }} check inter {{ $up.CheckInterval }}
+    {{ end }}
+{{ end }}
+backend {{ $host.Name }}
     http-response add-header X-Request-Start %Ts.%ms
     balance {{ $host.BalanceAlgorithm }}
     {{ range $option := $host.BackendOptions }}option {{ $option }}

@@ -11,6 +11,8 @@ type (
 		SSLBackend          bool
 		SSLBackendTLSVerify string
 		BalanceAlgorithm    string
+		ListenOnTcpPort     bool
+		TcpPort             int
 	}
 	Upstream struct {
 		Container     string

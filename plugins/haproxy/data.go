@@ -11,6 +11,7 @@ type InterlockData struct {
 	Hostname            string   `json:"hostname,omitempty"`
 	Domain              string   `json:"domain,omitempty"`
 	BalanceAlgorithm    string   `json:"balance_algorithm,omitempty"`
+	ListenOnTcpPort     bool     `json:"listen_on_tcp_port,omitempty"`
 
 	// these are custom vals for hosts
 	Check          string   `json:"check,omitempty"`

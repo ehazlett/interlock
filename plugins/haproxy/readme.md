@@ -92,6 +92,7 @@ The following options are available:
 - `check_interval`: specify the interval (in ms) when to run the health check (`{"check_interval": 10000}`)  default: 5000
 - `ssl_only`: configure redirect to SSL for backend (`{"ssl_only": true}`)
 - `balance_algorithm`: haproxy balancing algorithm (default: `roundrobin`) http://cbonte.github.io/haproxy-dconv/configuration-1.5.html#balance
+- `listen_on_tcp_port`: listen on TCP port (`{"listen_on_tcp_port": true}`; default: `false`)
 - `ssl_backend`: Configure backend to use SSL (default: `false`)
 - `ssl_backend_tls_verify`: TLS verification mode for backend (`all` or `none`; default: `none`)
 

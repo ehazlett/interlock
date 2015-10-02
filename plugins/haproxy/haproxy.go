@@ -302,6 +302,8 @@ func (p HaproxyPlugin) GenerateProxyConfig() (*ProxyConfig, error) {
 	proxyUpstreams := map[string][]*Upstream{}
 	hostChecks := map[string]string{}
 	hostBalanceAlgorithms := map[string]string{}
+	hostListenOnTcpPorts := map[string]bool{}
+	hostTcpPorts := map[string]int{}
 	hostBackendOptions := map[string][]string{}
 	hostSSLOnly := map[string]bool{}
 	hostSSLBackend := map[string]bool{}
@@ -410,10 +412,12 @@ func (p HaproxyPlugin) GenerateProxyConfig() (*ProxyConfig, error) {
 			continue
 		}
 
+		var tcpPort int
 		var portDef dockerclient.PortBinding
 
-		for _, v := range ports {
+		for k, v := range ports {
 			if len(v) > 0 {
+				tcpPort, _ = strconv.Atoi(strings.Split(k, "/")[0])
 				portDef = dockerclient.PortBinding{
 					HostIp:   v[0].HostIp,
 					HostPort: v[0].HostPort,
@@ -433,6 +437,7 @@ func (p HaproxyPlugin) GenerateProxyConfig() (*ProxyConfig, error) {
 			for k, v := range ports {
 				parts := strings.Split(k, "/")
 				if parts[0] == interlockPort {
+					tcpPort, _ = strconv.Atoi(interlockPort)
 					port := v[0]
 					logMessage(log.DebugLevel,
 						fmt.Sprintf("%s: found specified port %s exposed as %s", domain, interlockPort, port.HostPort))
@@ -440,6 +445,13 @@ func (p HaproxyPlugin) GenerateProxyConfig() (*ProxyConfig, error) {
 					break
 				}
 			}
+		}
+
+		if interlockData.ListenOnTcpPort {
+			hostListenOnTcpPorts[domain] = true
+			hostTcpPorts[domain] = tcpPort
+			logMessage(log.DebugLevel,
+				fmt.Sprintf("listen on TCP port for %s", domain))
 		}
 
 		container_name := cInfo.Name[1:]
@@ -468,6 +480,8 @@ func (p HaproxyPlugin) GenerateProxyConfig() (*ProxyConfig, error) {
 			Upstreams:           v,
 			Check:               hostChecks[k],
 			BalanceAlgorithm:    hostBalanceAlgorithms[k],
+			ListenOnTcpPort:     hostListenOnTcpPorts[k],
+			TcpPort:             hostTcpPorts[k],
 			BackendOptions:      hostBackendOptions[k],
 			SSLOnly:             hostSSLOnly[k],
 			SSLBackend:          hostSSLBackend[k],
