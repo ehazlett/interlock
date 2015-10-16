@@ -1,8 +1,9 @@
 CGO_ENABLED=0
 GOOS=linux
 GOARCH=amd64
-TAG=${TAG:-latest}
+TAG?=latest
 COMMIT=`git rev-parse --short HEAD`
+export GO15VENDOREXPERIMENT=1
 
 all: build
 
