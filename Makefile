@@ -1,6 +1,7 @@
 TAG?=latest
 APP?=interlock
 REPO?=ehazlett/$(APP)
+COMMIT=`git rev-parse --short HEAD`
 COMPILE_IMAGE_SRC=$(shell find . -name Dockerfile.build)
 export GO15VENDOREXPERIMENT=1
 
@@ -11,7 +12,7 @@ add-deps:
 	@rm -rf Godeps
 
 build:
-	@cd interlock && go build -a -tags 'netgo' -ldflags "-w -X github.com/ehazlett/interlock/version.GITCOMMIT=$(COMMIT) -linkmode external -extldflags -static" .
+	@cd interlock && go build -a -tags 'netgo' -ldflags "-w -X github.com/ehazlett/interlock/version.GitCommit=$(COMMIT) -linkmode external -extldflags -static" .
 
 clean:
 	@rm -rf interlock/interlock
