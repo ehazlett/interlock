@@ -1,0 +1,14 @@
+#!/bin/bash
+TAG=${1:-}
+NAME=interlock
+REPO=ehazlett/$NAME
+
+if [ -z "$TAG" ]; then
+    echo "Usage: $0 <version>"
+    echo " Example: $0 0.1.0"
+    exit 1
+fi
+
+echo "Building $NAME $TAG"
+docker build -t $NAME-build -f Dockerfile.build .
+docker run --rm -e TAG -v /var/run/docker.sock:/var/run/docker.sock -w /go/src/github.com/$REPO/interlock $NAME-build make TAG=$TAG build image
