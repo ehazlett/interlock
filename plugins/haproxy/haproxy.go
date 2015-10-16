@@ -215,10 +215,12 @@ func (p HaproxyPlugin) handleReload() error {
 func (p HaproxyPlugin) handleUpdate(event *dockerclient.Event) error {
 	logMessage(log.DebugLevel, "update request received")
 
-	defer p.handleReload()
-
 	if err := p.updateConfig(event); err != nil {
 		log.Warn(err)
+	}
+
+	if err := p.handleReload(); err != nil {
+		return err
 	}
 
 	return nil
@@ -515,12 +517,14 @@ func (p HaproxyPlugin) reload() error {
 	p.mux.Lock()
 	defer p.mux.Unlock()
 	args := []string{"-D", "-f", p.pluginConfig.ProxyConfigPath, "-p", p.pluginConfig.PidPath}
+	var proxyPid int
 	if proxyCmd != nil {
-		proxyPid, err := p.getProxyPid()
+		pPid, err := p.getProxyPid()
 		if err != nil {
 			log.Error(err)
 		}
-		pid := strconv.Itoa(proxyPid)
+		proxyPid = pPid
+		pid := strconv.Itoa(pPid)
 		args = append(args, []string{"-sf", pid}...)
 	}
 
@@ -531,11 +535,23 @@ func (p HaproxyPlugin) reload() error {
 
 	cmd := exec.Command(haproxyPath, args...)
 	if err := cmd.Run(); err != nil {
+		log.Errorf("error reloading haproxy: %s", err)
 		return err
 	}
+
+	if proxyPid != 0 {
+		oldProc, err := os.FindProcess(proxyPid)
+		if err != nil {
+			return err
+		}
+
+		if _, err := oldProc.Wait(); err != nil {
+			return err
+		}
+	}
+
 	proxyCmd = cmd
 
-	time.Sleep(100 * time.Millisecond)
 	reloaded = true
 	logMessage(log.InfoLevel, "proxy reloaded and ready")
 	return nil

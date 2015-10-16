@@ -42,7 +42,7 @@ frontend http-default
     {{ end }}
     {{ if $host.Check }}option {{ $host.Check }}{{ end }}
     {{ if $host.SSLOnly }}redirect scheme https if !{ ssl_fc  }{{ end }}
-    {{ range $i,$up := $host.Upstreams }}server {{ $up.Container }} {{ $up.Addr }} check inter {{ $up.CheckInterval }}{{ if $host.SSLBackend }} ssl verify {{ $host.SSLBackendTLSVerify }}{{ end }}
+    {{ range $i,$up := $host.Upstreams }}server {{ $up.Container }} {{ $up.Addr }} check inter {{ $up.CheckInterval }}{{ if $host.SSLBackend }} ssl sni req.hdr(Host) verify {{ $host.SSLBackendTLSVerify }}{{ end }}
     {{ end }}
 {{ end }}`
 )
