@@ -7,11 +7,11 @@ export GO15VENDOREXPERIMENT=1
 all: build
 
 add-deps:
-	@cd interlock && godep save
-	@cd interlock && rm -rf Godeps
+	@godep save
+	@rm -rf Godeps
 
 build:
-	@go build -a -tags 'netgo' -ldflags "-w -X github.com/ehazlett/interlock/version.GITCOMMIT=$(COMMIT) -linkmode external -extldflags -static" .
+	@cd interlock && go build -a -tags 'netgo' -ldflags "-w -X github.com/ehazlett/interlock/version.GITCOMMIT=$(COMMIT) -linkmode external -extldflags -static" .
 
 clean:
 	@rm -rf interlock/interlock
@@ -24,7 +24,7 @@ release: build image
 	@docker push $(REPO):$(TAG)
 
 test: clean 
-	@godep go test -v ./...
+	@go test -v ./...
 
 .SUFFIXES: .build
 .PHONY: add-deps build clean release test

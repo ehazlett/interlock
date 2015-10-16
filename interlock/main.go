@@ -34,7 +34,7 @@ func getTLSConfig(caCert, cert, key []byte, allowInsecure bool) (*tls.Config, er
 func main() {
 	app := cli.NewApp()
 	app.Name = "interlock"
-	app.Version = version.FULL_VERSION
+	app.Version = version.FullVersion()
 	app.Author = "@ehazlett"
 	app.Email = ""
 	app.Usage = "event driven docker plugins"
@@ -88,6 +88,10 @@ func main() {
 		{
 			Name:   "list-plugins",
 			Action: cmdListPlugins,
+		},
+		{
+			Name:   "info",
+			Action: cmdInfo,
 		},
 	}
 	// plugin supplied commands

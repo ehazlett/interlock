@@ -217,35 +217,35 @@ func (p StatsPlugin) sendEventStats(id string, stats *dockerclient.Stats, ec cha
 		},
 		{
 			Key:   "network.rxBytes",
-			Value: stats.Network.RxBytes,
+			Value: stats.NetworkStats.RxBytes,
 		},
 		{
 			Key:   "network.rxPackets",
-			Value: stats.Network.RxPackets,
+			Value: stats.NetworkStats.RxPackets,
 		},
 		{
 			Key:   "network.rxErrors",
-			Value: stats.Network.RxErrors,
+			Value: stats.NetworkStats.RxErrors,
 		},
 		{
 			Key:   "network.rxDropped",
-			Value: stats.Network.RxDropped,
+			Value: stats.NetworkStats.RxDropped,
 		},
 		{
 			Key:   "network.txBytes",
-			Value: stats.Network.TxBytes,
+			Value: stats.NetworkStats.TxBytes,
 		},
 		{
 			Key:   "network.txPackets",
-			Value: stats.Network.TxPackets,
+			Value: stats.NetworkStats.TxPackets,
 		},
 		{
 			Key:   "network.txErrors",
-			Value: stats.Network.TxErrors,
+			Value: stats.NetworkStats.TxErrors,
 		},
 		{
 			Key:   "network.txDropped",
-			Value: stats.Network.TxDropped,
+			Value: stats.NetworkStats.TxDropped,
 		},
 	}
 

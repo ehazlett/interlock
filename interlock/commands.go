@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"text/tabwriter"
 
@@ -80,7 +82,7 @@ func cmdStart(c *cli.Context) {
 
 	m := NewManager(config, tlsConfig)
 
-	log.Infof("interlock running version=%s", version.FULL_VERSION)
+	log.Infof("interlock running version=%s", version.FullVersion())
 	if err := m.Run(); err != nil {
 		log.Fatal(err)
 	}
@@ -109,4 +111,24 @@ func cmdListPlugins(c *cli.Context) {
 		)
 	}
 	w.Flush()
+}
+
+func cmdInfo(c *cli.Context) {
+	haproxyOut, hErr := exec.Command("/usr/sbin/haproxy", "-v").Output()
+	if hErr != nil {
+		log.Fatal(hErr)
+	}
+
+	hData := strings.Split(string(haproxyOut), "\n")
+
+	nginxOut, nErr := exec.Command("/usr/sbin/nginx", "-v").CombinedOutput()
+	if nErr != nil {
+		log.Fatal(nErr)
+	}
+
+	nData := strings.Split(string(nginxOut), "\n")
+
+	fmt.Println("interlock " + version.FullVersion())
+	fmt.Println(" " + string(hData[0]))
+	fmt.Println(" " + string(nData[0]))
 }

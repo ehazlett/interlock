@@ -1,10 +1,12 @@
 package version
 
 var (
-	VERSION = "0.3.1"
+	Version = "0.3.2"
 
-	// GITCOMMIT will be overwritten automatically by the build system
-	GITCOMMIT = "HEAD"
-
-	FULL_VERSION = VERSION + " (" + GITCOMMIT + ")"
+	// GitCommit will be overwritten automatically by the build system
+	GitCommit = "HEAD"
 )
+
+func FullVersion() string {
+	return Version + " (" + GitCommit + ")"
+}
