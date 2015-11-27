@@ -31,12 +31,21 @@ http {
 
     keepalive_timeout  65;
 
+    # If we receive X-Forwarded-Proto, pass it through; otherwise, pass along the
+    # scheme used to connect to this server
+    map $http_x_forwarded_proto $proxy_x_forwarded_proto {
+      default $http_x_forwarded_proto;
+      ''      $scheme;
+    }
+
     #gzip  on;
     proxy_connect_timeout {{ .ProxyConnectTimeout }};
     proxy_send_timeout {{ .ProxySendTimeout }};
     proxy_read_timeout {{ .ProxyReadTimeout }};
-    proxy_set_header        X-Real-IP       $remote_addr;
-    proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header        X-Real-IP         $remote_addr;
+    proxy_set_header        X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header        X-Forwarded-Proto $proxy_x_forwarded_proto;
+    proxy_set_header        Host              $http_host;
     send_timeout {{ .SendTimeout }};
 
     # ssl
