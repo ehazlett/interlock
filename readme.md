@@ -29,5 +29,20 @@ directory for available plugins and their corresponding readme.md for usage.
 | [Nginx](https://github.com/ehazlett/interlock/tree/master/plugins/nginx) | [Nginx](http://nginx.org) Load Balancer |
 | [Stats](https://github.com/ehazlett/interlock/tree/master/plugins/stats) | Container stat forwarding to [Carbon](http://graphite.wikidot.com/carbon) |
 
+# Building
+To build a local copy of Interlock, you must have the following:
+
+- Go 1.5+
+- Use the Go vendor experiment
+
+You can use the `Makefile` to build the binary.  For example:
+
+`make build`
+
+This will build the binary in `interlock/interlock`.
+
+There is also a Docker image target in the makefile.  You can build it with
+`make image`.
+
 # License
 Licensed under the Apache License, Version 2.0. See LICENSE for full license text.
