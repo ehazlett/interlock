@@ -1,4 +1,4 @@
-package main
+package manager
 
 import (
 	"crypto/tls"
@@ -18,6 +18,8 @@ var (
 	eventsErrChan = make(chan error)
 )
 
+// Manager listens on events from the connected Docker client and dispatches them
+// to registered plugins
 type (
 	Manager struct {
 		Config    *interlock.Config
@@ -28,6 +30,7 @@ type (
 	}
 )
 
+// NewManager create a new Manager
 func NewManager(cfg *interlock.Config, tlsConfig *tls.Config) *Manager {
 	m := &Manager{
 		Config:    cfg,
@@ -91,6 +94,8 @@ func (m *Manager) reconnectOnFail() {
 	}
 }
 
+// Run starts up the manager, loads plugins, and dispatches a Docker event with
+// status "interlock-start"
 func (m *Manager) Run() error {
 	if err := m.connect(); err != nil {
 		return err
@@ -133,6 +138,7 @@ func (m *Manager) Run() error {
 	return nil
 }
 
+// Stop emits a Docker event with status "interlock-stop"
 func (m *Manager) Stop() error {
 	// custom event to signal shutdown
 	evt := &dockerclient.Event{

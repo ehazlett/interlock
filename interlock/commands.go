@@ -15,6 +15,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 	"github.com/ehazlett/interlock"
+	"github.com/ehazlett/interlock/manager"
 	"github.com/ehazlett/interlock/plugins"
 	"github.com/ehazlett/interlock/version"
 )
@@ -28,59 +29,59 @@ func waitForInterrupt() {
 }
 
 func cmdStart(c *cli.Context) {
-	swarmUrl := c.GlobalString("swarm-url")
-	swarmTlsCaCert := c.GlobalString("swarm-tls-ca-cert")
-	swarmTlsCert := c.GlobalString("swarm-tls-cert")
-	swarmTlsKey := c.GlobalString("swarm-tls-key")
-	allowInsecureTls := c.GlobalBool("swarm-allow-insecure")
+	swarmURL := c.GlobalString("swarm-url")
+	swarmTLSCaCert := c.GlobalString("swarm-tls-ca-cert")
+	swarmTLSCert := c.GlobalString("swarm-tls-cert")
+	swarmTLSKey := c.GlobalString("swarm-tls-key")
+	allowInsecureTLS := c.GlobalBool("swarm-allow-insecure")
 
 	// only load env vars if no args
 	// check environment for docker client config
 	envDockerHost := os.Getenv("DOCKER_HOST")
-	if swarmUrl == "" && envDockerHost != "" {
-		swarmUrl = envDockerHost
+	if swarmURL == "" && envDockerHost != "" {
+		swarmURL = envDockerHost
 	}
 
 	// only load env vars if no args
 	envDockerCertPath := os.Getenv("DOCKER_CERT_PATH")
-	envDockerTlsVerify := os.Getenv("DOCKER_TLS_VERIFY")
-	if swarmTlsCaCert == "" && envDockerCertPath != "" && envDockerTlsVerify != "" {
-		swarmTlsCaCert = filepath.Join(envDockerCertPath, "ca.pem")
-		swarmTlsCert = filepath.Join(envDockerCertPath, "cert.pem")
-		swarmTlsKey = filepath.Join(envDockerCertPath, "key.pem")
+	envDockerTLSVerify := os.Getenv("DOCKER_TLS_VERIFY")
+	if swarmTLSCaCert == "" && envDockerCertPath != "" && envDockerTLSVerify != "" {
+		swarmTLSCaCert = filepath.Join(envDockerCertPath, "ca.pem")
+		swarmTLSCert = filepath.Join(envDockerCertPath, "cert.pem")
+		swarmTLSKey = filepath.Join(envDockerCertPath, "key.pem")
 	}
 
 	config := &interlock.Config{}
-	config.SwarmUrl = swarmUrl
+	config.SwarmUrl = swarmURL
 	config.EnabledPlugins = c.GlobalStringSlice("plugin")
 
 	// load tlsconfig
 	var tlsConfig *tls.Config
-	if swarmTlsCaCert != "" && swarmTlsCert != "" && swarmTlsKey != "" {
+	if swarmTLSCaCert != "" && swarmTLSCert != "" && swarmTLSKey != "" {
 		log.Infof("using tls for communication with swarm")
-		caCert, err := ioutil.ReadFile(swarmTlsCaCert)
+		caCert, err := ioutil.ReadFile(swarmTLSCaCert)
 		if err != nil {
 			log.Fatalf("error loading tls ca cert: %s", err)
 		}
 
-		cert, err := ioutil.ReadFile(swarmTlsCert)
+		cert, err := ioutil.ReadFile(swarmTLSCert)
 		if err != nil {
 			log.Fatalf("error loading tls cert: %s", err)
 		}
 
-		key, err := ioutil.ReadFile(swarmTlsKey)
+		key, err := ioutil.ReadFile(swarmTLSKey)
 		if err != nil {
 			log.Fatalf("error loading tls key: %s", err)
 		}
 
-		cfg, err := getTLSConfig(caCert, cert, key, allowInsecureTls)
+		cfg, err := getTLSConfig(caCert, cert, key, allowInsecureTLS)
 		if err != nil {
 			log.Fatalf("error configuring tls: %s", err)
 		}
 		tlsConfig = cfg
 	}
 
-	m := NewManager(config, tlsConfig)
+	m := manager.NewManager(config, tlsConfig)
 
 	log.Infof("interlock running version=%s", version.FullVersion())
 	if err := m.Run(); err != nil {
