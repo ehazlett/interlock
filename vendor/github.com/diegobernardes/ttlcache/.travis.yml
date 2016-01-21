@@ -1,0 +1,20 @@
+language: go
+
+go:
+  - 1.4.2
+
+git:
+  depth: 1
+
+install:
+  - go install -race std
+  - go get golang.org/x/tools/cmd/cover
+  - go get github.com/golang/lint/golint
+  - go get github.com/tools/godep
+  - export PATH=$HOME/gopath/bin:$PATH
+  - godep restore
+
+script:
+  - golint .
+  - go test -race ./...
+  - go test -cover ./...

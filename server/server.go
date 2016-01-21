@@ -7,6 +7,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/diegobernardes/ttlcache"
 	"github.com/ehazlett/interlock/config"
 	"github.com/ehazlett/interlock/events"
 	"github.com/ehazlett/interlock/ext"
@@ -21,7 +22,12 @@ type Server struct {
 	eventChan  chan (*dockerclient.Event)
 	extensions []ext.LoadBalancer
 	lock       *sync.Mutex
+	cache      *ttlcache.Cache
 }
+
+const (
+	ReloadThreshold = time.Millisecond * 500
+)
 
 var (
 	errChan      chan (error)
@@ -29,9 +35,18 @@ var (
 )
 
 func NewServer(cfg *config.Config) (*Server, error) {
+	reloadCallback := func(key string, value interface{}) {
+		lbUpdateChan <- true
+	}
+
+	cache := ttlcache.NewCache()
+	cache.SetTTL(ReloadThreshold)
+	cache.SetExpirationCallback(reloadCallback)
+
 	s := &Server{
-		cfg:  cfg,
-		lock: &sync.Mutex{},
+		cfg:   cfg,
+		lock:  &sync.Mutex{},
+		cache: cache,
 	}
 
 	client, err := s.getDockerClient()
@@ -61,6 +76,11 @@ func NewServer(cfg *config.Config) (*Server, error) {
 	lbUpdateChan = make(chan bool)
 	go func() {
 		for range lbUpdateChan {
+			if _, exists := s.cache.Get("reload"); exists {
+				log.Debugf("skipping reload: too many requests")
+				continue
+			}
+
 			go func() {
 				log.Debugf("updating load balancers")
 				s.lock.Lock()
@@ -107,16 +127,18 @@ func NewServer(cfg *config.Config) (*Server, error) {
 
 				switch e.Status {
 				case "start":
-					// ignore containers without exposed ports
+					// ignore containetrs without exposed ports
 					image := c.Config.Image
 					log.Debugf("container start: id=%s image=%s", e.ID, image)
-					lbUpdateChan <- true
+
+					s.cache.Set("reload", true)
 				case "kill", "die", "stop":
 					log.Debugf("container %s: id=%s", e.Status, e.ID)
 
 					// wait for container to stop
 					time.Sleep(time.Millisecond * 250)
-					lbUpdateChan <- true
+
+					s.cache.Set("reload", true)
 				}
 			}()
 		}

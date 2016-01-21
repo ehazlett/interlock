@@ -21,6 +21,11 @@
 			"Rev": "c31a7975863e7810c92e2e288a9ab074f9a88f29"
 		},
 		{
+			"ImportPath": "github.com/diegobernardes/ttlcache",
+			"Comment": "1.0.1-2-g2a0db3b",
+			"Rev": "2a0db3bc291bc1612c08cfa7d8261c429f40efb1"
+		},
+		{
 			"ImportPath": "github.com/prometheus/client_golang/prometheus",
 			"Comment": "0.7.0-68-g67994f1",
 			"Rev": "67994f177195311c3ea3d4407ed0175e34a4256f"
