@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	pluginName = "nginx"
+	pluginName = "haproxy"
 )
 
 type HAProxyLoadBalancer struct {
