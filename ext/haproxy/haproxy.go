@@ -2,13 +2,17 @@ package haproxy
 
 import (
 	"bytes"
-	"errors"
 	"os"
 	"text/template"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/ehazlett/interlock/config"
 	"github.com/ehazlett/interlock/ext"
 	"github.com/samalba/dockerclient"
+)
+
+const (
+	pluginName = "nginx"
 )
 
 type HAProxyLoadBalancer struct {
@@ -16,9 +20,11 @@ type HAProxyLoadBalancer struct {
 	client *dockerclient.DockerClient
 }
 
-var (
-	ErrNotImplemented = errors.New("not implemented")
-)
+func log() *logrus.Entry {
+	return logrus.WithFields(logrus.Fields{
+		"ext": pluginName,
+	})
+}
 
 func NewHAProxyLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClient) (*HAProxyLoadBalancer, error) {
 	lb := &HAProxyLoadBalancer{
@@ -53,7 +59,7 @@ func (p *HAProxyLoadBalancer) Reload() error {
 
 	// find interlock haproxy containers
 	for _, cnt := range containers {
-		if _, ok := cnt.Labels[ext.InterlockExtNameLabel]; ok {
+		if v, ok := cnt.Labels[ext.InterlockExtNameLabel]; ok && v == pluginName {
 			// restart
 			if err := p.client.RestartContainer(cnt.Id, 1); err != nil {
 				log().Errorf("error restarting container: id=%s err=%s", cnt.Id[:12], err)
@@ -83,7 +89,7 @@ func (p *HAProxyLoadBalancer) saveConfig(config *Config) error {
 	defer f.Close()
 
 	t := template.New("haproxy")
-	tmpl, err := t.Parse(haproxyTmpl)
+	tmpl, err := t.Parse(haproxyConfTemplate)
 	if err != nil {
 		return err
 	}

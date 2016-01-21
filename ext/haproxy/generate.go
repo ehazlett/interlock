@@ -4,16 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/ehazlett/interlock/ext"
 	"github.com/samalba/dockerclient"
 )
 
-func log() *logrus.Entry {
-	return logrus.WithFields(logrus.Fields{
-		"ext": "haproxy",
-	})
-}
 func (p *HAProxyLoadBalancer) GenerateProxyConfig() (*Config, error) {
 	log().Debug("generating proxy config")
 

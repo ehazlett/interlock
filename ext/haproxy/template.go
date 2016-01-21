@@ -1,7 +1,7 @@
 package haproxy
 
 const (
-	haproxyTmpl = `# managed by interlock
+	haproxyConfTemplate = `# managed by interlock
 global
     {{ if .Config.SyslogAddr }}log {{ .Config.SyslogAddr }} local0
     log-send-hostname{{ end }}
