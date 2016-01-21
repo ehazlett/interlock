@@ -156,14 +156,14 @@ func (s *Server) loadExtensions(client *dockerclient.DockerClient) {
 		log.Debugf("loading extension: name=%s configpath=%s", x.Name, x.ConfigPath)
 		switch strings.ToLower(x.Name) {
 		case "haproxy":
-			p, err := haproxy.NewHAProxyLoadBalancer(&x, client)
+			p, err := haproxy.NewHAProxyLoadBalancer(x, client)
 			if err != nil {
 				log.Errorf("error loading haproxy extension: %s", err)
 				continue
 			}
 			s.extensions = append(s.extensions, p)
 		case "nginx":
-			p, err := nginx.NewNginxLoadBalancer(&x, client)
+			p, err := nginx.NewNginxLoadBalancer(x, client)
 			if err != nil {
 				log.Errorf("error loading nginx extension: %s", err)
 				continue
