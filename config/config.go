@@ -5,19 +5,29 @@ package config
 type ExtensionConfig struct {
 	Name                   string
 	ConfigPath             string
-	PidPath                string
-	BackendOverrideAddress string
-	ConnectTimeout         int
-	ServerTimeout          int
-	ClientTimeout          int
-	MaxConn                int
-	Port                   int
-	SyslogAddr             string
-	AdminUser              string
-	AdminPass              string
-	SSLCert                string
-	SSLPort                int
-	SSLOpts                string
+	PidPath                string // haproxy, nginx
+	BackendOverrideAddress string // haproxy, nginx
+	ConnectTimeout         int    // haproxy
+	ServerTimeout          int    // haproxy
+	ClientTimeout          int    // haproxy
+	MaxConn                int    // haproxy, nginx
+	Port                   int    // haproxy, nginx
+	SyslogAddr             string // haproxy
+	AdminUser              string // haproxy
+	AdminPass              string // haproxy
+	SSLCertPath            string // haproxy
+	SSLCert                string // haproxy
+	SSLPort                int    // haproxy, nginx
+	SSLOpts                string // haproxy
+	User                   string // nginx
+	WorkerProcesses        int    // nginx
+	RLimitNoFile           int    // nginx
+	ProxyConnectTimeout    int    // nginx
+	ProxySendTimeout       int    // nginx
+	ProxyReadTimeout       int    // nginx
+	SendTimeout            int    // nginx
+	SSLCiphers             string // nginx
+	SSLProtocols           string // nginx
 }
 
 type Config struct {

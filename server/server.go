@@ -12,6 +12,7 @@ import (
 	"github.com/ehazlett/interlock/events"
 	"github.com/ehazlett/interlock/ext"
 	"github.com/ehazlett/interlock/ext/haproxy"
+	"github.com/ehazlett/interlock/ext/nginx"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/samalba/dockerclient"
 )
@@ -158,6 +159,13 @@ func (s *Server) loadExtensions(client *dockerclient.DockerClient) {
 			p, err := haproxy.NewHAProxyLoadBalancer(&x, client)
 			if err != nil {
 				log.Errorf("error loading haproxy extension: %s", err)
+				continue
+			}
+			s.extensions = append(s.extensions, p)
+		case "nginx":
+			p, err := nginx.NewNginxLoadBalancer(&x, client)
+			if err != nil {
+				log.Errorf("error loading nginx extension: %s", err)
 				continue
 			}
 			s.extensions = append(s.extensions, p)
