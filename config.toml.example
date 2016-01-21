@@ -1,0 +1,3 @@
+# sample config for interlock
+listenAddr = ":8080"
+dockerURL = "unix:///var/run/docker.sock"
