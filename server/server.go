@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/ehazlett/interlock/config"
@@ -88,8 +89,6 @@ func NewServer(cfg *config.Config) (*Server, error) {
 	go func() {
 		for e := range s.eventChan {
 			go func() {
-				log.Debugf("evt: %s", e)
-
 				c, err := client.InspectContainer(e.ID)
 				if err != nil {
 					// ignore inspect errors
@@ -115,6 +114,8 @@ func NewServer(cfg *config.Config) (*Server, error) {
 				case "kill", "die", "stop":
 					log.Debugf("container %s: id=%s", e.Status, e.ID)
 
+					// wait for container to stop
+					time.Sleep(time.Millisecond * 250)
 					lbUpdateChan <- true
 				}
 			}()

@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/ehazlett/interlock/ext"
 	"github.com/samalba/dockerclient"
 )
 
@@ -40,6 +41,14 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig() (*Config, error) {
 		domain := cInfo.Config.Domainname
 
 		// TODO: parse labels for custom option overrides
+
+		if v, ok := cInfo.Config.Labels[ext.InterlockHostnameLabel]; ok {
+			hostname = v
+		}
+
+		if v, ok := cInfo.Config.Labels[ext.InterlockDomainLabel]; ok {
+			domain = v
+		}
 
 		if domain == "" {
 			continue
