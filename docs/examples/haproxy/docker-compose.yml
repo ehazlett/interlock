@@ -18,3 +18,11 @@ haproxy:
         - interlock:interlock
     volumes:
         - haproxy:/usr/local/etc/haproxy
+
+app:
+    image: ehazlett/docker-demo:latest
+    ports:
+        - 8080
+    labels:
+        - "interlock.hostname=test"
+        - "interlock.domain=local"
