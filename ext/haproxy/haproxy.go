@@ -60,7 +60,7 @@ func (p *HAProxyLoadBalancer) Reload() error {
 				continue
 			}
 
-			log().Debugf("restarted proxy container: id=%s name=%s", cnt.Id[:12], cnt.Names[0])
+			log().Infof("restarted proxy container: id=%s name=%s", cnt.Id[:12], cnt.Names[0])
 		}
 	}
 

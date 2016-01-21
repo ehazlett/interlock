@@ -87,31 +87,37 @@ func NewServer(cfg *config.Config) (*Server, error) {
 
 	go func() {
 		for e := range s.eventChan {
-			c, err := client.InspectContainer(e.ID)
-			if err != nil {
-				errChan <- err
-				continue
-			}
+			go func() {
+				log.Debugf("evt: %s", e)
 
-			// ignore proxy containers
-			if _, ok := c.Config.Labels[ext.InterlockExtNameLabel]; ok {
-				continue
-			}
+				c, err := client.InspectContainer(e.ID)
+				if err != nil {
+					// ignore inspect errors
+					return
+				}
 
-			switch e.Status {
-			case "start":
-				go func() {
+				// ignore proxy containers
+				if _, ok := c.Config.Labels[ext.InterlockExtNameLabel]; ok {
+					return
+				}
+
+				if len(c.Config.ExposedPorts) == 0 {
+					log.Debugf("no ports exposed; ignoring: id=%s", e.ID)
+					return
+				}
+
+				switch e.Status {
+				case "start":
+					// ignore containers without exposed ports
 					image := c.Config.Image
 					log.Debugf("container start: id=%s image=%s", e.ID, image)
 					lbUpdateChan <- true
-				}()
-			case "kill", "die", "stop":
-				go func() {
+				case "kill", "die", "stop":
 					log.Debugf("container %s: id=%s", e.Status, e.ID)
 
 					lbUpdateChan <- true
-				}()
-			}
+				}
+			}()
 		}
 	}()
 

@@ -2,9 +2,7 @@
 Dynamic, event-driven service load balancer using [Swarm](https://github.com/docker/swarm).
 
 # Usage
-Example:
-
-`docker run -P ehazlett/interlock -s tcp://1.2.3.4:2375 run`
+TODO
 
 # Building
 To build a local copy of Interlock, you must have the following:
