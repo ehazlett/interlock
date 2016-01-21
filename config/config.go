@@ -3,8 +3,9 @@ package config
 // the extension config has all options for all load balancer extensions
 // the extension itself will use whichever options needed
 type ExtensionConfig struct {
-	Name                   string
-	ConfigPath             string
+	Name                   string // extension name
+	ConfigPath             string // config file path
+	ConfigBasePath         string // internal
 	PidPath                string // haproxy, nginx
 	BackendOverrideAddress string // haproxy, nginx
 	ConnectTimeout         int    // haproxy
@@ -13,6 +14,7 @@ type ExtensionConfig struct {
 	MaxConn                int    // haproxy, nginx
 	Port                   int    // haproxy, nginx
 	SyslogAddr             string // haproxy
+	NginxPlusEnabled       bool   // nginx
 	AdminUser              string // haproxy
 	AdminPass              string // haproxy
 	SSLCertPath            string // haproxy

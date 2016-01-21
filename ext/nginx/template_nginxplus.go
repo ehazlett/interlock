@@ -1,6 +1,6 @@
 package nginx
 
-var nginxConfTemplate = `# managed by interlock
+var nginxPlusConfTemplate = `# managed by interlock
 user  {{ .Config.User }};
 worker_processes  {{ .Config.WorkerProcesses }};
 worker_rlimit_nofile {{ .Config.RLimitNoFile }};
@@ -65,14 +65,17 @@ http {
             {{ end }}
             server_name _;
 
-            location / {
-                return 503;
-            }
+	    root /usr/share/nginx/html;
 
-            location /nginx_status {
-                stub_status on;
-                access_log off;
-            }
+    	    location = / {
+    	        return 301 /status.html;
+    	    }
+
+    	    location = /status.html { }
+
+    	    location /status {
+    	        status;
+    	    }
     }
 
     {{ range $host := .Hosts }}
@@ -94,6 +97,8 @@ http {
             {{ if $host.SSLBackend }}proxy_pass https://{{ $host.Upstream.Name }};{{ else }}proxy_pass http://{{ $host.Upstream.Name }};{{ end }}
         }
 
+        status_zone {{ $host.Upstream.Name }}_backend;
+
         {{ range $ws := $host.WebsocketEndpoints }}
         location {{ $ws }} {
             {{ if $host.SSLBackend }}proxy_pass https://{{ $host.Upstream.Name }};{{ else }}proxy_pass http://{{ $host.Upstream.Name }};{{ end }}
@@ -102,10 +107,9 @@ http {
             proxy_set_header Connection $connection_upgrade;
         }
 
-        location /nginx_status {
-            stub_status on;
-            access_log off;
-        }
+    	location /status {
+    	    status;
+    	}
 
         {{ end }}
         {{ end }}

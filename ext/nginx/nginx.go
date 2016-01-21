@@ -3,6 +3,7 @@ package nginx
 import (
 	"bytes"
 	"os"
+	"path/filepath"
 	"text/template"
 
 	"github.com/Sirupsen/logrus"
@@ -27,6 +28,9 @@ func log() *logrus.Entry {
 }
 
 func NewNginxLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClient) (*NginxLoadBalancer, error) {
+	// parse config base dir
+	c.ConfigBasePath = filepath.Dir(c.ConfigPath)
+
 	lb := &NginxLoadBalancer{
 		cfg:    c,
 		client: client,
@@ -61,8 +65,8 @@ func (p *NginxLoadBalancer) Reload() error {
 	for _, cnt := range containers {
 		if v, ok := cnt.Labels[ext.InterlockExtNameLabel]; ok && v == pluginName {
 			// restart
-			if err := p.client.RestartContainer(cnt.Id, 1); err != nil {
-				log().Errorf("error restarting container: id=%s err=%s", cnt.Id[:12], err)
+			if err := p.client.KillContainer(cnt.Id, "HUP"); err != nil {
+				log().Errorf("error reloading container: id=%s err=%s", cnt.Id[:12], err)
 				continue
 			}
 
@@ -89,7 +93,12 @@ func (p *NginxLoadBalancer) saveConfig(config *Config) error {
 	defer f.Close()
 
 	t := template.New("nginx")
-	tmpl, err := t.Parse(nginxConfTemplate)
+	confTmpl := nginxConfTemplate
+
+	if p.cfg.NginxPlusEnabled {
+		confTmpl = nginxPlusConfTemplate
+	}
+	tmpl, err := t.Parse(confTmpl)
 	if err != nil {
 		return err
 	}

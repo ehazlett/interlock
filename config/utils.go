@@ -55,7 +55,7 @@ func SetConfigDefaults(c *ExtensionConfig) error {
 	}
 
 	if c.ProxyReadTimeout == 0 {
-		c.ProxySendTimeout = 600
+		c.ProxyReadTimeout = 600
 	}
 
 	if c.SendTimeout == 0 {
