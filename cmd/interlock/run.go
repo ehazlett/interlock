@@ -8,6 +8,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/ehazlett/interlock/config"
 	"github.com/ehazlett/interlock/server"
+	"github.com/ehazlett/interlock/version"
 )
 
 var cmdRun = cli.Command{
@@ -16,13 +17,15 @@ var cmdRun = cli.Command{
 	Flags: []cli.Flag{
 		cli.StringFlag{
 			Name:  "config, c",
-			Usage: "Path to config file",
+			Usage: "path to config file",
 			Value: "config.toml",
 		},
 	},
 }
 
 func runAction(c *cli.Context) {
+	log.Infof("interlock %s", version.FullVersion())
+
 	configPath := c.String("config")
 
 	var data string

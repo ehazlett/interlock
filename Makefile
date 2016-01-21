@@ -25,8 +25,8 @@ test:
 	@GO15VENDOREXPERIMENT=1 find . -maxdepth 1 -type d -not -path ./Godeps -not -path ./.git -not -path ./vendor -not -path . -exec go test -v {}/... \;
 
 image:
-	@docker build -t $(REPO) .
-	@echo "Image created: $(REPO)"
+	@docker build -t $(REPO):$(TAG) .
+	@echo "Image created: $(REPO):$(TAG)"
 
 clean:
 	@rm cmd/$(APP)/$(APP)
