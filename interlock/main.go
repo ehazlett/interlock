@@ -1,3 +1,32 @@
+/*
+NAME:
+   interlock - event driven docker plugins
+
+USAGE:
+   interlock [global options] command [command options] [arguments...]
+
+VERSION:
+   0.2.9 (012be26)
+
+AUTHOR:
+  @ehazlett
+
+COMMANDS:
+   start
+   list-plugins
+   help, h	Shows a list of commands or help for one command
+
+GLOBAL OPTIONS:
+   --swarm-url, -s "unix:///var/run/docker.sock"	swarm addr
+   --swarm-tls-ca-cert 					tls ca certificate
+   --swarm-tls-cert 					tls certificate
+   --swarm-tls-key 					tls key
+   --swarm-allow-insecure				enable insecure tls communication
+   --plugin, -p [--plugin option --plugin option]	enable plugin
+   --debug, -D						enable debug
+   --help, -h						show help
+   --version, -v					print the version
+*/
 package main
 
 import (
