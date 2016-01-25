@@ -5,6 +5,7 @@ import (
 )
 
 // SetConfigDefaults sets default values if not present
+// TODO: set config defaults for each extension
 func SetConfigDefaults(c *ExtensionConfig) error {
 	if c.ConnectTimeout == 0 {
 		c.ConnectTimeout = 5000
