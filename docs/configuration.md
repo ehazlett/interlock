@@ -73,7 +73,7 @@ they are compatible:
 |SSLProtocols           | string | nginx |
 
 # Key Value Storage Support
-Interlock supports etcd and consul [libkv]("https://github.com/docker/libkv")
+Interlock supports etcd and consul [libkv](https://github.com/docker/libkv)
 key-value store backends.  This can be used to store the configuration instead
 of the file.  This is useful when deploying several instances of Interlock
 for HA and scaling.
