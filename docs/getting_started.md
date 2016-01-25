@@ -53,11 +53,12 @@ This will get a quick Interlock + Nginx load balancer.
 Note: It is recommended to use [Swarm](https://www.docker.com/products/docker-swarm) as Interlock will handle updating the configuration with the proper
 Swarm node.  If you do not use Swarm, you will need to set the `BackendOverrideAddress` option to a resolvable IP address so Nginx knows which node to route the request.  In the example below, we will use the Docker socket for simplicity.
 
-## Nginx
+# Config Volume
 Create a volume for the Nginx config:
 
 `docker volume create --name nginx`
 
+# Interlock Config
 Create the Interlock config `config.toml`:
 
 ```
@@ -71,7 +72,7 @@ DockerURL = "unix:///var/run/docker.sock"
   BackendOverrideAddress = "172.17.0.1"
 ```
 
-Start Interlock:
+# Start Interlock
 
 ```
 docker run \
@@ -85,7 +86,7 @@ docker run \
     -D run -c /etc/config.toml
 ```
 
-Start the Nginx container:
+# Start Nginx
 
 ```
 docker run \
@@ -97,6 +98,7 @@ docker run \
     nginx -g "daemon off;" -c /etc/conf/nginx.conf
 ```
 
+# Interlock
 You can now start some containers with exposed ports to see Interlock add them to Nginx and reload:
 
 `docker run -d -ti -P --hostname foo.local nginx`
@@ -107,8 +109,8 @@ DEBU[0000] docker client: url=unix:///var/run/docker.sock
 DEBU[0000] loading extension: name=nginx configpath=/etc/conf/nginx.conf 
 DEBU[0000] updating load balancers                      
 INFO[0000] configuration updated                         ext=nginx
-DEBU[0077] container start: id=bc9c4f2b9a8697406377191ade8a187c80ef37d9cb59391e1e14608e97495605 image=nginx 
-DEBU[0077] container start: id=bc9c4f2b9a8697406377191ade8a187c80ef37d9cb59391e1e14608e97495605 image=nginx 
+DEBU[0077] container start: id=bc9c4f2b9a8697406377191ade8a187c80ef37d9cb59391e1e14608e974 image=nginx 
+DEBU[0077] container start: id=bc9c4f2b9a8697406377191ade8a187c80ef37d9cb59391e1e14608e974 image=nginx 
 DEBU[0078] updating load balancers                      
 DEBU[0078] websocket endpoints: []                       ext=nginx
 DEBU[0078] alias domains: []                             ext=nginx
