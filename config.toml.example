@@ -1,20 +1,35 @@
 # sample config for interlock
-listenAddr = ":8080"
-dockerURL = "unix:///var/run/docker.sock"
+ListenAddr = ":8080"
+DockerURL = "unix:///var/run/docker.sock"
+TLSCACert = ""
+TLSCert = ""
+TLSKey = ""
+AllowInsecure = false
 
-[[extensions]]
-name = "haproxy"
-configPath = "/usr/local/etc/haproxy/haproxy.cfg"
-pidPath = "/usr/local/etc/haproxy/haproxy.pid"
-backendOverrideAddress = ""
-connectTimeout = 10
-serverTimeout = 10
-clientTimeout = 30
-maxConn = 1024
-port = 80
-syslogAddr = ""
-adminUser = "admin"
-adminPass = "interlock"
-sslCert = ""
-sslPort = 443
-sslOpts = ""
+[[Extensions]]
+  Name = "nginx"
+  ConfigPath = "/etc/conf/nginx.conf"
+  PidPath = "/etc/conf/nginx.pid"
+  BackendOverrideAddress = ""
+  ConnectTimeout = 5000
+  ServerTimeout = 10000
+  ClientTimeout = 10000
+  MaxConn = 1024
+  Port = 80
+  SyslogAddr = ""
+  NginxPlusEnabled = false
+  AdminUser = "admin"
+  AdminPass = ""
+  SSLCertPath = ""
+  SSLCert = ""
+  SSLPort = 0
+  SSLOpts = ""
+  User = "www-data"
+  WorkerProcesses = 2
+  RLimitNoFile = 65535
+  ProxyConnectTimeout = 600
+  ProxySendTimeout = 600
+  ProxyReadTimeout = 600
+  SendTimeout = 600
+  SSLCiphers = "HIGH:!aNULL:!MD5"
+  SSLProtocols = "SSLv3 TLSv1 TLSv1.1 TLSv1.2"
