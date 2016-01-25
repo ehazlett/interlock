@@ -31,13 +31,13 @@ GLOBAL OPTIONS:
 ```
 
 # Configuration
-Interlock uses a configuration file to set options for Interlock and the
-extensions.  See [docs/configuration.md](docs/configuration.md) for full details.
+Interlock uses a configuration store (file/kv) to set options for Interlock and the
+extensions.  See [Configuration](configuration.md) for full details.
 
 # Extensions
 Interlock has an extension system that interacts with
 other Docker containers.  For this example, we will use
-[Nginx](https://www.nginx.com).  See [docs/extensions.md](docs/extensions.md) for
+[Nginx](https://www.nginx.com).  See [Extensions](extensions.md) for
 more details on extensions.
 
 Interlock works by listening on the Docker event stream for container events
@@ -117,4 +117,4 @@ INFO[0078] configuration updated                         ext=nginx
 INFO[0078] restarted proxy container: id=cfb04b4d050d name=/distracted_goldstine  ext=nginx
 ```
 
-For detailed configuration, continue to [docs/configuration.md](docs/configuration.md).
+For detailed configuration, continue to [Configuration](configuration.md).
