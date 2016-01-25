@@ -1,5 +1,5 @@
 # Interlock
-Interlock is an event driven container load balancer for [Docker](https://www.docker.com).
+Interlock is an event driven extension system for [Docker](https://www.docker.com).
 It uses the [Docker Event](https://docs.docker.com/engine/reference/api/docker_remote_api/#docker-events) stream to notify "extensions".  Currently the supported extensions
 are HAProxy and Nginx.  This provides a dynamic load balancer and reverse proxy
 utilizing either HAProxy or Nginx.
