@@ -1,8 +1,8 @@
 # Interlock
 Dynamic, event-driven service load balancer using [Swarm](https://github.com/docker/swarm).
 
-# Usage
-TODO
+# Getting Started
+To get started with Interlock view the [Documentation](docs/index.md).
 
 # Building
 To build a local copy of Interlock, you must have the following:
