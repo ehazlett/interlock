@@ -2,7 +2,7 @@
 Dynamic, event-driven extension system using [Swarm](https://github.com/docker/swarm).  Extensions include HAProxy and Nginx for dynamic load balancing.
 
 # Getting Started
-To get started with Interlock view the [Documentation](docs/index.md).
+To get started with Interlock view the [Documentation](docs).
 
 # Building
 To build a local copy of Interlock, you must have the following:
