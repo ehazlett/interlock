@@ -40,39 +40,37 @@ AllowInsecure = false
 ```
 
 # Reference
-The following lists all options, their type and the extension(s) in which
+The following table lists all options, their type and the extensions in which
 they are compatible:
 
-```
-type ExtensionConfig struct {
-    Name                   string // extension name
-    ConfigPath             string // config file path
-    PidPath                string // haproxy, nginx
-    BackendOverrideAddress string // haproxy, nginx
-    ConnectTimeout         int    // haproxy
-    ServerTimeout          int    // haproxy
-    ClientTimeout          int    // haproxy
-    MaxConn                int    // haproxy, nginx
-    Port                   int    // haproxy, nginx
-    SyslogAddr             string // haproxy
-    NginxPlusEnabled       bool   // nginx
-    AdminUser              string // haproxy
-    AdminPass              string // haproxy
-    SSLCertPath            string // haproxy
-    SSLCert                string // haproxy
-    SSLPort                int    // haproxy, nginx
-    SSLOpts                string // haproxy
-    User                   string // nginx
-    WorkerProcesses        int    // nginx
-    RLimitNoFile           int    // nginx
-    ProxyConnectTimeout    int    // nginx
-    ProxySendTimeout       int    // nginx
-    ProxyReadTimeout       int    // nginx
-    SendTimeout            int    // nginx
-    SSLCiphers             string // nginx
-    SSLProtocols           string // nginx
-}
-```
+|Option|Type|Extensions Supported|
+|----|----|----|
+|Name                   | string | extension name |
+|ConfigPath             | string | config file path |
+|PidPath                | string | haproxy, nginx |
+|BackendOverrideAddress | string | haproxy, nginx |
+|ConnectTimeout         | int    | haproxy |
+|ServerTimeout          | int    | haproxy |
+|ClientTimeout          | int    | haproxy |
+|MaxConn                | int    | haproxy, nginx |
+|Port                   | int    | haproxy, nginx |
+|SyslogAddr             | string | haproxy |
+|NginxPlusEnabled       | bool   | nginx |
+|AdminUser              | string | haproxy |
+|AdminPass              | string | haproxy |
+|SSLCertPath            | string | haproxy |
+|SSLCert                | string | haproxy |
+|SSLPort                | int    | haproxy, nginx |
+|SSLOpts                | string | haproxy |
+|User                   | string | nginx |
+|WorkerProcesses        | int    | nginx |
+|RLimitNoFile           | int    | nginx |
+|ProxyConnectTimeout    | int    | nginx |
+|ProxySendTimeout       | int    | nginx |
+|ProxyReadTimeout       | int    | nginx |
+|SendTimeout            | int    | nginx |
+|SSLCiphers             | string | nginx |
+|SSLProtocols           | string | nginx |
 
 # Key Value Storage Support
 Interlock supports etcd and consul [libkv]("https://github.com/docker/libkv")
