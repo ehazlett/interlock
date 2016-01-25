@@ -93,7 +93,7 @@ DockerURL = "tcp://127.0.0.1:2376"
   ConfigPath = "/usr/local/etc/haproxy/haproxy.cfg"
   PidPath = "/usr/local/etc/haproxy/haproxy.pid"
   MaxConn = 1024
-  Port = 80
+  Port = 80'
 ```
 
 You can then start Interlock and point it at the KV store:
