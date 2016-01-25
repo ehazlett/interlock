@@ -5,7 +5,7 @@ are HAProxy and Nginx.  This provides a dynamic load balancer and reverse proxy
 utilizing either HAProxy or Nginx.
 
 # Getting Started
-To get started with Interlock, see [docs/getting_started.md](docs/getting_started.md)
+To get started with Interlock, see [Getting Started](getting_started.md)
 
 # Examples
 There are examples using [Docker Compose](https://docs.docker.com/compose/)
