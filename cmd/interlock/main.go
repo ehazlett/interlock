@@ -14,7 +14,7 @@ func main() {
 	app.Version = version.FullVersion()
 	app.Author = "@ehazlett"
 	app.Email = "ejhazlett@gmail.com"
-	app.Usage = "an event driven load balancer for docker"
+	app.Usage = "an event driven extension system for docker"
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
 			Name:  "debug, D",
