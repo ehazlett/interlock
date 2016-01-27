@@ -20,10 +20,10 @@ import (
 )
 
 const (
-	defaultConfig = `listenAddr = ":8080"
-dockerURL = "unix:///var/run/docker.sock"
+	defaultConfig = `ListenAddr = ":8080"
+DockerURL = "unix:///var/run/docker.sock"
 `
-	kvConfigKey = "/v1/interlock/config"
+	kvConfigKey = "interlock/v1/config"
 )
 
 var cmdRun = cli.Command{
