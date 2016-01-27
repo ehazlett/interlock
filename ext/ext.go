@@ -1,22 +1,22 @@
 package ext
 
 const (
-	InterlockExtNameLabel             = "interlock.ext.name"
-	InterlockHostnameLabel            = "interlock.hostname"
-	InterlockDomainLabel              = "interlock.domain"
-	InterlockSSLLabel                 = "interlock.ssl"
-	InterlockSSLOnlyLabel             = "interlock.ssl_only"
-	InterlockSSLBackendLabel          = "interlock.ssl_backend"
-	InterlockSSLBackendTLSVerifyLabel = "interlock.ssl_backend_tls_verify"
-	InterlockSSLCertLabel             = "interlock.ssl_cert"
-	InterlockSSLCertKeyLabel          = "interlock.ssl_cert_key"
-	InterlockPortLabel                = "interlock.port"
-	InterlockWebsocketEndpointLabel   = "interlock.websocket_endpoint"
-	InterlockAliasDomainLabel         = "interlock.alias_domain"
-	InterlockHealthCheckLabel         = "interlock.health_check"
-	InterlockHealthCheckIntervalLabel = "interlock.health_check_interval"
-	InterlockBalanceAlgorithmLabel    = "interlock.balance_algorithm"
-	InterlockBackendOptionLabel       = "interlock.backend_option"
+	InterlockExtNameLabel             = "interlock.ext.name"               // common
+	InterlockHostnameLabel            = "interlock.hostname"               // haproxy, nginx
+	InterlockDomainLabel              = "interlock.domain"                 // haproxy, nginx
+	InterlockSSLLabel                 = "interlock.ssl"                    // nginx
+	InterlockSSLOnlyLabel             = "interlock.ssl_only"               // haproxy, nginx
+	InterlockSSLBackendLabel          = "interlock.ssl_backend"            // haproxy, nginx
+	InterlockSSLBackendTLSVerifyLabel = "interlock.ssl_backend_tls_verify" // haproxy, nginx
+	InterlockSSLCertLabel             = "interlock.ssl_cert"               // nginx
+	InterlockSSLCertKeyLabel          = "interlock.ssl_cert_key"           // nginx
+	InterlockPortLabel                = "interlock.port"                   // haproxy, nginx
+	InterlockWebsocketEndpointLabel   = "interlock.websocket_endpoint"     // nginx
+	InterlockAliasDomainLabel         = "interlock.alias_domain"           // haproxy, nginx
+	InterlockHealthCheckLabel         = "interlock.health_check"           // haproxy
+	InterlockHealthCheckIntervalLabel = "interlock.health_check_interval"  //haproxy
+	InterlockBalanceAlgorithmLabel    = "interlock.balance_algorithm"      // haproxy
+	InterlockBackendOptionLabel       = "interlock.backend_option"         // haproxy
 )
 
 type LoadBalancer interface {

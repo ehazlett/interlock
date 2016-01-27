@@ -5,7 +5,7 @@ package config
 type ExtensionConfig struct {
 	Name                   string // extension name
 	ConfigPath             string // config file path
-	ConfigBasePath         string // internal
+	ConfigBasePath         string `toml:"-"` // internal
 	PidPath                string // haproxy, nginx
 	BackendOverrideAddress string // haproxy, nginx
 	ConnectTimeout         int    // haproxy

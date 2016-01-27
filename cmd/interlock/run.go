@@ -28,6 +28,7 @@ DockerURL = "unix:///var/run/docker.sock"
 
 var cmdRun = cli.Command{
 	Name:   "run",
+	Usage:  "run interlock",
 	Action: runAction,
 	Flags: []cli.Flag{
 		cli.StringFlag{

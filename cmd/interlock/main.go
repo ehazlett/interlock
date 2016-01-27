@@ -13,7 +13,8 @@ func main() {
 	app.Name = "interlock"
 	app.Version = version.FullVersion()
 	app.Author = "@ehazlett"
-	app.Usage = "an event driven load balancer for docker"
+	app.Email = "ejhazlett@gmail.com"
+	app.Usage = "an event driven extension system for docker"
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
 			Name:  "debug, D",
@@ -21,6 +22,7 @@ func main() {
 		},
 	}
 	app.Commands = []cli.Command{
+		cmdSpec,
 		cmdRun,
 	}
 	app.Before = func(c *cli.Context) error {
