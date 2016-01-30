@@ -44,7 +44,7 @@ Then run a container using `INTERLOCK_DATA` to specify the certificate name to u
 `docker run --rm -P --hostname foo.local -e INTERLOCK_DATA='{"ssl":true,"ssl_certificate":"evanhazlett.com.pem","ssl_certificate_key":"evanhazlett.com.key"}' ehazlett/docker-demo`
 
 # Interlock Data
-The HAProxy plugin can use additional data from a container's `INTERLOCK_DATA` 
+The Nginx plugin can use additional data from a container's `INTERLOCK_DATA` 
 environment variable.  This must be specified as a JSON payload in the variable.
 The following options are available:
 
@@ -60,11 +60,11 @@ The following options are available:
 For example:
 
 ```
-docker run -ti \
-    -P \
-    -d \
-    --hostname www.example.com \
-    -e INTERLOCK_DATA='{"alias_domains": ["foo.com"], "port": 8080}' \
+docker run -ti
+    -P
+    -d
+    --hostname www.example.com
+    -e INTERLOCK_DATA='{"alias_domains": ["foo.com"], "port": 8080}'
     ehazlett/go-demo
 ```
 
