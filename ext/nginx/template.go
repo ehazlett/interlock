@@ -112,10 +112,7 @@ http {
     }
     {{ if $host.SSL }}
     server {
-        listen {{ .Config.SSLPort }};
-        {{ if ne .Config.SSLPort 8443 }}
-        listen 443;
-        {{ end }}
+        listen {{ $host.SSLPort }};
         ssl on;
         ssl_certificate {{ $host.SSLCert }};
         ssl_certificate_key {{ $host.SSLCertKey }};
