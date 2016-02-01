@@ -60,9 +60,6 @@ http {
     # default host return 503
     server {
             listen {{ .Config.Port }};
-            {{ if ne .Config.Port 8080 }}
-            listen 8080;
-            {{ end }}
             server_name _;
 
 	    root /usr/share/nginx/html;
@@ -87,9 +84,6 @@ http {
     }
     server {
         listen {{ $host.Port }};
-        {{ if ne $host.Port 8080 }}
-        listen 8080;
-        {{ end }}
 
         server_name{{ range $name := $host.ServerNames }} {{ $name }}{{ end }};
         {{ if $host.SSLOnly }}return 302 https://$server_name$request_uri;{{ else }}
@@ -116,10 +110,7 @@ http {
     }
     {{ if $host.SSL }}
     server {
-        listen {{ .Config.SSLPort }};
-        {{ if ne .Config.SSLPort 8443 }}
-        listen 443;
-        {{ end }}
+        listen {{ $host.SSLPort }};
         ssl on;
         ssl_certificate {{ $host.SSLCert }};
         ssl_certificate_key {{ $host.SSLCertKey }};
