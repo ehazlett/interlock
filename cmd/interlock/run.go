@@ -138,6 +138,7 @@ func runAction(c *cli.Context) {
 		}
 
 		if !exists {
+			log.Warnf("unable to find config in key %s; using default config", kvConfigKey)
 			data = defaultConfig
 		} else {
 			kvPair, err := kv.Get(kvConfigKey)
