@@ -7,12 +7,12 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/diegobernardes/ttlcache"
 	"github.com/ehazlett/interlock/config"
 	"github.com/ehazlett/interlock/events"
 	"github.com/ehazlett/interlock/ext"
 	"github.com/ehazlett/interlock/ext/haproxy"
 	"github.com/ehazlett/interlock/ext/nginx"
+	"github.com/ehazlett/interlock/pkg/ttlcache"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/samalba/dockerclient"
 )
@@ -22,7 +22,7 @@ type Server struct {
 	client     *dockerclient.DockerClient
 	extensions []ext.LoadBalancer
 	lock       *sync.Mutex
-	cache      *ttlcache.Cache
+	cache      *ttlcache.TTLCache
 	metrics    *Metrics
 }
 
@@ -41,13 +41,15 @@ var (
 )
 
 func NewServer(cfg *config.Config) (*Server, error) {
-	reloadCallback := func(key string, value interface{}) {
-		lbUpdateChan <- true
+	cache, err := ttlcache.NewTTLCache(ReloadThreshold)
+	if err != nil {
+		return nil, err
 	}
 
-	cache := ttlcache.NewCache()
-	cache.SetTTL(ReloadThreshold)
-	cache.SetExpirationCallback(reloadCallback)
+	cache.SetCallback(func(k string, v interface{}) {
+		log.Debugf("triggering reload from cache")
+		lbUpdateChan <- true
+	})
 
 	s := &Server{
 		cfg:     cfg,
@@ -131,11 +133,13 @@ func NewServer(cfg *config.Config) (*Server, error) {
 	// lbUpdateChan handler
 	go func() {
 		for range lbUpdateChan {
-			if _, exists := s.cache.Get("reload"); exists {
+			log.Debug("checking to reload")
+			if v := s.cache.Get("reload"); v != nil {
 				log.Debug("skipping reload: too many requests")
 				continue
 			}
 
+			log.Debug("reloading")
 			go func() {
 				start := time.Now()
 
@@ -175,35 +179,35 @@ func NewServer(cfg *config.Config) (*Server, error) {
 				continue
 			}
 
-			log.Debugf("inspecting container: id=%s", e.ID)
-			c, err := client.InspectContainer(e.ID)
-			if err != nil {
-				// ignore inspect errors
-				log.Errorf("error: id=%s type=%s: %s", e.ID, e.Status, err)
-				//return
-				continue
-			}
-
-			log.Debugf("checking container labels: id=%s", e.ID)
-			// ignore proxy containers
-			if _, ok := c.Config.Labels[ext.InterlockExtNameLabel]; ok {
-				log.Debugf("ignoring proxy container: id=%s", c.Id)
-				//return
-				continue
-			}
-
-			log.Debugf("checking container ports: id=%s", e.ID)
-			// ignore containetrs without exposed ports
-			if len(c.Config.ExposedPorts) == 0 {
-				log.Debugf("no ports exposed; ignoring: id=%s", e.ID)
-				//return
-				continue
-			}
-
-			log.Debugf("ports found; checking event type for trigger: %q", e.Status)
-
 			switch e.Status {
 			case "start":
+				log.Debugf("inspecting container: id=%s", e.ID)
+				c, err := client.InspectContainer(e.ID)
+				if err != nil {
+					// ignore inspect errors
+					log.Errorf("error: id=%s type=%s: %s", e.ID, e.Status, err)
+					//return
+					continue
+				}
+
+				log.Debugf("checking container labels: id=%s", e.ID)
+				// ignore proxy containers
+				if _, ok := c.Config.Labels[ext.InterlockExtNameLabel]; ok {
+					log.Debugf("ignoring proxy container: id=%s", c.Id)
+					//return
+					continue
+				}
+
+				log.Debugf("checking container ports: id=%s", e.ID)
+				// ignore containetrs without exposed ports
+				if len(c.Config.ExposedPorts) == 0 {
+					log.Debugf("no ports exposed; ignoring: id=%s", e.ID)
+					//return
+					continue
+				}
+
+				log.Debugf("ports found; checking event type for trigger: %q", e.Status)
+
 				image := c.Config.Image
 				log.Debugf("container start: id=%s image=%s", e.ID, image)
 
