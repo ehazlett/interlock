@@ -157,9 +157,12 @@ func NewServer(cfg *config.Config) (*Server, error) {
 					}
 				}
 
-				duration := time.Now().Sub(start)
+				d := time.Since(start)
+				duration := float64(d.Seconds() * float64(1000))
 
-				s.metrics.LastReloadDuration.Set(float64(duration.Nanoseconds()))
+				s.metrics.LastReloadDuration.Set(duration)
+
+				log.Debugf("reload duration: %0.2fms", duration)
 
 			}()
 		}
