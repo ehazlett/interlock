@@ -6,8 +6,8 @@ import (
 
 var (
 	sampleConfig = `
-listenAddr = ":8080"
-dockerURL = "unix:///var/run/docker.sock"
+ListenAddr = ":8080"
+DockerURL = "unix:///var/run/docker.sock"
 `
 )
 

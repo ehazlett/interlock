@@ -24,6 +24,7 @@ type Server struct {
 	extensions []ext.LoadBalancer
 	lock       *sync.Mutex
 	cache      *ttlcache.Cache
+	metrics    *Metrics
 }
 
 const (
@@ -45,9 +46,10 @@ func NewServer(cfg *config.Config) (*Server, error) {
 	cache.SetExpirationCallback(reloadCallback)
 
 	s := &Server{
-		cfg:   cfg,
-		lock:  &sync.Mutex{},
-		cache: cache,
+		cfg:     cfg,
+		lock:    &sync.Mutex{},
+		cache:   cache,
+		metrics: NewMetrics(),
 	}
 
 	client, err := s.getDockerClient()
@@ -78,12 +80,14 @@ func NewServer(cfg *config.Config) (*Server, error) {
 	go func() {
 		for range lbUpdateChan {
 			if _, exists := s.cache.Get("reload"); exists {
-				log.Debugf("skipping reload: too many requests")
+				log.Debug("skipping reload: too many requests")
 				continue
 			}
 
 			go func() {
-				log.Debugf("updating load balancers")
+				start := time.Now()
+
+				log.Debug("updating load balancers")
 				s.lock.Lock()
 				defer s.lock.Unlock()
 
@@ -100,6 +104,10 @@ func NewServer(cfg *config.Config) (*Server, error) {
 					}
 				}
 
+				duration := time.Now().Sub(start)
+
+				s.metrics.LastReloadDuration.Set(float64(duration.Nanoseconds()))
+
 			}()
 		}
 	}()
@@ -109,6 +117,9 @@ func NewServer(cfg *config.Config) (*Server, error) {
 
 	go func() {
 		for e := range s.eventChan {
+			// counter
+			s.metrics.EventsProcessed.Inc()
+
 			go func() {
 				c, err := client.InspectContainer(e.ID)
 				if err != nil {
@@ -145,6 +156,14 @@ func NewServer(cfg *config.Config) (*Server, error) {
 		}
 	}()
 
+	// uptime ticker
+	t := time.NewTicker(time.Second * 1)
+	go func() {
+		for range t.C {
+			s.metrics.Uptime.Inc()
+		}
+	}()
+
 	// trigger initial load
 	lbUpdateChan <- true
 
@@ -176,8 +195,10 @@ func (s *Server) loadExtensions(client *dockerclient.DockerClient) {
 }
 
 func (s *Server) Run() error {
-	// start prometheus listener
-	http.Handle("/metrics", prometheus.Handler())
+	if s.cfg.EnableMetrics {
+		// start prometheus listener
+		http.Handle("/metrics", prometheus.Handler())
+	}
 
 	if err := http.ListenAndServe(s.cfg.ListenAddr, nil); err != nil {
 		return err

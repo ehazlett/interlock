@@ -28,8 +28,9 @@ func specAction(c *cli.Context) {
 	}
 
 	cfg := &config.Config{
-		ListenAddr: ":8080",
-		DockerURL:  "unix:///var/run/docker.sock",
+		ListenAddr:    ":8080",
+		DockerURL:     "unix:///var/run/docker.sock",
+		EnableMetrics: true,
 		Extensions: []*config.ExtensionConfig{
 			ec,
 		},

@@ -22,6 +22,7 @@ import (
 const (
 	defaultConfig = `ListenAddr = ":8080"
 DockerURL = "unix:///var/run/docker.sock"
+EnableMetrics = true
 `
 	kvConfigKey = "interlock/v1/config"
 )
@@ -158,7 +159,7 @@ func runAction(c *cli.Context) {
 		d, err := ioutil.ReadFile(configPath)
 		switch {
 		case os.IsNotExist(err):
-			log.Debug("no config detected; generating local config")
+			log.Debug("no config detected; using default config")
 			data = defaultConfig
 		case err == nil:
 			data = string(d)

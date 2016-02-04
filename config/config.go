@@ -39,5 +39,6 @@ type Config struct {
 	TLSCert       string
 	TLSKey        string
 	AllowInsecure bool
+	EnableMetrics bool
 	Extensions    []*ExtensionConfig
 }
