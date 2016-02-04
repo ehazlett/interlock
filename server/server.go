@@ -106,7 +106,6 @@ func NewServer(cfg *config.Config) (*Server, error) {
 	// restartChan handler
 	go func() {
 		for range restartChan {
-
 			log.Debug("starting event handling")
 
 			// monitor events
@@ -170,42 +169,58 @@ func NewServer(cfg *config.Config) (*Server, error) {
 
 	go func() {
 		for e := range eventChan {
+			log.Debugf("event received: type=%s id=%s", e.Status, e.ID)
+
+			if e.ID == "" {
+				continue
+			}
+
+			log.Debugf("inspecting container: id=%s", e.ID)
+			c, err := client.InspectContainer(e.ID)
+			if err != nil {
+				// ignore inspect errors
+				log.Errorf("error: id=%s type=%s: %s", e.ID, e.Status, err)
+				//return
+				continue
+			}
+
+			log.Debugf("checking container labels: id=%s", e.ID)
+			// ignore proxy containers
+			if _, ok := c.Config.Labels[ext.InterlockExtNameLabel]; ok {
+				log.Debugf("ignoring proxy container: id=%s", c.Id)
+				//return
+				continue
+			}
+
+			log.Debugf("checking container ports: id=%s", e.ID)
+			// ignore containetrs without exposed ports
+			if len(c.Config.ExposedPorts) == 0 {
+				log.Debugf("no ports exposed; ignoring: id=%s", e.ID)
+				//return
+				continue
+			}
+
+			log.Debugf("ports found; checking event type for trigger: %q", e.Status)
+
+			switch e.Status {
+			case "start":
+				image := c.Config.Image
+				log.Debugf("container start: id=%s image=%s", e.ID, image)
+
+				s.cache.Set("reload", true)
+			case "kill", "die", "stop":
+				log.Debugf("container %s: id=%s", e.Status, e.ID)
+
+				// wait for container to stop
+				time.Sleep(time.Millisecond * 250)
+
+				s.cache.Set("reload", true)
+			default:
+				log.Debugf("unhandled event type: id=%s %s", e.ID, e.Status)
+			}
+
 			// counter
 			s.metrics.EventsProcessed.Inc()
-
-			go func() {
-				c, err := client.InspectContainer(e.ID)
-				if err != nil {
-					// ignore inspect errors
-					return
-				}
-
-				// ignore proxy containers
-				if _, ok := c.Config.Labels[ext.InterlockExtNameLabel]; ok {
-					return
-				}
-
-				if len(c.Config.ExposedPorts) == 0 {
-					log.Debugf("no ports exposed; ignoring: id=%s", e.ID)
-					return
-				}
-
-				switch e.Status {
-				case "start":
-					// ignore containetrs without exposed ports
-					image := c.Config.Image
-					log.Debugf("container start: id=%s image=%s", e.ID, image)
-
-					s.cache.Set("reload", true)
-				case "kill", "die", "stop":
-					log.Debugf("container %s: id=%s", e.Status, e.ID)
-
-					// wait for container to stop
-					time.Sleep(time.Millisecond * 250)
-
-					s.cache.Set("reload", true)
-				}
-			}()
 		}
 	}()
 
