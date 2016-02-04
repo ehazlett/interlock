@@ -20,7 +20,6 @@ import (
 type Server struct {
 	cfg        *config.Config
 	client     *dockerclient.DockerClient
-	eventChan  chan (*dockerclient.Event)
 	extensions []ext.LoadBalancer
 	lock       *sync.Mutex
 	cache      *ttlcache.Cache
@@ -33,6 +32,11 @@ const (
 
 var (
 	errChan      chan (error)
+	eventChan    (chan *dockerclient.Event)
+	eventErrChan chan (error)
+	handler      *events.EventHandler
+	restartChan  chan (bool)
+	recoverChan  chan (bool)
 	lbUpdateChan chan (bool)
 )
 
@@ -57,26 +61,75 @@ func NewServer(cfg *config.Config) (*Server, error) {
 		return nil, err
 	}
 
+	// channel setup
 	errChan = make(chan error)
-	go func() {
-		err := <-errChan
-		log.Error(err)
-	}()
+	eventErrChan = make(chan error)
+	restartChan = make(chan bool)
+	recoverChan = make(chan bool)
+	eventChan = make(chan *dockerclient.Event)
+	lbUpdateChan = make(chan bool)
 
 	s.client = client
+
+	// eventErrChan handler
+	// this handles event stream errors
+	go func() {
+		for range eventErrChan {
+			// error from swarm event stream; attempt to restart
+			log.Error("event stream fail; attempting to reconnect")
+
+			s.waitForSwarm()
+
+			restartChan <- true
+		}
+	}()
+
+	// errChan handler
+	// this is a general error handling channel
+	go func() {
+		for err := range errChan {
+			log.Error(err)
+			// HACK: check for errors from swarm and restart
+			// events.  an example is "No primary manager elected"
+			// before the event handler is created and thus
+			// won't send the error there
+			if strings.Index(err.Error(), "500 Internal Server Error") > -1 {
+				log.Debug("swarm error detected")
+
+				s.waitForSwarm()
+
+				restartChan <- true
+			}
+		}
+	}()
+
+	// restartChan handler
+	go func() {
+		for range restartChan {
+
+			log.Debug("starting event handling")
+
+			// monitor events
+			// event handler
+			h, err := events.NewEventHandler(eventChan)
+			if err != nil {
+				errChan <- err
+				return
+			}
+
+			handler = h
+
+			s.client.StartMonitorEvents(handler.Handle, eventErrChan)
+
+			// trigger initial load
+			lbUpdateChan <- true
+		}
+	}()
 
 	// load extensions
 	s.loadExtensions(client)
 
-	s.eventChan = make(chan *dockerclient.Event)
-
-	// event handler
-	h, err := events.NewEventHandler(s.eventChan)
-	if err != nil {
-		return nil, err
-	}
-
-	lbUpdateChan = make(chan bool)
+	// lbUpdateChan handler
 	go func() {
 		for range lbUpdateChan {
 			if _, exists := s.cache.Get("reload"); exists {
@@ -112,11 +165,8 @@ func NewServer(cfg *config.Config) (*Server, error) {
 		}
 	}()
 
-	// monitor events
-	client.StartMonitorEvents(h.Handle, errChan)
-
 	go func() {
-		for e := range s.eventChan {
+		for e := range eventChan {
 			// counter
 			s.metrics.EventsProcessed.Inc()
 
@@ -164,10 +214,26 @@ func NewServer(cfg *config.Config) (*Server, error) {
 		}
 	}()
 
-	// trigger initial load
-	lbUpdateChan <- true
+	// start event handler
+	restartChan <- true
 
 	return s, nil
+}
+
+func (s *Server) waitForSwarm() {
+	log.Info("waiting for event stream to become ready")
+
+	for {
+
+		if _, err := s.client.ListContainers(false, false, ""); err == nil {
+			log.Info("event stream appears to have recovered; restarting handler")
+			return
+		}
+
+		log.Debug("event stream not yet ready; retrying")
+
+		time.Sleep(time.Second * 1)
+	}
 }
 
 func (s *Server) loadExtensions(client *dockerclient.DockerClient) {
