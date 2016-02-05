@@ -183,12 +183,7 @@ func NewServer(cfg *config.Config) (*Server, error) {
 
 			switch e.Status {
 			case "start":
-				if s.isExposedContainer(e.ID) {
-					//image := c.Config.Image
-					//log.Debugf("container start: id=%s image=%s", e.ID, image)
-
-					reload = true
-				}
+				reload = s.isExposedContainer(e.ID)
 			case "kill", "die", "stop":
 				log.Debugf("container %s: id=%s", e.Status, e.ID)
 

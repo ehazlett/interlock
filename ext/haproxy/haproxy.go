@@ -51,6 +51,23 @@ func (p *HAProxyLoadBalancer) Update() error {
 }
 
 func (p *HAProxyLoadBalancer) Reload() error {
+	// drop SYN to allow for restarts
+	if err := p.dropSYN(); err != nil {
+		return err
+	}
+
+	if err := p.reloadProxyContainers(); err != nil {
+		return err
+	}
+
+	if err := p.resumeSYN(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *HAProxyLoadBalancer) reloadProxyContainers() error {
 	// restart all interlock managed haproxy containers
 	containers, err := p.client.ListContainers(false, false, "")
 	if err != nil {
