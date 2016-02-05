@@ -179,48 +179,30 @@ func NewServer(cfg *config.Config) (*Server, error) {
 				continue
 			}
 
+			reload := false
+
 			switch e.Status {
 			case "start":
-				log.Debugf("inspecting container: id=%s", e.ID)
-				c, err := client.InspectContainer(e.ID)
-				if err != nil {
-					// ignore inspect errors
-					log.Errorf("error: id=%s type=%s: %s", e.ID, e.Status, err)
-					//return
-					continue
+				if s.isExposedContainer(e.ID) {
+					//image := c.Config.Image
+					//log.Debugf("container start: id=%s image=%s", e.ID, image)
+
+					reload = true
 				}
-
-				log.Debugf("checking container labels: id=%s", e.ID)
-				// ignore proxy containers
-				if _, ok := c.Config.Labels[ext.InterlockExtNameLabel]; ok {
-					log.Debugf("ignoring proxy container: id=%s", c.Id)
-					//return
-					continue
-				}
-
-				log.Debugf("checking container ports: id=%s", e.ID)
-				// ignore containetrs without exposed ports
-				if len(c.Config.ExposedPorts) == 0 {
-					log.Debugf("no ports exposed; ignoring: id=%s", e.ID)
-					//return
-					continue
-				}
-
-				log.Debugf("ports found; checking event type for trigger: %q", e.Status)
-
-				image := c.Config.Image
-				log.Debugf("container start: id=%s image=%s", e.ID, image)
-
-				s.cache.Set("reload", true)
 			case "kill", "die", "stop":
 				log.Debugf("container %s: id=%s", e.Status, e.ID)
 
+				reload = true
+
 				// wait for container to stop
 				time.Sleep(time.Millisecond * 250)
-
-				s.cache.Set("reload", true)
 			default:
 				log.Debugf("unhandled event type: id=%s %s", e.ID, e.Status)
+			}
+
+			if reload {
+				log.Debug("triggering reload")
+				s.cache.Set("reload", true)
 			}
 
 			// counter
@@ -240,6 +222,33 @@ func NewServer(cfg *config.Config) (*Server, error) {
 	restartChan <- true
 
 	return s, nil
+}
+
+func (s *Server) isExposedContainer(id string) bool {
+	log.Debugf("inspecting container: id=%s", id)
+	c, err := s.client.InspectContainer(id)
+	if err != nil {
+		// ignore inspect errors
+		log.Errorf("error: id=%s err=%s", id, err)
+		return false
+	}
+
+	log.Debugf("checking container labels: id=%s", id)
+	// ignore proxy containers
+	if _, ok := c.Config.Labels[ext.InterlockExtNameLabel]; ok {
+		log.Debugf("ignoring proxy container: id=%s", id)
+		return false
+	}
+
+	log.Debugf("checking container ports: id=%s", id)
+	// ignore containetrs without exposed ports
+	if len(c.Config.ExposedPorts) == 0 {
+		log.Debugf("no ports exposed; ignoring: id=%s", id)
+		return false
+	}
+
+	log.Debugf("container is monitored; triggering reload: id=%s", id)
+	return true
 }
 
 func (s *Server) waitForSwarm() {
