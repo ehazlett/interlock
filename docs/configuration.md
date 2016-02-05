@@ -9,6 +9,7 @@ TLSCACert = ""
 TLSCert = ""
 TLSKey = ""
 AllowInsecure = false
+EnableMetrics = true
 
 [[Extensions]]
   Name = "nginx"

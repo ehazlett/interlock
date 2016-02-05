@@ -25,10 +25,14 @@ label upon start: `interlock.ext.name=haproxy`.  For example:
 Interlock will restart all containers with that label whenever the HAProxy config
 is updated.
 
-Note: To do a [proper HAProxy restart](http://engineeringblog.yelp.com/2015/04/true-zero-downtime-haproxy-reloads.html) requires host level privileges and is not portable.  Therefore, you
-might notice a few dropped connections under high load.  If you
-need zero downtime, try the Nginx extension.  It's reloading mechanism will 
-handle the connection queueing automatically.
+Note: If you run Interlock as a privileged container and on the same host
+as the HAProxy container, Interlock will attempt to drop SYN packets upon
+reload to force clients to resend requests to drop as few packets as possible.
+If not, a normal container restart will be performed and connections will be
+dropped.  See [here](http://marc.info/?l=haproxy&m=133262017329084&w=2) for
+details.  If you want to make sure to drop as few packets as possible, try
+the Nginx proxy container as it handles connection queueing automatically
+and this manual queue is not necessary.
 
 ## Nginx
 [Nginx](http://www.haproxy.org/) is a high performance TCP/HTTP load balancer.
