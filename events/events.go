@@ -1,7 +1,6 @@
 package events
 
 import (
-	log "github.com/Sirupsen/logrus"
 	"github.com/samalba/dockerclient"
 )
 
@@ -20,6 +19,5 @@ func NewEventHandler(eventChan chan (*dockerclient.Event)) (*EventHandler, error
 }
 
 func (h *EventHandler) Handle(e *dockerclient.Event, ec chan error, args ...interface{}) {
-	log.Debugf("raw event: id=%s type=%s", e.ID, e.Status)
 	h.eventChan <- e
 }

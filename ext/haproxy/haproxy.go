@@ -53,7 +53,7 @@ func (p *HAProxyLoadBalancer) Update() error {
 func (p *HAProxyLoadBalancer) Reload() error {
 	// drop SYN to allow for restarts
 	if err := p.dropSYN(); err != nil {
-		return err
+		log().Warnf("error signaling clients to resend; you will notice dropped packets: %s", err)
 	}
 
 	if err := p.reloadProxyContainers(); err != nil {
@@ -61,7 +61,7 @@ func (p *HAProxyLoadBalancer) Reload() error {
 	}
 
 	if err := p.resumeSYN(); err != nil {
-		return err
+		log().Warnf("error signaling clients to resume; you will notice dropped packets: %s", err)
 	}
 
 	return nil
