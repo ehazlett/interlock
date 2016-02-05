@@ -183,21 +183,15 @@ func NewServer(cfg *config.Config) (*Server, error) {
 
 			switch e.Status {
 			case "start":
-				if s.isExposedContainer(e.ID) {
-					//image := c.Config.Image
-					//log.Debugf("container start: id=%s image=%s", e.ID, image)
-
-					reload = true
-				}
-			case "kill", "die", "stop":
-				log.Debugf("container %s: id=%s", e.Status, e.ID)
-
-				reload = true
+				reload = s.isExposedContainer(e.ID)
+			case "stop":
+				reload = s.isExposedContainer(e.ID)
 
 				// wait for container to stop
 				time.Sleep(time.Millisecond * 250)
-			default:
-				log.Debugf("unhandled event type: id=%s %s", e.ID, e.Status)
+			case "destroy":
+				// force reload to handle container removal
+				reload = true
 			}
 
 			if reload {
