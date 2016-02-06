@@ -9,3 +9,4 @@ clone git github.com/Sirupsen/logrus master
 clone git github.com/codegangsta/cli master
 clone git github.com/prometheus/client_golang master
 clone git github.com/samalba/dockerclient master
+clone git github.com/ehazlett/ttlcache master

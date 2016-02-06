@@ -19,6 +19,13 @@ import (
 var _ Client = (*DockerClient)(nil)
 
 const (
+	// APIVersion is currently hardcoded to v1.15
+	// TODO: bump the API version or allow users to choose which API version to
+	// use the client with. The current value does not make sense for many
+	// methods, such as ContainerStats, StartMonitorStats, and StopAllMonitorStats
+	// (v1.17) and
+	// ListVolumes, {Remove,Create}Volume, ListNetworks,
+	// {Inspect,Create,Connect,Disconnect,Remove}Network (v1.21)
 	APIVersion = "v1.15"
 )
 
@@ -256,6 +263,36 @@ func (client *DockerClient) ContainerChanges(id string) ([]*ContainerChanges, er
 		return nil, err
 	}
 	return changes, nil
+}
+
+func (client *DockerClient) ContainerStats(id string, stopChan <-chan struct{}) (<-chan StatsOrError, error) {
+	uri := fmt.Sprintf("/%s/containers/%s/stats", APIVersion, id)
+	resp, err := client.HTTPClient.Get(client.URL.String() + uri)
+	if err != nil {
+		return nil, err
+	}
+
+	decode := func(decoder *json.Decoder) decodingResult {
+		var containerStats Stats
+		if err := decoder.Decode(&containerStats); err != nil {
+			return decodingResult{err: err}
+		} else {
+			return decodingResult{result: containerStats}
+		}
+	}
+	decodingResultChan := client.readJSONStream(resp.Body, decode, stopChan)
+	statsOrErrorChan := make(chan StatsOrError)
+	go func() {
+		for decodingResult := range decodingResultChan {
+			stats, _ := decodingResult.result.(Stats)
+			statsOrErrorChan <- StatsOrError{
+				Stats: stats,
+				Error: decodingResult.err,
+			}
+		}
+		close(statsOrErrorChan)
+	}()
+	return statsOrErrorChan, nil
 }
 
 func (client *DockerClient) readJSONStream(stream io.ReadCloser, decode func(*json.Decoder) decodingResult, stopChan <-chan struct{}) <-chan decodingResult {

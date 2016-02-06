@@ -12,7 +12,7 @@ import (
 	"github.com/ehazlett/interlock/ext"
 	"github.com/ehazlett/interlock/ext/haproxy"
 	"github.com/ehazlett/interlock/ext/nginx"
-	"github.com/ehazlett/interlock/pkg/ttlcache"
+	"github.com/ehazlett/ttlcache"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/samalba/dockerclient"
 )

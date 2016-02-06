@@ -27,6 +27,7 @@ func init() {
 	r.HandleFunc(baseURL+"/containers/json", handlerGetContainers).Methods("GET")
 	r.HandleFunc(baseURL+"/containers/{id}/logs", handleContainerLogs).Methods("GET")
 	r.HandleFunc(baseURL+"/containers/{id}/changes", handleContainerChanges).Methods("GET")
+	r.HandleFunc(baseURL+"/containers/{id}/stats", handleContainerStats).Methods("GET")
 	r.HandleFunc(baseURL+"/containers/{id}/kill", handleContainerKill).Methods("POST")
 	r.HandleFunc(baseURL+"/containers/{id}/wait", handleWait).Methods("POST")
 	r.HandleFunc(baseURL+"/images/create", handleImagePull).Methods("POST")
@@ -135,6 +136,15 @@ func handleContainerChanges(w http.ResponseWriter, r *http.Request) {
           }
         ]`
 	w.Write([]byte(body))
+}
+
+func handleContainerStats(w http.ResponseWriter, r *http.Request) {
+	switch mux.Vars(r)["id"] {
+	case "foobar":
+		fmt.Fprintf(w, "%s invalidresp", statsResp)
+	default:
+		fmt.Fprintf(w, "%s %s", statsResp, statsResp)
+	}
 }
 
 func getBoolValue(boolString string) bool {
