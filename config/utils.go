@@ -71,6 +71,14 @@ func SetConfigDefaults(c *ExtensionConfig) error {
 		c.SSLProtocols = "SSLv3 TLSv1 TLSv1.1 TLSv1.2"
 	}
 
+	if c.SSLDefaultDHParam == 0 {
+		c.SSLDefaultDHParam = 1024
+	}
+
+	if c.SSLServerVerify == "" {
+		c.SSLServerVerify = "required"
+	}
+
 	return nil
 }
 

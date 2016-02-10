@@ -27,6 +27,8 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig() (*Config, error) {
 	hostSSLBackend := map[string]bool{}
 	hostSSLBackendTLSVerify := map[string]string{}
 
+	// TODO: instead of setting defaults here use
+	// SetDefaultConfig in the utils package
 	for _, cnt := range containers {
 		cntId := cnt.Id[:12]
 		// load interlock data

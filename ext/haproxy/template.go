@@ -7,6 +7,8 @@ global
     log-send-hostname{{ end }}
     maxconn {{ .Config.MaxConn }}
     pidfile {{ .Config.PidPath }}
+    ssl-server-verify {{ .Config.SSLServerVerify }}
+    tune.ssl.default-dh-param {{ .Config.SSLDefaultDHParam }}
 
 defaults
     mode http

@@ -21,6 +21,8 @@ type ExtensionConfig struct {
 	SSLCert                string // haproxy
 	SSLPort                int    // haproxy, nginx
 	SSLOpts                string // haproxy
+	SSLDefaultDHParam      int    // haproxy
+	SSLServerVerify        string // haproxy
 	User                   string // nginx
 	WorkerProcesses        int    // nginx
 	RLimitNoFile           int    // nginx
