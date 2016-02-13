@@ -20,6 +20,7 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []dockerclient.Cont
 	hostSSLOnly := map[string]bool{}
 	hostSSLBackend := map[string]bool{}
 	hostSSLBackendTLSVerify := map[string]string{}
+	aliasDomainConfig := map[string]string{}
 
 	networks := map[string]string{}
 
@@ -161,6 +162,7 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []dockerclient.Cont
 		for _, alias := range aliasDomains {
 			log().Debugf("adding alias %s for %s", alias, cntId)
 			proxyUpstreams[alias] = append(proxyUpstreams[alias], up)
+			aliasDomainConfig[alias] = domain
 		}
 
 		proxyUpstreams[domain] = append(proxyUpstreams[domain], up)
@@ -168,18 +170,22 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []dockerclient.Cont
 
 	for k, v := range proxyUpstreams {
 		name := strings.Replace(k, ".", "_", -1)
+		configKey, ok := aliasDomainConfig[k]
+		if !ok {
+			configKey = k
+		}
 		host := &Host{
 			Name:                name,
-			ContextRoot:         hostContextRoots[k],
-			ContextRootRewrite:  hostContextRootRewrites[k],
+			ContextRoot:         hostContextRoots[configKey],
+			ContextRootRewrite:  hostContextRootRewrites[configKey],
 			Domain:              k,
 			Upstreams:           v,
-			Check:               hostChecks[k],
-			BalanceAlgorithm:    hostBalanceAlgorithms[k],
-			BackendOptions:      hostBackendOptions[k],
-			SSLOnly:             hostSSLOnly[k],
-			SSLBackend:          hostSSLBackend[k],
-			SSLBackendTLSVerify: hostSSLBackendTLSVerify[k],
+			Check:               hostChecks[configKey],
+			BalanceAlgorithm:    hostBalanceAlgorithms[configKey],
+			BackendOptions:      hostBackendOptions[configKey],
+			SSLOnly:             hostSSLOnly[configKey],
+			SSLBackend:          hostSSLBackend[configKey],
+			SSLBackendTLSVerify: hostSSLBackendTLSVerify[configKey],
 		}
 		log().Debugf("adding host name=%s domain=%s contextroot=%v", host.Name, host.Domain, host.ContextRoot)
 		hosts = append(hosts, host)
