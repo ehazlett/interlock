@@ -83,6 +83,8 @@ func cmdStart(c *cli.Context) {
 
 	m := manager.NewManager(config, tlsConfig)
 
+	log.Warn("***** THIS VERSION IS DEPRECATED.  PLEASE UPDATE *****")
+	log.Warn("See https://github.com/ehazlett/interlock for details")
 	log.Infof("interlock running version=%s", version.FullVersion())
 	if err := m.Run(); err != nil {
 		log.Fatal(err)
