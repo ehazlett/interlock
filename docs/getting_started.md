@@ -1,8 +1,7 @@
 # Getting Started
 Interlock runs as a [Docker](https://www.docker.com) container.  It is distributed as a Docker image and is released on the [Docker Hub](https://hub.docker.com).
 
-Simply run `docker pull ehazlett/interlock:latest` to get the latest Interlock
-image.
+Consult the [tags](https://hub.docker.com/r/ehazlett/interlock/tags/) to discover the newest version of interlock and run `docker pull ehazlett/interlock:x.x.x` to get it. The `latest` tag is the legacy version. That is kept for legacy purposes. It is strongly recommended to use the newest version as legacy is no longer maintained.
 
 # Interlock Options
 ```
