@@ -1,9 +1,6 @@
 # Getting Started
 Interlock runs as a [Docker](https://www.docker.com) container.  It is distributed as a Docker image and is released on the [Docker Hub](https://hub.docker.com).
 
-Simply run `docker pull ehazlett/interlock:latest` to get the latest Interlock
-image.
-
 # Interlock Options
 ```
 NAME:
