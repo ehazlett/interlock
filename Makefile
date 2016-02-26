@@ -1,37 +1,34 @@
-TAG?=latest
-APP?=interlock
-REPO?=ehazlett/$(APP)
+BUILDTAGS=interlock
+CGO_ENABLED=0
+GOOS=linux
+GOARCH=amd64
 COMMIT=`git rev-parse --short HEAD`
-COMPILE_IMAGE_SRC=$(shell find . -name Dockerfile.build)
-export GO15VENDOREXPERIMENT=1
+APP=interlock
+REPO?=ehazlett/$(APP)
+TAG?=latest
 
-all: build
+export GOPATH:=$(PWD)/vendor:$(GOPATH)
 
-add-deps:
-	@godep save
-	@rm -rf Godeps
+all: image
 
-build:
-	@cd interlock && go build -a -tags 'netgo' -ldflags "-w -X github.com/ehazlett/interlock/version.GitCommit=$(COMMIT) -linkmode external -extldflags -static" .
+build: build-static
 
-build-container:
-	@docker build -t interlock-build -f Dockerfile.build .
-	@docker run --name interlock-build -ti interlock-build make build
-	@docker cp interlock-build:/go/src/github.com/ehazlett/interlock/interlock/interlock ./interlock/interlock
-	@docker rm -fv interlock-build
+build-app:
+	@cd cmd/$(APP) && go build -ldflags "-w -X github.com/$(REPO)/version.GitCommit=$(COMMIT)" .
+
+build-static:
+	@cd cmd/$(APP) && go build -a -tags "netgo static_build" -installsuffix netgo -ldflags "-w -X github.com/$(REPO)/version.GitCommit=$(COMMIT)" .
+
+test:
+	@# HACK to work around "vendor" dir and go test ./... (will test every vendor package as well)
+	@find . -maxdepth 1 -type d -not -path ./Godeps -not -path ./.git -not -path ./vendor -not -path . -exec go test -v {}/... \;
+
+image:
+	@docker build -t $(REPO):$(TAG) .
+	@echo "Image created: $(REPO):$(TAG)"
 
 clean:
-	@rm -rf interlock/interlock
+	@rm cmd/$(APP)/$(APP)
 
-image: build
-	@echo Building Interlock image $(TAG)
-	@docker build -t $(REPO):$(TAG) .
+.PHONY: add-deps build build-static build-app image clean
 
-release: build image
-	@docker push $(REPO):$(TAG)
-
-test: clean 
-	@go test -v ./...
-
-.SUFFIXES: .build
-.PHONY: add-deps build clean release test
