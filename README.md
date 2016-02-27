@@ -1,4 +1,4 @@
-# Interlock
+# Interlock [![Build Status](https://travis-ci.org/ehazlett/interlock.svg?branch=master)](https://travis-ci.org/ehazlett/interlock)
 Dynamic, event-driven extension system using [Swarm](https://github.com/docker/swarm).  Extensions include HAProxy and Nginx for dynamic load balancing.
 
 NOTE: this is a major refactor from the previous version of Interlock.  One
