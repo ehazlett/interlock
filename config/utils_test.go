@@ -25,3 +25,21 @@ func TestParseConfig(t *testing.T) {
 		t.Fatalf("expected docker url unix:///var/run/docker.sock; received %s", cfg.DockerURL)
 	}
 }
+
+func TestSetConfigDefaults(t *testing.T) {
+	cfg := &ExtensionConfig{
+		Name: "test",
+	}
+
+	if err := SetConfigDefaults(cfg); err != nil {
+		t.Fatal(err)
+	}
+
+	if cfg.ConnectTimeout != 5000 {
+		t.Fatalf("expected default connect timeout of 5000; received %d", cfg.ConnectTimeout)
+	}
+
+	if cfg.MaxConn != 1024 {
+		t.Fatalf("expected default max connections of 1024; received %d", cfg.MaxConn)
+	}
+}
