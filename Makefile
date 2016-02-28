@@ -10,9 +10,14 @@ SHELL=/bin/bash
 
 PACKAGES=$(shell go list ./... | grep -v /vendor/)
 
+export GO15VENDOREXPERIMENT=1
 export GOPATH:=$(PWD)/vendor:$(GOPATH)
 
 all: image
+
+deps:
+	@rm -rf Godeps vendor
+	@godep save ./...
 
 build: build-static
 
