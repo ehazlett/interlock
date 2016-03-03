@@ -2,7 +2,7 @@
 Dynamic, event-driven extension system using [Swarm](https://github.com/docker/swarm).  Extensions include HAProxy and Nginx for dynamic load balancing.
 
 NOTE: this is a major refactor from the previous version of Interlock.  See the
-[Release Notes] for v1.0 for changes.
+[Release Notes](https://github.com/ehazlett/interlock/releases/tag/v1.0.0) for v1.0 for changes.
 
 The latest tag (v0.3.3) is the legacy version.  The `latest` tag will be
 tagged as the new version after a couple of releases to allow for migration
