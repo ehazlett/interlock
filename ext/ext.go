@@ -19,7 +19,7 @@ const (
 	InterlockBackendOptionLabel       = "interlock.backend_option"         // haproxy
 )
 
-type LoadBalancer interface {
+type Extension interface {
 	Reload() error
 	Update() error
 }

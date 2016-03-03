@@ -20,7 +20,7 @@ import (
 type Server struct {
 	cfg        *config.Config
 	client     *dockerclient.DockerClient
-	extensions []ext.LoadBalancer
+	extensions []ext.Extension
 	lock       *sync.Mutex
 	cache      *ttlcache.TTLCache
 	metrics    *Metrics
