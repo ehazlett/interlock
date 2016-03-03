@@ -5,9 +5,12 @@ NOTE: this is a major refactor from the previous version of Interlock.  One
 major change is you now need external proxy images as they are no longer
 bundled as part of Interlock.
 
-The latest tag (v0.3.3) is the legacy version.  That is kept for legacy purposes.
-It is strongly recommended to use the latest release as legacy is no longer
-maintained.
+The latest tag (v0.3.3) is the legacy version.  The `latest` tag will be
+tagged as the new version after a couple of releases to allow for migration
+from legacy users.  It is strongly recommended to use the latest release 
+as legacy is no longer maintained.
+
+The recommended release is `ehazlett/interlock:1.0`
 
 # Getting Started
 To get started with Interlock view the [Documentation](docs).
