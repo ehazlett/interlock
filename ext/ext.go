@@ -27,6 +27,7 @@ const (
 )
 
 type Extension interface {
-	Name() string
 	HandleEvent(event *dockerclient.Event) error
+	Update() error
+	Reload() error
 }
