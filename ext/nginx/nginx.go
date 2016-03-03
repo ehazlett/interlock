@@ -39,6 +39,10 @@ func NewNginxLoadBalancer(c *config.ExtensionConfig, client *dockerclient.Docker
 	return lb, nil
 }
 
+func (p *NginxLoadBalancer) HandleEvent(event *dockerclient.Event) error {
+	return nil
+}
+
 func (p *NginxLoadBalancer) Update() error {
 	c, err := p.GenerateProxyConfig()
 	if err != nil {

@@ -1,5 +1,9 @@
 package ext
 
+import (
+	"github.com/samalba/dockerclient"
+)
+
 const (
 	InterlockExtNameLabel             = "interlock.ext.name"               // common
 	InterlockHostnameLabel            = "interlock.hostname"               // haproxy, nginx
@@ -20,6 +24,7 @@ const (
 )
 
 type Extension interface {
-	Reload() error
+	HandleEvent(event *dockerclient.Event) error
 	Update() error
+	Reload() error
 }
