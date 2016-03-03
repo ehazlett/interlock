@@ -38,6 +38,7 @@ var (
 			"type",
 		},
 	)
+<<<<<<< HEAD
 	counterTotalNetworks = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "beacon",
@@ -49,6 +50,8 @@ var (
 			"type",
 		},
 	)
+=======
+>>>>>>> af48d45... beacon extension
 	counterCpuTotalUsage = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "beacon",
@@ -222,7 +225,10 @@ var (
 		counterTotalContainers,
 		counterTotalImages,
 		counterTotalVolumes,
+<<<<<<< HEAD
 		counterTotalNetworks,
+=======
+>>>>>>> af48d45... beacon extension
 		counterCpuTotalUsage,
 		counterMemoryUsage,
 		counterMemoryMaxUsage,
