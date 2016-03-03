@@ -7,7 +7,7 @@ import (
 func TestFullVersion(t *testing.T) {
 	version := FullVersion()
 
-	expected := Version + " (" + GitCommit + ")"
+	expected := Version + Build + " (" + GitCommit + ")"
 
 	if version != expected {
 		t.Fatalf("invalid version returned: %s", version)
