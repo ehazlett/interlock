@@ -17,7 +17,7 @@ type ExtensionConfig struct {
 	NginxPlusEnabled       bool   // nginx
 	AdminUser              string // haproxy
 	AdminPass              string // haproxy
-	SSLCertPath            string // haproxy
+	SSLCertPath            string // haproxy, nginx
 	SSLCert                string // haproxy
 	SSLPort                int    // haproxy, nginx
 	SSLOpts                string // haproxy

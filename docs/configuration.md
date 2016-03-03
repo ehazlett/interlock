@@ -59,7 +59,7 @@ they are compatible:
 |NginxPlusEnabled       | bool   | nginx |
 |AdminUser              | string | haproxy |
 |AdminPass              | string | haproxy |
-|SSLCertPath            | string | haproxy |
+|SSLCertPath            | string | haproxy, nginx |
 |SSLCert                | string | haproxy |
 |SSLPort                | int    | haproxy, nginx |
 |SSLOpts                | string | haproxy |
@@ -84,11 +84,11 @@ for HA and scaling.
 To configure Interlock to use a kv store, use the `--discovery` option.  You
 will need to have the configuration loaded in the KV store.
 
-Interlock will read the key `/v1/interlock/config` for the configuration.  You
+Interlock will read the key `/interlock/v1/config` for the configuration.  You
 can use `curl` to load the config.  Here is an example:
 
 ```
-curl https://1.2.3.4:4001/v2/keys/v1/interlock/config -XPUT -d value='ListenAddr = ":8080"
+curl https://1.2.3.4:4001/v2/keys/interlock/v1/config -XPUT -d value='ListenAddr = ":8080"
 DockerURL = "tcp://127.0.0.1:2376"
 
 [[Extensions]]
