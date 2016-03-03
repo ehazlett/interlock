@@ -10,10 +10,10 @@ Docker images from the Docker Hub for each extension.
 # Load Balancing
 The following load balancing extensions are supported:
 
-## HAProxy
-[HAProxy](http://www.haproxy.org/) is a high performance TCP/HTTP load balancer.
-It is recommended to use the official [Docker Hub HAProxy Image](https://hub.docker.com/_/haproxy/).
+- [HAProxy](../extensions/haproxy.md)
+- [Nginx](../extensions/nginx.md)
 
+<<<<<<< HEAD
 Interlock will re-configure HAProxy upon a container event (start, stop, kill, remove, etc)
 and trigger a reload on the HAProxy container or containers.
 
@@ -50,3 +50,6 @@ label upon start: `interlock.ext.name=nginx`.  For example:
 Interlock will reload all containers with that label whenever the Nginx config
 is updated.  Interlock sends a `SIGHUP` to the container.  This will cause
 Nginx to reload the configuration without connection interruption.
+
+# Metrics
+- [Beacon](../extensions/beacon.md)

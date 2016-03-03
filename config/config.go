@@ -32,6 +32,8 @@ type ExtensionConfig struct {
 	SendTimeout            int    // nginx
 	SSLCiphers             string // nginx
 	SSLProtocols           string // nginx
+	StatInterval           int    // beacon
+	DatastorePath          string // beacon
 }
 
 type Config struct {

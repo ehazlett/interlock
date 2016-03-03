@@ -35,6 +35,10 @@ func NewHAProxyLoadBalancer(c *config.ExtensionConfig, client *dockerclient.Dock
 	return lb, nil
 }
 
+func (p *HAProxyLoadBalancer) HandleEvent(event *dockerclient.Event) error {
+	return nil
+}
+
 func (p *HAProxyLoadBalancer) Update() error {
 	c, err := p.GenerateProxyConfig()
 	if err != nil {

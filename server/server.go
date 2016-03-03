@@ -10,6 +10,7 @@ import (
 	"github.com/ehazlett/interlock/config"
 	"github.com/ehazlett/interlock/events"
 	"github.com/ehazlett/interlock/ext"
+	"github.com/ehazlett/interlock/ext/beacon"
 	"github.com/ehazlett/interlock/ext/haproxy"
 	"github.com/ehazlett/interlock/ext/nginx"
 	"github.com/ehazlett/ttlcache"
@@ -147,14 +148,14 @@ func NewServer(cfg *config.Config) (*Server, error) {
 				s.lock.Lock()
 				defer s.lock.Unlock()
 
-				for _, lb := range s.extensions {
-					if err := lb.Update(); err != nil {
+				for _, ext := range s.extensions {
+					if err := ext.Update(); err != nil {
 						errChan <- err
 						continue
 					}
 
 					// trigger reload
-					if err := lb.Reload(); err != nil {
+					if err := ext.Reload(); err != nil {
 						errChan <- err
 						continue
 					}
@@ -177,6 +178,14 @@ func NewServer(cfg *config.Config) (*Server, error) {
 
 			if e.ID == "" {
 				continue
+			}
+
+			// send the raw event for extension handling
+			for _, ext := range s.extensions {
+				if err := ext.HandleEvent(e); err != nil {
+					errChan <- err
+					continue
+				}
 			}
 
 			reload := false
@@ -276,6 +285,13 @@ func (s *Server) loadExtensions(client *dockerclient.DockerClient) {
 			p, err := nginx.NewNginxLoadBalancer(x, client)
 			if err != nil {
 				log.Errorf("error loading nginx extension: %s", err)
+				continue
+			}
+			s.extensions = append(s.extensions, p)
+		case "beacon":
+			p, err := beacon.NewBeacon(x, client)
+			if err != nil {
+				log.Errorf("error loading beacon extension: %s", err)
 				continue
 			}
 			s.extensions = append(s.extensions, p)
