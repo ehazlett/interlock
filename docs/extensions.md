@@ -10,8 +10,8 @@ Docker images from the Docker Hub for each extension.
 # Load Balancing
 The following load balancing extensions are supported:
 
-- [HAProxy](../extensions/haproxy.md)
-- [Nginx](../extensions/nginx.md)
+- [HAProxy](./extensions/haproxy.md)
+- [Nginx](./extensions/nginx.md)
 
 <<<<<<< HEAD
 Interlock will re-configure HAProxy upon a container event (start, stop, kill, remove, etc)
@@ -52,4 +52,4 @@ is updated.  Interlock sends a `SIGHUP` to the container.  This will cause
 Nginx to reload the configuration without connection interruption.
 
 # Metrics
-- [Beacon](../extensions/beacon.md)
+- [Beacon](./extensions/beacon.md)

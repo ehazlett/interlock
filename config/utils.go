@@ -79,6 +79,10 @@ func SetConfigDefaults(c *ExtensionConfig) error {
 		c.SSLServerVerify = "required"
 	}
 
+	if c.StatInterval == 0 {
+		c.StatInterval = 60
+	}
+
 	return nil
 }
 
@@ -94,6 +98,9 @@ func ParseConfig(data string) (*Config, error) {
 		if err := SetConfigDefaults(ext); err != nil {
 			return nil, err
 		}
+
+		// FIXME: toml isn't being parse right so we hack the rules in like so
+		ext.Rules = cfg.Rules
 	}
 
 	return &cfg, nil

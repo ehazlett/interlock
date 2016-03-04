@@ -74,6 +74,7 @@ they are compatible:
 |SendTimeout            | int    | nginx |
 |SSLCiphers             | string | nginx |
 |SSLProtocols           | string | nginx |
+|StatInterval           | int    | beacon |
 
 # Key Value Storage Support
 Interlock supports etcd and consul [libkv](https://github.com/docker/libkv)
