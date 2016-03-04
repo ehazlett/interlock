@@ -50,14 +50,8 @@ func NewBeacon(c *config.ExtensionConfig, client *dockerclient.DockerClient) (*B
 	return ext, nil
 }
 
-func (b *Beacon) Update() error {
-	// update is not handled by beacon
-	return nil
-}
-
-func (b *Beacon) Reload() error {
-	// reload is not handled by beacon
-	return nil
+func (b *Beacon) Name() string {
+	return pluginName
 }
 
 func (b *Beacon) HandleEvent(event *dockerclient.Event) error {
