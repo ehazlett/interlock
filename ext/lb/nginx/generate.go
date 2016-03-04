@@ -3,15 +3,22 @@ package nginx
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
-	"github.com/ehazlett/interlock/ext/lb/utils"
+	"github.com/ehazlett/interlock/ext"
 	"github.com/samalba/dockerclient"
 )
 
-func (p *NginxLoadBalancer) GenerateProxyConfig(containers []dockerclient.Container) (interface{}, error) {
+func (p *NginxLoadBalancer) GenerateProxyConfig() (*Config, error) {
+	containers, err := p.client.ListContainers(false, false, "")
+	if err != nil {
+		return nil, err
+	}
+
 	var hosts []*Host
 	upstreamServers := map[string][]string{}
 	serverNames := map[string][]string{}
+	//hostBalanceAlgorithms := map[string]string{}
 	hostSSL := map[string]bool{}
 	hostSSLCert := map[string]string{}
 	hostSSLCertKey := map[string]string{}
@@ -19,18 +26,24 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []dockerclient.Contai
 	hostSSLBackend := map[string]bool{}
 	hostWebsocketEndpoints := map[string][]string{}
 
-	networks := map[string]string{}
-
 	for _, c := range containers {
 		cntId := c.Id[:12]
 		// load interlock data
-		cInfo, err := p.client.InspectContainer(c.Id)
+		cInfo, err := p.client.InspectContainer(cntId)
 		if err != nil {
 			return nil, err
 		}
 
-		hostname := utils.Hostname(cInfo.Config)
-		domain := utils.Domain(cInfo.Config)
+		hostname := cInfo.Config.Hostname
+		domain := cInfo.Config.Domainname
+
+		if v, ok := cInfo.Config.Labels[ext.InterlockHostnameLabel]; ok {
+			hostname = v
+		}
+
+		if v, ok := cInfo.Config.Labels[ext.InterlockDomainLabel]; ok {
+			domain = v
+		}
 
 		if domain == "" {
 			continue
@@ -46,64 +59,83 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []dockerclient.Contai
 			serverNames[domain] = []string{domain}
 		}
 
-		hostSSL[domain] = utils.SSLEnabled(cInfo.Config)
-		hostSSLOnly[domain] = utils.SSLOnly(cInfo.Config)
+		if _, ok := cInfo.Config.Labels[ext.InterlockSSLLabel]; ok {
+			hostSSL[domain] = true
+		}
+
+		hostSSLOnly[domain] = false
+
+		if _, ok := cInfo.Config.Labels[ext.InterlockSSLOnlyLabel]; ok {
+			log().Infof("configuring ssl redirect for %s", domain)
+			hostSSLOnly[domain] = true
+		}
 
 		// check ssl backend
-		hostSSLBackend[domain] = utils.SSLBackend(cInfo.Config)
+		hostSSLBackend[domain] = false
+		if _, ok := cInfo.Config.Labels[ext.InterlockSSLBackendLabel]; ok {
+			log().Debugf("configuring ssl backend for %s", domain)
+			hostSSLBackend[domain] = true
+		}
 
 		// set cert paths
 		baseCertPath := p.cfg.SSLCertPath
-
-		certName := utils.SSLCertName(cInfo.Config)
-
-		if certName != "" {
-			certPath := filepath.Join(baseCertPath, certName)
+		if v, ok := cInfo.Config.Labels[ext.InterlockSSLCertLabel]; ok {
+			certPath := filepath.Join(baseCertPath, v)
 			log().Infof("ssl cert for %s: %s", domain, certPath)
 			hostSSLCert[domain] = certPath
 		}
 
-		certKeyName := utils.SSLCertKey(cInfo.Config)
-		if certKeyName != "" {
-			keyPath := filepath.Join(baseCertPath, certKeyName)
+		if v, ok := cInfo.Config.Labels[ext.InterlockSSLCertKeyLabel]; ok {
+			keyPath := filepath.Join(baseCertPath, v)
 			log().Infof("ssl key for %s: %s", domain, keyPath)
 			hostSSLCertKey[domain] = keyPath
 		}
 
-		addr := ""
+		ports := cInfo.NetworkSettings.Ports
+		if len(ports) == 0 {
+			log().Warnf("%s: no ports exposed", cntId)
+			continue
+		}
 
-		// check for networking
-		if n, ok := utils.OverlayEnabled(cInfo.Config); ok {
-			log().Debugf("configuring docker network: name=%s", n)
+		var portDef dockerclient.PortBinding
 
-			network, err := p.client.InspectNetwork(n)
-			if err != nil {
-				log().Error(err)
-				continue
+		for _, v := range ports {
+			if len(v) > 0 {
+				portDef = dockerclient.PortBinding{
+					HostIp:   v[0].HostIp,
+					HostPort: v[0].HostPort,
+				}
+				break
 			}
+		}
 
-			addr, err = utils.BackendOverlayAddress(network, cInfo)
-			if err != nil {
-				log().Error(err)
-				continue
-			}
+		if p.cfg.BackendOverrideAddress != "" {
+			portDef.HostIp = p.cfg.BackendOverrideAddress
+		}
 
-			networks[n] = ""
-		} else {
-			if len(cInfo.NetworkSettings.Ports) == 0 {
-				log().Warnf("%s: no ports exposed", cntId)
-				continue
-			}
+		addr := fmt.Sprintf("%s:%s", portDef.HostIp, portDef.HostPort)
 
-			addr, err = utils.BackendAddress(cInfo, p.cfg.BackendOverrideAddress)
-			if err != nil {
-				log().Error(err)
-				continue
+		if v, ok := cInfo.Config.Labels[ext.InterlockPortLabel]; ok {
+			interlockPort := v
+			for k, x := range ports {
+				parts := strings.Split(k, "/")
+				if parts[0] == interlockPort {
+					port := x[0]
+					log().Debugf("%s: found specified port %s exposed as %s", domain, interlockPort, port.HostPort)
+					addr = fmt.Sprintf("%s:%s", portDef.HostIp, port.HostPort)
+					break
+				}
 			}
 		}
 
 		// "parse" multiple labels for websocket endpoints
-		websocketEndpoints := utils.WebsocketEndpoints(cInfo.Config)
+		websocketEndpoints := []string{}
+		for l, v := range cInfo.Config.Labels {
+			// this is for labels like interlock.websocket_endpoint.1=foo
+			if strings.Index(l, ext.InterlockWebsocketEndpointLabel) > -1 {
+				websocketEndpoints = append(websocketEndpoints, v)
+			}
+		}
 
 		log().Debugf("websocket endpoints: %v", websocketEndpoints)
 
@@ -113,7 +145,13 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []dockerclient.Contai
 		}
 
 		// "parse" multiple labels for alias domains
-		aliasDomains := utils.AliasDomains(cInfo.Config)
+		aliasDomains := []string{}
+		for l, v := range cInfo.Config.Labels {
+			// this is for labels like interlock.alias_domain.1=foo.local
+			if strings.Index(l, ext.InterlockAliasDomainLabel) > -1 {
+				aliasDomains = append(aliasDomains, v)
+			}
+		}
 
 		log().Debugf("alias domains: %v", aliasDomains)
 
@@ -159,11 +197,8 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []dockerclient.Contai
 		hosts = append(hosts, h)
 	}
 
-	config := &Config{
-		Hosts:    hosts,
-		Config:   p.cfg,
-		Networks: networks,
-	}
-
-	return config, nil
+	return &Config{
+		Hosts:  hosts,
+		Config: p.cfg,
+	}, nil
 }
