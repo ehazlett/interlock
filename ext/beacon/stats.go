@@ -69,7 +69,6 @@ func (b *Beacon) sendContainerStats(id string, stats *dockerclient.Stats, ec cha
 		return
 	}
 
-<<<<<<< HEAD
 	networks, err := b.client.ListNetworks("")
 	if err != nil {
 		log().Errorf("unable to list networks: %s", err)
@@ -79,8 +78,6 @@ func (b *Beacon) sendContainerStats(id string, stats *dockerclient.Stats, ec cha
 		"type": "totals",
 	}).Set(float64(len(networks)))
 
-=======
->>>>>>> af48d45... beacon extension
 	counterTotalVolumes.With(prometheus.Labels{
 		"type": "totals",
 	}).Set(float64(len(allVolumes)))
@@ -173,7 +170,6 @@ func (b *Beacon) sendContainerStats(id string, stats *dockerclient.Stats, ec cha
 	}).Set(float64(stats.NetworkStats.TxDropped))
 }
 
-<<<<<<< HEAD
 func (b *Beacon) startStats(id string) error {
 	c, err := b.client.InspectContainer(id)
 	if err != nil {
@@ -206,9 +202,6 @@ func (b *Beacon) handleStats(id string, cb dockerclient.StatCallback, ec chan er
 func (b *Beacon) resetStats(id string) error {
 	// TODO: only reset the container
 
-=======
-func (b *Beacon) resetStats(id, image string) error {
->>>>>>> af48d45... beacon extension
 	for _, c := range allCounters {
 		c.Reset()
 	}
