@@ -10,9 +10,7 @@ import (
 	"github.com/ehazlett/interlock/events"
 	"github.com/ehazlett/interlock/ext"
 	"github.com/ehazlett/interlock/ext/beacon"
-	"github.com/ehazlett/interlock/ext/haproxy"
-	"github.com/ehazlett/interlock/ext/nginx"
-	"github.com/ehazlett/ttlcache"
+	"github.com/ehazlett/interlock/ext/lb"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/samalba/dockerclient"
 )
@@ -113,47 +111,6 @@ func NewServer(cfg *config.Config) (*Server, error) {
 	// load extensions
 	s.loadExtensions(client)
 
-	// lbUpdateChan handler
-	go func() {
-		for range lbUpdateChan {
-			log.Debug("checking to reload")
-			if v := s.cache.Get("reload"); v != nil {
-				log.Debug("skipping reload: too many requests")
-				continue
-			}
-
-			log.Debug("reloading")
-			go func() {
-				start := time.Now()
-
-				log.Debug("updating load balancers")
-				s.lock.Lock()
-				defer s.lock.Unlock()
-
-				for _, ext := range s.extensions {
-					if err := ext.Update(); err != nil {
-						errChan <- err
-						continue
-					}
-
-					// trigger reload
-					if err := ext.Reload(); err != nil {
-						errChan <- err
-						continue
-					}
-				}
-
-				d := time.Since(start)
-				duration := float64(d.Seconds() * float64(1000))
-
-				s.metrics.LastReloadDuration.Set(duration)
-
-				log.Debugf("reload duration: %0.2fms", duration)
-
-			}()
-		}
-	}()
-
 	go func() {
 		for e := range eventChan {
 			log.Debugf("event received: status=%s id=%s type=%s action=%s", e.Status, e.ID, e.Type, e.Action)
@@ -164,30 +121,11 @@ func NewServer(cfg *config.Config) (*Server, error) {
 
 			// send the raw event for extension handling
 			for _, ext := range s.extensions {
+				log.Debugf("notifying extension: %s", ext.Name())
 				if err := ext.HandleEvent(e); err != nil {
 					errChan <- err
 					continue
 				}
-			}
-
-			reload := false
-
-			switch e.Status {
-			case "start":
-				reload = s.isExposedContainer(e.ID)
-			case "stop":
-				reload = s.isExposedContainer(e.ID)
-
-				// wait for container to stop
-				time.Sleep(time.Millisecond * 250)
-			case "destroy":
-				// force reload to handle container removal
-				reload = true
-			}
-
-			if reload {
-				log.Debug("triggering reload")
-				s.cache.Set("reload", true)
 			}
 
 			// counter
@@ -233,13 +171,6 @@ func (s *Server) loadExtensions(client *dockerclient.DockerClient) {
 			p, err := lb.NewLoadBalancer(x, client)
 			if err != nil {
 				log.Errorf("error loading load balancer extension: %s", err)
-				continue
-			}
-			s.extensions = append(s.extensions, p)
-		case "beacon":
-			p, err := beacon.NewBeacon(x, client)
-			if err != nil {
-				log.Errorf("error loading beacon extension: %s", err)
 				continue
 			}
 			s.extensions = append(s.extensions, p)
