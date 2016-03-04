@@ -38,6 +38,17 @@ var (
 			"type",
 		},
 	)
+	counterTotalNetworks = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "beacon",
+			Subsystem: "docker",
+			Name:      "total_networks",
+			Help:      "Total number of networks",
+		},
+		[]string{
+			"type",
+		},
+	)
 	counterCpuTotalUsage = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "beacon",
@@ -211,6 +222,7 @@ var (
 		counterTotalContainers,
 		counterTotalImages,
 		counterTotalVolumes,
+		counterTotalNetworks,
 		counterCpuTotalUsage,
 		counterMemoryUsage,
 		counterMemoryMaxUsage,
