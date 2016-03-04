@@ -57,67 +57,29 @@ func (b *Beacon) Name() string {
 func (b *Beacon) HandleEvent(event *dockerclient.Event) error {
 	switch event.Status {
 	case "interlock-start":
-		// TODO: scan all containers and start metrics
+		// scan all containers and start metrics
 		containers, err := b.client.ListContainers(false, false, "")
 		if err != nil {
 			return err
 		}
 
 		for _, c := range containers {
-			if err := b.startStats(c.Id, ""); err != nil {
+			if err := b.startStats(c.Id); err != nil {
 				log().Warnf("unable to start stats for containers: id=%s err=%s", c.Id, err)
 				continue
 			}
 		}
 	case "start":
-		// get container info for event
-		c, err := b.client.InspectContainer(event.ID)
-		if err != nil {
-			return err
-		}
-
-		image := c.Config.Image
-
-		// TODO: match rules
-		if !b.ruleMatch(c.Config) {
-			return nil
-		}
-
-		log().Debugf("starting collection: id=%s image=%s", event.ID, image)
-		if err := b.startStats(event.ID, image); err != nil {
+		log().Debugf("checking container for collection: id=%s", event.ID)
+		if err := b.startStats(event.ID); err != nil {
 			return err
 		}
 	case "kill", "die", "stop", "destroy":
-		c, err := b.client.InspectContainer(event.ID)
-		if err != nil {
-			return err
-		}
-
-		image := c.Config.Image
-		log().Debugf("resetting stats: id=%s image=%s", event.ID, image)
-		if err := b.resetStats(event.ID, image); err != nil {
+		log().Debugf("resetting stats: id=%s", event.ID)
+		if err := b.resetStats(event.ID); err != nil {
 			return err
 		}
 	}
 
 	return nil
-}
-
-func (b *Beacon) ruleMatch(cfg *dockerclient.ContainerConfig) bool {
-	// TODO
-	return true
-}
-
-func (b *Beacon) startStats(id string, image string) error {
-	log().Debugf("gathering stats: id=%s image=%s interval=%d", id, image, b.cfg.StatInterval)
-	args := eventArgs{
-		Image: image,
-	}
-	go b.handleStats(id, b.sendContainerStats, errChan, args)
-
-	return nil
-}
-
-func (b *Beacon) handleStats(id string, cb dockerclient.StatCallback, ec chan error, args ...interface{}) {
-	go b.client.StartMonitorStats(id, cb, ec, args...)
 }
