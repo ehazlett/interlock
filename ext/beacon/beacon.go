@@ -37,8 +37,9 @@ func NewBeacon(c *config.ExtensionConfig, client *dockerclient.DockerClient) (*B
 
 	errChan = make(chan error)
 	go func() {
-		err := <-errChan
-		log().Error(err)
+		for err := range errChan {
+			log().Error(err)
+		}
 	}()
 
 	ext := &Beacon{
