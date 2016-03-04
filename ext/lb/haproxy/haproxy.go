@@ -1,9 +1,8 @@
-package nginx
+package haproxy
 
 import (
 	"bytes"
 	"os"
-	"path/filepath"
 	"text/template"
 
 	"github.com/Sirupsen/logrus"
@@ -13,10 +12,10 @@ import (
 )
 
 const (
-	pluginName = "nginx"
+	pluginName = "lb.haproxy"
 )
 
-type NginxLoadBalancer struct {
+type HAProxyLoadBalancer struct {
 	cfg    *config.ExtensionConfig
 	client *dockerclient.DockerClient
 }
@@ -27,11 +26,8 @@ func log() *logrus.Entry {
 	})
 }
 
-func NewNginxLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClient) (*NginxLoadBalancer, error) {
-	// parse config base dir
-	c.ConfigBasePath = filepath.Dir(c.ConfigPath)
-
-	lb := &NginxLoadBalancer{
+func NewHAProxyLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClient) (*HAProxyLoadBalancer, error) {
+	lb := &HAProxyLoadBalancer{
 		cfg:    c,
 		client: client,
 	}
@@ -39,11 +35,11 @@ func NewNginxLoadBalancer(c *config.ExtensionConfig, client *dockerclient.Docker
 	return lb, nil
 }
 
-func (p *NginxLoadBalancer) HandleEvent(event *dockerclient.Event) error {
+func (p *HAProxyLoadBalancer) HandleEvent(event *dockerclient.Event) error {
 	return nil
 }
 
-func (p *NginxLoadBalancer) Update() error {
+func (p *HAProxyLoadBalancer) update() error {
 	c, err := p.GenerateProxyConfig()
 	if err != nil {
 		return err
@@ -58,19 +54,40 @@ func (p *NginxLoadBalancer) Update() error {
 	return nil
 }
 
-func (p *NginxLoadBalancer) Reload() error {
+func (p *HAProxyLoadBalancer) Reload() error {
+	if err := p.update(); err != nil {
+		return err
+	}
+
+	// drop SYN to allow for restarts
+	if err := p.dropSYN(); err != nil {
+		log().Warnf("error signaling clients to resend; you will notice dropped packets: %s", err)
+	}
+
+	if err := p.reloadProxyContainers(); err != nil {
+		return err
+	}
+
+	if err := p.resumeSYN(); err != nil {
+		log().Warnf("error signaling clients to resume; you will notice dropped packets: %s", err)
+	}
+
+	return nil
+}
+
+func (p *HAProxyLoadBalancer) reloadProxyContainers() error {
 	// restart all interlock managed haproxy containers
 	containers, err := p.client.ListContainers(false, false, "")
 	if err != nil {
 		return err
 	}
 
-	// find interlock nginx containers
+	// find interlock haproxy containers
 	for _, cnt := range containers {
 		if v, ok := cnt.Labels[ext.InterlockExtNameLabel]; ok && v == pluginName {
 			// restart
-			if err := p.client.KillContainer(cnt.Id, "HUP"); err != nil {
-				log().Errorf("error reloading container: id=%s err=%s", cnt.Id[:12], err)
+			if err := p.client.RestartContainer(cnt.Id, 1); err != nil {
+				log().Errorf("error restarting container: id=%s err=%s", cnt.Id[:12], err)
 				continue
 			}
 
@@ -81,7 +98,7 @@ func (p *NginxLoadBalancer) Reload() error {
 	return nil
 }
 
-func (p *NginxLoadBalancer) saveConfig(config *Config) error {
+func (p *HAProxyLoadBalancer) saveConfig(config *Config) error {
 	f, err := os.OpenFile(p.cfg.ConfigPath, os.O_WRONLY|os.O_TRUNC, 0664)
 	if err != nil {
 		if !os.IsNotExist(err) {
@@ -96,13 +113,8 @@ func (p *NginxLoadBalancer) saveConfig(config *Config) error {
 	}
 	defer f.Close()
 
-	t := template.New("nginx")
-	confTmpl := nginxConfTemplate
-
-	if p.cfg.NginxPlusEnabled {
-		confTmpl = nginxPlusConfTemplate
-	}
-	tmpl, err := t.Parse(confTmpl)
+	t := template.New("haproxy")
+	tmpl, err := t.Parse(haproxyConfTemplate)
 	if err != nil {
 		return err
 	}
