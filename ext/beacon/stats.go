@@ -69,6 +69,15 @@ func (b *Beacon) sendContainerStats(id string, stats *dockerclient.Stats, ec cha
 		return
 	}
 
+	networks, err := b.client.ListNetworks("")
+	if err != nil {
+		log().Errorf("unable to list networks: %s", err)
+		return
+	}
+	counterTotalNetworks.With(prometheus.Labels{
+		"type": "totals",
+	}).Set(float64(len(networks)))
+
 	counterTotalVolumes.With(prometheus.Labels{
 		"type": "totals",
 	}).Set(float64(len(allVolumes)))
