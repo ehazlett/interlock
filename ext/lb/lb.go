@@ -1,6 +1,7 @@
 package lb
 
 import (
+<<<<<<< HEAD
 	"archive/tar"
 	"bytes"
 	"fmt"
@@ -9,6 +10,11 @@ import (
 	"strings"
 	"sync"
 	"text/template"
+=======
+	"fmt"
+	"path/filepath"
+	"sync"
+>>>>>>> f5e6e57... refactor load balancer to accomodate for different extensions
 	"time"
 
 	"github.com/Sirupsen/logrus"
@@ -26,6 +32,7 @@ const (
 )
 
 var (
+<<<<<<< HEAD
 	errChan                 chan (error)
 	restartChan             = make(chan bool)
 	lbUpdateChan            chan (bool)
@@ -43,6 +50,15 @@ type LoadBalancerBackend interface {
 	GenerateProxyConfig(c []dockerclient.Container) (interface{}, error)
 	Template() string
 	Reload(proxyContainers []dockerclient.Container) error
+=======
+	errChan      chan (error)
+	restartChan  = make(chan bool)
+	lbUpdateChan chan (bool)
+)
+
+type LoadBalancerBackend interface {
+	Reload() error
+>>>>>>> f5e6e57... refactor load balancer to accomodate for different extensions
 }
 
 type LoadBalancer struct {
@@ -51,7 +67,10 @@ type LoadBalancer struct {
 	cache   *ttlcache.TTLCache
 	lock    *sync.Mutex
 	backend LoadBalancerBackend
+<<<<<<< HEAD
 	nodeID  string
+=======
+>>>>>>> f5e6e57... refactor load balancer to accomodate for different extensions
 }
 
 func log() *logrus.Entry {
@@ -77,8 +96,11 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 
 	lbUpdateChan = make(chan bool)
 
+<<<<<<< HEAD
 	proxyNetworkCleanupChan = make(chan []proxyContainerNetworkConfig)
 
+=======
+>>>>>>> f5e6e57... refactor load balancer to accomodate for different extensions
 	cache, err := ttlcache.NewTTLCache(ReloadThreshold)
 	if err != nil {
 		return nil, err
@@ -89,6 +111,7 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 		lbUpdateChan <- true
 	})
 
+<<<<<<< HEAD
 	// load nodeID
 	nodeID, err := getNodeID()
 	if err != nil {
@@ -97,12 +120,17 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 
 	log().Infof("interlock node: id=%s", nodeID)
 
+=======
+>>>>>>> f5e6e57... refactor load balancer to accomodate for different extensions
 	extension := &LoadBalancer{
 		cfg:    c,
 		client: client,
 		cache:  cache,
 		lock:   &sync.Mutex{},
+<<<<<<< HEAD
 		nodeID: nodeID,
+=======
+>>>>>>> f5e6e57... refactor load balancer to accomodate for different extensions
 	}
 
 	// select backend
@@ -123,6 +151,7 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 		return nil, fmt.Errorf("unknown load balancer backend: %s", c.Name)
 	}
 
+<<<<<<< HEAD
 	// proxy network cleanup chan
 	// this waits for a reload event and removes the proxy containers
 	// from unused proxy networks
@@ -169,6 +198,8 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 		}
 	}()
 
+=======
+>>>>>>> f5e6e57... refactor load balancer to accomodate for different extensions
 	// lbUpdateChan handler
 	go func() {
 		for range lbUpdateChan {
@@ -178,6 +209,7 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 				continue
 			}
 
+<<<<<<< HEAD
 			start := time.Now()
 
 			log().Debug("updating load balancers")
@@ -277,6 +309,18 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 			// trigger reload
 			log().Debug("signaling reload")
 			if err := extension.backend.Reload(proxyContainersToRestart); err != nil {
+=======
+			log().Debug("reloading")
+			start := time.Now()
+
+			log().Debug("updating load balancers")
+			//extension.lock.Lock()
+			//defer extension.lock.Unlock()
+
+			// trigger reload
+			log().Debug("reloading")
+			if err := extension.backend.Reload(); err != nil {
+>>>>>>> f5e6e57... refactor load balancer to accomodate for different extensions
 				errChan <- err
 				continue
 			}
@@ -284,10 +328,14 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 			d := time.Since(start)
 			duration := float64(d.Seconds() * float64(1000))
 
+<<<<<<< HEAD
 			log().Debug("triggering proxy network cleanup")
 			proxyNetworkCleanupChan <- proxyContainerNetworkConfigs
 
 			log().Infof("reload duration: %0.2fms", duration)
+=======
+			log().Debugf("reload duration: %0.2fms", duration)
+>>>>>>> f5e6e57... refactor load balancer to accomodate for different extensions
 		}
 	}()
 
@@ -298,6 +346,7 @@ func (l *LoadBalancer) Name() string {
 	return pluginName
 }
 
+<<<<<<< HEAD
 func (l *LoadBalancer) ProxyContainers(name string) ([]dockerclient.Container, error) {
 	containers, err := l.client.ListContainers(false, false, "")
 	if err != nil {
@@ -385,6 +434,11 @@ func (l *LoadBalancer) HandleEvent(event *dockerclient.Event) error {
 	reload := false
 
 	// container event
+=======
+func (l *LoadBalancer) HandleEvent(event *dockerclient.Event) error {
+	reload := false
+
+>>>>>>> f5e6e57... refactor load balancer to accomodate for different extensions
 	switch event.Status {
 	case "start":
 		reload = l.isExposedContainer(event.ID)
@@ -398,6 +452,7 @@ func (l *LoadBalancer) HandleEvent(event *dockerclient.Event) error {
 		reload = true
 	}
 
+<<<<<<< HEAD
 	// network event
 	switch event.Action {
 	case "connect", "disconnect":
@@ -410,6 +465,8 @@ func (l *LoadBalancer) HandleEvent(event *dockerclient.Event) error {
 		reload = l.isExposedContainer(id)
 	}
 
+=======
+>>>>>>> f5e6e57... refactor load balancer to accomodate for different extensions
 	if reload {
 		log().Debug("triggering reload")
 		l.cache.Set("reload", true)
@@ -418,6 +475,7 @@ func (l *LoadBalancer) HandleEvent(event *dockerclient.Event) error {
 	return nil
 }
 
+<<<<<<< HEAD
 // proxyContainersToRestart returns a slice of proxy containers to restart
 // based upon this instance's hash
 func (l *LoadBalancer) proxyContainersToRestart(nodes []dockerclient.Container, proxyContainers []dockerclient.Container) []dockerclient.Container {
@@ -452,6 +510,8 @@ func (l *LoadBalancer) proxyContainersToRestart(nodes []dockerclient.Container, 
 	return containersToRestart
 }
 
+=======
+>>>>>>> f5e6e57... refactor load balancer to accomodate for different extensions
 func (l *LoadBalancer) isExposedContainer(id string) bool {
 	log().Debugf("inspecting container: id=%s", id)
 	c, err := l.client.InspectContainer(id)
@@ -468,6 +528,7 @@ func (l *LoadBalancer) isExposedContainer(id string) bool {
 		return false
 	}
 
+<<<<<<< HEAD
 	if _, ok := c.Config.Labels[ext.InterlockAppLabel]; ok {
 		log().Debugf("ignoring interlock container: id=%s", id)
 		return false
@@ -475,6 +536,10 @@ func (l *LoadBalancer) isExposedContainer(id string) bool {
 
 	log().Debugf("checking container ports: id=%s", id)
 	// ignore containers without exposed ports
+=======
+	log().Debugf("checking container ports: id=%s", id)
+	// ignore containetrs without exposed ports
+>>>>>>> f5e6e57... refactor load balancer to accomodate for different extensions
 	if len(c.Config.ExposedPorts) == 0 {
 		log().Debugf("no ports exposed; ignoring: id=%s", id)
 		return false
