@@ -170,7 +170,38 @@ func (b *Beacon) sendContainerStats(id string, stats *dockerclient.Stats, ec cha
 	}).Set(float64(stats.NetworkStats.TxDropped))
 }
 
-func (b *Beacon) resetStats(id, image string) error {
+func (b *Beacon) startStats(id string) error {
+	c, err := b.client.InspectContainer(id)
+	if err != nil {
+		return err
+	}
+
+	image := c.Config.Image
+
+	args := eventArgs{
+		Image: image,
+	}
+
+	// match rules
+	if !b.ruleMatch(c.Config) {
+		log().Debugf("unable to find rule matching container %s (%s); not monitoring", c.Id, image)
+		return nil
+	}
+
+	log().Debugf("gathering stats: id=%s image=%s interval=%d", id, image, b.cfg.StatInterval)
+
+	go b.handleStats(id, b.sendContainerStats, errChan, args)
+
+	return nil
+}
+
+func (b *Beacon) handleStats(id string, cb dockerclient.StatCallback, ec chan error, args ...interface{}) {
+	go b.client.StartMonitorStats(id, cb, ec, args...)
+}
+
+func (b *Beacon) resetStats(id string) error {
+	// TODO: only reset the container
+
 	for _, c := range allCounters {
 		c.Reset()
 	}
