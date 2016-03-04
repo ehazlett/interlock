@@ -272,7 +272,7 @@ func (s *Server) waitForSwarm() {
 
 func (s *Server) loadExtensions(client *dockerclient.DockerClient) {
 	for _, x := range s.cfg.Extensions {
-		log.Debugf("loading extension: name=%s configpath=%s", x.Name, x.ConfigPath)
+		log.Debugf("loading extension: name=%s", x.Name)
 		switch strings.ToLower(x.Name) {
 		case "haproxy":
 			p, err := haproxy.NewHAProxyLoadBalancer(x, client)
