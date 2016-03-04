@@ -40,7 +40,6 @@ type ExtensionConfig struct {
 	SSLCiphers             string // nginx
 	SSLProtocols           string // nginx
 	StatInterval           int    // beacon
-	DatastorePath          string // beacon
 }
 
 // Config is the top level configuration
