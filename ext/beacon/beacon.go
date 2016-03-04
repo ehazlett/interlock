@@ -56,6 +56,19 @@ func (b *Beacon) Name() string {
 
 func (b *Beacon) HandleEvent(event *dockerclient.Event) error {
 	switch event.Status {
+	case "interlock-start":
+		// TODO: scan all containers and start metrics
+		containers, err := b.client.ListContainers(false, false, "")
+		if err != nil {
+			return err
+		}
+
+		for _, c := range containers {
+			if err := b.startStats(c.Id, ""); err != nil {
+				log().Warnf("unable to start stats for containers: id=%s err=%s", c.Id, err)
+				continue
+			}
+		}
 	case "start":
 		// get container info for event
 		c, err := b.client.InspectContainer(event.ID)
