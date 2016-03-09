@@ -80,9 +80,10 @@ docker run \
     -ti \
     -v nginx:/etc/conf \
     -v /var/run/docker.sock:/var/run/docker.sock \
-    -v $(pwd)/config.toml:/etc/config.toml
-    ehazlett/interlock
-    -D run -c /etc/config.toml
+    -v $(pwd)/config.toml:/etc/config.toml \
+    ehazlett/interlock:1.0.0 \
+    -D run -c /etc/config.toml \
+
 ```
 
 # Start Nginx
