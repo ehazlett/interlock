@@ -23,6 +23,7 @@ type Upstream struct {
 }
 
 type Config struct {
-	Hosts  []*Host
-	Config *config.ExtensionConfig
+	Hosts    []*Host
+	Config   *config.ExtensionConfig
+	Networks map[string]string
 }

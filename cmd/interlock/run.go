@@ -91,7 +91,6 @@ func getKVStore(addr string, options *kvstore.Config) (kvstore.Store, error) {
 
 	if err != nil {
 		return nil, err
-
 	}
 
 	return kv, nil

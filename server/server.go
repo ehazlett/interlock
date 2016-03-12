@@ -113,9 +113,9 @@ func NewServer(cfg *config.Config) (*Server, error) {
 
 	go func() {
 		for e := range eventChan {
-			log.Debugf("event received: type=%s id=%s", e.Status, e.ID)
+			log.Debugf("event received: status=%s id=%s type=%s action=%s", e.Status, e.ID, e.Type, e.Action)
 
-			if e.ID == "" {
+			if e.ID == "" && e.Type == "" {
 				continue
 			}
 

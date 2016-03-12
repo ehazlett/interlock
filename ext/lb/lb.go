@@ -1,9 +1,12 @@
 package lb
 
 import (
+	"bytes"
 	"fmt"
+	"os"
 	"path/filepath"
 	"sync"
+	"text/template"
 	"time"
 
 	"github.com/Sirupsen/logrus"
@@ -27,7 +30,11 @@ var (
 )
 
 type LoadBalancerBackend interface {
-	Reload() error
+	Name() string
+	ConfigPath() string
+	GenerateProxyConfig(c []dockerclient.Container) (interface{}, error)
+	Template() string
+	Reload(proxyContainers []dockerclient.Container) error
 }
 
 type LoadBalancer struct {
@@ -105,16 +112,72 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 				continue
 			}
 
-			log().Debug("reloading")
 			start := time.Now()
 
 			log().Debug("updating load balancers")
-			//extension.lock.Lock()
-			//defer extension.lock.Unlock()
+
+			containers, err := client.ListContainers(false, false, "")
+			if err != nil {
+				errChan <- err
+				continue
+			}
+
+			// generate proxy config
+			log().Debug("generating proxy config")
+			cfg, err := extension.backend.GenerateProxyConfig(containers)
+			if err != nil {
+				errChan <- err
+				continue
+			}
+
+			// save proxy config
+			configPath := extension.backend.ConfigPath()
+
+			log().Debug("saving proxy config")
+			if err := extension.SaveConfig(configPath, cfg); err != nil {
+				errChan <- err
+				continue
+			}
+
+			proxyNetworks := map[string]string{}
+
+			proxyContainers, err := extension.ProxyContainers(extension.backend.Name())
+			if err != nil {
+				errChan <- err
+				continue
+			}
+
+			// connect to networks
+			switch extension.backend.Name() {
+			case "nginx":
+				proxyConfig := cfg.(*nginx.Config)
+				proxyNetworks = proxyConfig.Networks
+
+			case "haproxy":
+				proxyConfig := cfg.(*nginx.Config)
+				proxyNetworks = proxyConfig.Networks
+			default:
+				errChan <- fmt.Errorf("unable to connect to networks; unknown backend: %s", extension.backend.Name())
+				continue
+			}
+
+			for _, cnt := range proxyContainers {
+				for net, _ := range proxyNetworks {
+					if _, ok := cnt.NetworkSettings.Networks[net]; !ok {
+						log().Debugf("connecting proxy container %s to network %s", cnt.Id, net)
+
+						// connect
+						if err := client.ConnectNetwork(net, cnt.Id); err != nil {
+							log().Warnf("unable to connect container %s to network %s: %s", cnt.Id, net, err)
+							continue
+						}
+					}
+				}
+			}
 
 			// trigger reload
 			log().Debug("reloading")
-			if err := extension.backend.Reload(); err != nil {
+			if err := extension.backend.Reload(proxyContainers); err != nil {
 				errChan <- err
 				continue
 			}
@@ -133,9 +196,80 @@ func (l *LoadBalancer) Name() string {
 	return pluginName
 }
 
+func (l *LoadBalancer) ProxyContainers(name string) ([]dockerclient.Container, error) {
+	// TODO:
+	containers, err := l.client.ListContainers(false, false, "")
+	if err != nil {
+		return nil, err
+	}
+
+	proxyContainers := []dockerclient.Container{}
+
+	// find interlock proxy containers
+	for _, cnt := range containers {
+		if v, ok := cnt.Labels[ext.InterlockExtNameLabel]; ok && v == l.backend.Name() {
+			proxyContainers = append(proxyContainers, cnt)
+		}
+	}
+
+	return proxyContainers, nil
+}
+
+func (l *LoadBalancer) SaveConfig(configPath string, cfg interface{}) error {
+	f, err := os.OpenFile(configPath, os.O_WRONLY|os.O_TRUNC, 0664)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return err
+		}
+		ff, fErr := os.Create(configPath)
+		defer ff.Close()
+		if fErr != nil {
+			return fErr
+		}
+		f = ff
+	}
+	defer f.Close()
+
+	t := template.New("lb")
+	confTmpl := l.backend.Template()
+
+	var tErr error
+	var c bytes.Buffer
+
+	tmpl, err := t.Parse(confTmpl)
+	if err != nil {
+		return err
+	}
+
+	// cast to config type
+	switch l.backend.Name() {
+	case "nginx":
+		config := cfg.(*nginx.Config)
+		if err := tmpl.Execute(&c, config); err != nil {
+			return tErr
+		}
+	case "haproxy":
+		config := cfg.(*haproxy.Config)
+		if err := tmpl.Execute(&c, config); err != nil {
+			return tErr
+		}
+	default:
+		return fmt.Errorf("unknown backend type: %s", l.backend.Name())
+	}
+
+	if _, err := f.Write(c.Bytes()); err != nil {
+		return err
+	}
+
+	f.Sync()
+
+	return nil
+}
+
 func (l *LoadBalancer) HandleEvent(event *dockerclient.Event) error {
 	reload := false
 
+	// container event
 	switch event.Status {
 	case "start":
 		reload = l.isExposedContainer(event.ID)
@@ -149,6 +283,18 @@ func (l *LoadBalancer) HandleEvent(event *dockerclient.Event) error {
 		reload = true
 	}
 
+	// network event
+	switch event.Action {
+	case "connect", "disconnect":
+		// since event.ID is blank on an action we must get the proper ID
+		id, ok := event.Actor.Attributes["container"]
+		if !ok {
+			return fmt.Errorf("unable to detect container id for network event")
+		}
+
+		reload = l.isExposedContainer(id)
+	}
+
 	if reload {
 		log().Debug("triggering reload")
 		l.cache.Set("reload", true)
@@ -157,6 +303,7 @@ func (l *LoadBalancer) HandleEvent(event *dockerclient.Event) error {
 	return nil
 }
 
+// TODO: update for overlay?
 func (l *LoadBalancer) isExposedContainer(id string) bool {
 	log().Debugf("inspecting container: id=%s", id)
 	c, err := l.client.InspectContainer(id)
@@ -174,7 +321,7 @@ func (l *LoadBalancer) isExposedContainer(id string) bool {
 	}
 
 	log().Debugf("checking container ports: id=%s", id)
-	// ignore containetrs without exposed ports
+	// ignore containers without exposed ports
 	if len(c.Config.ExposedPorts) == 0 {
 		log().Debugf("no ports exposed; ignoring: id=%s", id)
 		return false
