@@ -2,6 +2,7 @@ package nginx
 
 import (
 	"fmt"
+	"net"
 	"path/filepath"
 	"strings"
 
@@ -9,22 +10,18 @@ import (
 	"github.com/samalba/dockerclient"
 )
 
-func (p *NginxLoadBalancer) GenerateProxyConfig() (*Config, error) {
-	containers, err := p.client.ListContainers(false, false, "")
-	if err != nil {
-		return nil, err
-	}
-
+func (p *NginxLoadBalancer) GenerateProxyConfig(containers []dockerclient.Container) (interface{}, error) {
 	var hosts []*Host
 	upstreamServers := map[string][]string{}
 	serverNames := map[string][]string{}
-	//hostBalanceAlgorithms := map[string]string{}
 	hostSSL := map[string]bool{}
 	hostSSLCert := map[string]string{}
 	hostSSLCertKey := map[string]string{}
 	hostSSLOnly := map[string]bool{}
 	hostSSLBackend := map[string]bool{}
 	hostWebsocketEndpoints := map[string][]string{}
+
+	networks := map[string]string{}
 
 	for _, c := range containers {
 		cntId := c.Id[:12]
@@ -91,41 +88,101 @@ func (p *NginxLoadBalancer) GenerateProxyConfig() (*Config, error) {
 			hostSSLCertKey[domain] = keyPath
 		}
 
+		portDef := dockerclient.PortBinding{}
 		ports := cInfo.NetworkSettings.Ports
-		if len(ports) == 0 {
-			log().Warnf("%s: no ports exposed", cntId)
-			continue
-		}
 
-		var portDef dockerclient.PortBinding
+		addr := ""
 
-		for _, v := range ports {
-			if len(v) > 0 {
-				portDef = dockerclient.PortBinding{
-					HostIp:   v[0].HostIp,
-					HostPort: v[0].HostPort,
-				}
-				break
+		// check for networking
+		if n, ok := cInfo.Config.Labels[ext.InterlockNetworkLabel]; ok {
+			log().Debugf("configuring docker network: name=%s", n)
+
+			// TODO: attach interlock to network for access
+
+			// FIXME: for some reason the request from dockerclient
+			// is not returning a populated Networks object
+			// so we hack this by inspecting the Network
+			// we should switch to engine-api/client -- hopefully
+			// that will fix
+			//net, found := cInfo.NetworkSettings.Networks[n]
+			//if !found {
+			//	log().Errorf("container %s is not connected to the network %s", cInfo.Id, n)
+			//	continue
+			//}
+
+			//portDef.HostIp = net.IPAddress
+
+			network, err := p.client.InspectNetwork(n)
+			if err != nil {
+				log().Error(err)
+				continue
 			}
-		}
 
-		if p.cfg.BackendOverrideAddress != "" {
-			portDef.HostIp = p.cfg.BackendOverrideAddress
-		}
+			c, exists := network.Containers[cInfo.Id]
+			if !exists {
+				log().Errorf("container %s is not connected to the network %s", cInfo.Id, n)
+				continue
+			}
 
-		addr := fmt.Sprintf("%s:%s", portDef.HostIp, portDef.HostPort)
+			ip, _, err := net.ParseCIDR(c.IPv4Address)
+			if err != nil {
+				log().Errorf("unable to parse IP: %s", err)
+				continue
+			}
 
-		if v, ok := cInfo.Config.Labels[ext.InterlockPortLabel]; ok {
-			interlockPort := v
-			for k, x := range ports {
-				parts := strings.Split(k, "/")
-				if parts[0] == interlockPort {
-					port := x[0]
-					log().Debugf("%s: found specified port %s exposed as %s", domain, interlockPort, port.HostPort)
-					addr = fmt.Sprintf("%s:%s", portDef.HostIp, port.HostPort)
+			networks[n] = ""
+
+			portDef.HostIp = ip.String()
+
+			// parse the port
+			for k, _ := range ports {
+				if k != "" {
+					portParts := strings.Split(k, "/")
+					portDef.HostPort = portParts[0]
 					break
 				}
 			}
+
+			// check for custom port
+			if v, ok := cInfo.Config.Labels[ext.InterlockPortLabel]; ok {
+				log().Debugf("%s: using specified port %s", domain, v)
+				portDef.HostPort = v
+			}
+
+			addr = fmt.Sprintf("%s:%s", portDef.HostIp, portDef.HostPort)
+		} else {
+			if len(ports) == 0 {
+				log().Warnf("%s: no ports exposed", cntId)
+				continue
+			}
+
+			// parse the published port
+			for _, v := range ports {
+				if len(v) > 0 {
+					portDef.HostPort = v[0].HostPort
+					break
+				}
+			}
+
+			if p.cfg.BackendOverrideAddress != "" {
+				portDef.HostIp = p.cfg.BackendOverrideAddress
+			}
+
+			// check for custom port
+			if v, ok := cInfo.Config.Labels[ext.InterlockPortLabel]; ok {
+				interlockPort := v
+				for k, x := range ports {
+					parts := strings.Split(k, "/")
+					if parts[0] == interlockPort {
+						port := x[0]
+						log().Debugf("%s: found specified port %s exposed as %s", domain, interlockPort, port)
+						portDef.HostPort = port.HostPort
+						break
+					}
+				}
+			}
+
+			addr = fmt.Sprintf("%s:%s", portDef.HostIp, portDef.HostPort)
 		}
 
 		// "parse" multiple labels for websocket endpoints
@@ -197,8 +254,11 @@ func (p *NginxLoadBalancer) GenerateProxyConfig() (*Config, error) {
 		hosts = append(hosts, h)
 	}
 
-	return &Config{
-		Hosts:  hosts,
-		Config: p.cfg,
-	}, nil
+	config := &Config{
+		Hosts:    hosts,
+		Config:   p.cfg,
+		Networks: networks,
+	}
+
+	return config, nil
 }
