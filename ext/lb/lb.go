@@ -154,7 +154,7 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 				proxyNetworks = proxyConfig.Networks
 
 			case "haproxy":
-				proxyConfig := cfg.(*nginx.Config)
+				proxyConfig := cfg.(*haproxy.Config)
 				proxyNetworks = proxyConfig.Networks
 			default:
 				errChan <- fmt.Errorf("unable to connect to networks; unknown backend: %s", extension.backend.Name())
