@@ -9,14 +9,7 @@ import (
 	"github.com/samalba/dockerclient"
 )
 
-func (p *HAProxyLoadBalancer) GenerateProxyConfig() (*Config, error) {
-	log().Debug("generating proxy config")
-
-	containers, err := p.client.ListContainers(false, false, "")
-	if err != nil {
-		return nil, err
-	}
-
+func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []dockerclient.Container) (interface{}, error) {
 	var hosts []*Host
 
 	proxyUpstreams := map[string][]*Upstream{}
@@ -26,6 +19,8 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig() (*Config, error) {
 	hostSSLOnly := map[string]bool{}
 	hostSSLBackend := map[string]bool{}
 	hostSSLBackendTLSVerify := map[string]string{}
+
+	networks := map[string]string{}
 
 	// TODO: instead of setting defaults here use
 	// SetDefaultConfig in the utils package
@@ -199,10 +194,11 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig() (*Config, error) {
 		log().Debugf("adding host name=%s domain=%s", host.Name, host.Domain)
 		hosts = append(hosts, host)
 	}
-	// generate config
+
 	cfg := &Config{
-		Hosts:  hosts,
-		Config: p.cfg,
+		Hosts:    hosts,
+		Config:   p.cfg,
+		Networks: networks,
 	}
 
 	return cfg, nil
