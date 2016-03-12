@@ -1,19 +1,15 @@
 package nginx
 
 import (
-	"bytes"
-	"os"
 	"path/filepath"
-	"text/template"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/ehazlett/interlock/config"
-	"github.com/ehazlett/interlock/ext"
 	"github.com/samalba/dockerclient"
 )
 
 const (
-	pluginName = "lb.nginx"
+	pluginName = "nginx"
 )
 
 type NginxLoadBalancer struct {
@@ -39,89 +35,37 @@ func NewNginxLoadBalancer(c *config.ExtensionConfig, client *dockerclient.Docker
 	return lb, nil
 }
 
+func (p *NginxLoadBalancer) Name() string {
+	return pluginName
+}
+
 func (p *NginxLoadBalancer) HandleEvent(event *dockerclient.Event) error {
 	return nil
 }
 
-func (p *NginxLoadBalancer) update() error {
-	c, err := p.GenerateProxyConfig()
-	if err != nil {
-		return err
-	}
-
-	if err := p.saveConfig(c); err != nil {
-		return err
-	}
-
-	log().Info("configuration updated")
-
-	return nil
-}
-
-func (p *NginxLoadBalancer) Reload() error {
-	if err := p.update(); err != nil {
-		return err
-	}
-
-	// restart all interlock managed haproxy containers
-	containers, err := p.client.ListContainers(false, false, "")
-	if err != nil {
-		return err
-	}
-
-	// find interlock nginx containers
-	for _, cnt := range containers {
-		if v, ok := cnt.Labels[ext.InterlockExtNameLabel]; ok && v == pluginName {
-			// restart
-			if err := p.client.KillContainer(cnt.Id, "HUP"); err != nil {
-				log().Errorf("error reloading container: id=%s err=%s", cnt.Id[:12], err)
-				continue
-			}
-
-			log().Infof("restarted proxy container: id=%s name=%s", cnt.Id[:12], cnt.Names[0])
-		}
-	}
-
-	return nil
-}
-
-func (p *NginxLoadBalancer) saveConfig(config *Config) error {
-	f, err := os.OpenFile(p.cfg.ConfigPath, os.O_WRONLY|os.O_TRUNC, 0664)
-	if err != nil {
-		if !os.IsNotExist(err) {
-			return err
-		}
-		ff, fErr := os.Create(p.cfg.ConfigPath)
-		defer ff.Close()
-		if fErr != nil {
-			return fErr
-		}
-		f = ff
-	}
-	defer f.Close()
-
-	t := template.New("nginx")
-	confTmpl := nginxConfTemplate
-
+func (p *NginxLoadBalancer) Template() string {
 	if p.cfg.NginxPlusEnabled {
-		confTmpl = nginxPlusConfTemplate
-	}
-	tmpl, err := t.Parse(confTmpl)
-	if err != nil {
-		return err
+		return nginxPlusConfTemplate
 	}
 
-	var c bytes.Buffer
+	return nginxConfTemplate
+}
 
-	if err := tmpl.Execute(&c, config); err != nil {
-		return err
+func (p *NginxLoadBalancer) ConfigPath() string {
+	return p.cfg.ConfigPath
+}
+
+func (p *NginxLoadBalancer) Reload(proxyContainers []dockerclient.Container) error {
+	// restart all interlock managed haproxy containers
+	for _, cnt := range proxyContainers {
+		// restart
+		if err := p.client.KillContainer(cnt.Id, "HUP"); err != nil {
+			log().Errorf("error reloading container: id=%s err=%s", cnt.Id[:12], err)
+			continue
+		}
+
+		log().Infof("restarted proxy container: id=%s name=%s", cnt.Id[:12], cnt.Names[0])
 	}
-
-	if _, err := f.Write(c.Bytes()); err != nil {
-		return err
-	}
-
-	f.Sync()
 
 	return nil
 }
