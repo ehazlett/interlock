@@ -19,7 +19,7 @@ const (
 	InterlockWebsocketEndpointLabel   = "interlock.websocket_endpoint"     // nginx
 	InterlockAliasDomainLabel         = "interlock.alias_domain"           // haproxy, nginx
 	InterlockHealthCheckLabel         = "interlock.health_check"           // haproxy
-	InterlockHealthCheckIntervalLabel = "interlock.health_check_interval"  //haproxy
+	InterlockHealthCheckIntervalLabel = "interlock.health_check_interval"  // haproxy
 	InterlockBalanceAlgorithmLabel    = "interlock.balance_algorithm"      // haproxy
 	InterlockBackendOptionLabel       = "interlock.backend_option"         // haproxy
 )
