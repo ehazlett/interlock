@@ -2,10 +2,9 @@ package haproxy
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
-	"github.com/ehazlett/interlock/ext"
+	"github.com/ehazlett/interlock/ext/lb/utils"
 	"github.com/samalba/dockerclient"
 )
 
@@ -32,16 +31,8 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []dockerclient.Cont
 			return nil, err
 		}
 
-		hostname := cInfo.Config.Hostname
-		domain := cInfo.Config.Domainname
-
-		if v, ok := cInfo.Config.Labels[ext.InterlockHostnameLabel]; ok {
-			hostname = v
-		}
-
-		if v, ok := cInfo.Config.Labels[ext.InterlockDomainLabel]; ok {
-			domain = v
-		}
+		hostname := utils.Hostname(cInfo.Config)
+		domain := utils.Domain(cInfo.Config)
 
 		if domain == "" {
 			continue
@@ -51,103 +42,82 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []dockerclient.Cont
 			domain = fmt.Sprintf("%s.%s", hostname, domain)
 		}
 
-		if v, ok := cInfo.Config.Labels[ext.InterlockHealthCheckLabel]; ok {
+		healthCheck := utils.HealthCheck(cInfo.Config)
+		healthCheckInterval, err := utils.HealthCheckInterval(cInfo.Config)
+		if err != nil {
+			log().Errorf("error parsing health check interval: %s", err)
+			continue
+		}
+
+		if healthCheck != "" {
 			if val, ok := hostChecks[domain]; ok {
 				// check existing host check for different values
-				if val != v {
+				if val != healthCheck {
 					log().Warnf("conflicting check specified for %s", domain)
 				}
 			} else {
-				hostChecks[domain] = v
-				log().Debugf("using custom check for %s: %s", domain, v)
+				hostChecks[domain] = healthCheck
+				log().Debugf("using custom check for %s: %s", domain, healthCheck)
 			}
+
+			log().Debugf("check interval for %s: %d", domain, healthCheckInterval)
 		}
 
-		checkInterval := 5000
+		hostBalanceAlgorithms[domain] = utils.BalanceAlgorithm(cInfo.Config)
 
-		if v, ok := cInfo.Config.Labels[ext.InterlockHealthCheckIntervalLabel]; ok && v != "" {
-			i, err := strconv.Atoi(v)
-			if err != nil {
-				return nil, err
-			}
-			if i != 0 {
-				checkInterval = i
-				log().Debugf("using custom check interval for %s: %d", domain, checkInterval)
-			}
-		}
-
-		hostBalanceAlgorithms[domain] = "roundrobin"
-
-		if v, ok := cInfo.Config.Labels[ext.InterlockBalanceAlgorithmLabel]; ok && v != "" {
-			hostBalanceAlgorithms[domain] = v
-		}
-
-		backendOptions := []string{}
-		for l, v := range cInfo.Config.Labels {
-			// this is for labels like interlock.backend_option.1=foo
-			if strings.Index(l, ext.InterlockBackendOptionLabel) > -1 {
-				backendOptions = append(backendOptions, v)
-			}
-		}
+		backendOptions := utils.BackendOptions(cInfo.Config)
 
 		if len(backendOptions) > 0 {
 			hostBackendOptions[domain] = backendOptions
 			log().Debugf("using backend options for %s: %s", domain, strings.Join(backendOptions, ","))
 		}
 
-		hostSSLOnly[domain] = false
-		if _, ok := cInfo.Config.Labels[ext.InterlockSSLOnlyLabel]; ok {
-			log().Debugf("configuring ssl redirect for %s", domain)
-			hostSSLOnly[domain] = true
-		}
+		hostSSLOnly[domain] = utils.SSLOnly(cInfo.Config)
 
 		// ssl backend
-		hostSSLBackend[domain] = false
-		if _, ok := cInfo.Config.Labels[ext.InterlockSSLBackendLabel]; ok {
-			hostSSLBackend[domain] = true
+		hostSSLBackend[domain] = utils.SSLBackend(cInfo.Config)
+		hostSSLBackendTLSVerify[domain] = utils.SSLBackendTLSVerify(cInfo.Config)
 
-			sslBackendTLSVerify := "none"
-			if v, ok := cInfo.Config.Labels[ext.InterlockSSLBackendTLSVerifyLabel]; ok {
-				sslBackendTLSVerify = v
+		addr := ""
+
+		// check for networking
+		if n, ok := utils.OverlayEnabled(cInfo.Config); ok {
+			log().Debugf("configuring docker network: name=%s", n)
+
+			// FIXME: for some reason the request from dockerclient
+			// is not returning a populated Networks object
+			// so we hack this by inspecting the Network
+			// we should switch to engine-api/client -- hopefully
+			// that will fix
+			//net, found := cInfo.NetworkSettings.Networks[n]
+			//if !found {
+			//	log().Errorf("container %s is not connected to the network %s", cInfo.Id, n)
+			//	continue
+			//}
+
+			network, err := p.client.InspectNetwork(n)
+			if err != nil {
+				log().Error(err)
+				continue
 			}
-			hostSSLBackendTLSVerify[domain] = sslBackendTLSVerify
 
-			log().Debugf("configuring ssl backend for %s verify=%s", domain, sslBackendTLSVerify)
-		}
-
-		//host := cInfo.NetworkSettings.IpAddress
-		ports := cInfo.NetworkSettings.Ports
-		if len(ports) == 0 {
-			log().Warnf("%s: no ports exposed", cntId)
-			continue
-		}
-
-		var portDef dockerclient.PortBinding
-
-		for _, v := range ports {
-			if len(v) > 0 {
-				portDef = dockerclient.PortBinding{
-					HostIp:   v[0].HostIp,
-					HostPort: v[0].HostPort,
-				}
-				break
+			addr, err = utils.BackendOverlayAddress(network, cInfo)
+			if err != nil {
+				log().Error(err)
+				continue
 			}
-		}
 
-		if p.cfg.BackendOverrideAddress != "" {
-			portDef.HostIp = p.cfg.BackendOverrideAddress
-		}
+			networks[n] = ""
+		} else {
+			if len(cInfo.NetworkSettings.Ports) == 0 {
+				log().Warnf("%s: no ports exposed", cntId)
+				continue
+			}
 
-		addr := fmt.Sprintf("%s:%s", portDef.HostIp, portDef.HostPort)
-		if v, ok := cInfo.Config.Labels[ext.InterlockPortLabel]; ok {
-			for k, x := range ports {
-				parts := strings.Split(k, "/")
-				if parts[0] == v {
-					port := x[0]
-					log().Debugf("%s: found specified port %s exposed as %s", domain, v, port.HostPort)
-					addr = fmt.Sprintf("%s:%s", portDef.HostIp, port.HostPort)
-					break
-				}
+			addr, err = utils.BackendAddress(cInfo, p.cfg.BackendOverrideAddress)
+			if err != nil {
+				log().Error(err)
+				continue
 			}
 		}
 
@@ -155,19 +125,13 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []dockerclient.Cont
 		up := &Upstream{
 			Addr:          addr,
 			Container:     container_name,
-			CheckInterval: checkInterval,
+			CheckInterval: healthCheckInterval,
 		}
 
 		log().Infof("%s: upstream=%s container=%s", domain, addr, container_name)
 
 		// "parse" multiple labels for alias domains
-		aliasDomains := []string{}
-		for l, v := range cInfo.Config.Labels {
-			// this is for labels like interlock.alias_domain.1=foo.local
-			if strings.Index(l, ext.InterlockAliasDomainLabel) > -1 {
-				aliasDomains = append(aliasDomains, v)
-			}
-		}
+		aliasDomains := utils.AliasDomains(cInfo.Config)
 
 		log().Debugf("alias domains: %v", aliasDomains)
 
@@ -178,6 +142,7 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []dockerclient.Cont
 
 		proxyUpstreams[domain] = append(proxyUpstreams[domain], up)
 	}
+
 	for k, v := range proxyUpstreams {
 		name := strings.Replace(k, ".", "_", -1)
 		host := &Host{
