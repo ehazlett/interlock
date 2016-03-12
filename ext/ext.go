@@ -7,6 +7,7 @@ import (
 const (
 	InterlockExtNameLabel             = "interlock.ext.name"               // common
 	InterlockHostnameLabel            = "interlock.hostname"               // haproxy, nginx
+	InterlockNetworkLabel             = "interlock.network"                // common
 	InterlockDomainLabel              = "interlock.domain"                 // haproxy, nginx
 	InterlockSSLLabel                 = "interlock.ssl"                    // nginx
 	InterlockSSLOnlyLabel             = "interlock.ssl_only"               // haproxy, nginx

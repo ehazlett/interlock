@@ -25,6 +25,7 @@ type Host struct {
 	WebsocketEndpoints []string
 }
 type Config struct {
-	Hosts  []*Host
-	Config *config.ExtensionConfig
+	Hosts    []*Host
+	Config   *config.ExtensionConfig
+	Networks map[string]string
 }
