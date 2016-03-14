@@ -1,9 +1,10 @@
 package lb
 
 import (
+	"archive/tar"
 	"bytes"
 	"fmt"
-	"os"
+	"path"
 	"path/filepath"
 	"sync"
 	"text/template"
@@ -133,16 +134,17 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 			// save proxy config
 			configPath := extension.backend.ConfigPath()
 
-			log().Debug("saving proxy config")
-			if err := extension.SaveConfig(configPath, cfg); err != nil {
-				errChan <- err
-				continue
-			}
-
 			proxyNetworks := map[string]string{}
 
 			proxyContainers, err := extension.ProxyContainers(extension.backend.Name())
 			if err != nil {
+				errChan <- err
+				continue
+			}
+
+			// save config
+			log().Debug("saving proxy config")
+			if err := extension.SaveConfig(configPath, cfg, proxyContainers); err != nil {
 				errChan <- err
 				continue
 			}
@@ -197,7 +199,6 @@ func (l *LoadBalancer) Name() string {
 }
 
 func (l *LoadBalancer) ProxyContainers(name string) ([]dockerclient.Container, error) {
-	// TODO:
 	containers, err := l.client.ListContainers(false, false, "")
 	if err != nil {
 		return nil, err
@@ -215,21 +216,7 @@ func (l *LoadBalancer) ProxyContainers(name string) ([]dockerclient.Container, e
 	return proxyContainers, nil
 }
 
-func (l *LoadBalancer) SaveConfig(configPath string, cfg interface{}) error {
-	f, err := os.OpenFile(configPath, os.O_WRONLY|os.O_TRUNC, 0664)
-	if err != nil {
-		if !os.IsNotExist(err) {
-			return err
-		}
-		ff, fErr := os.Create(configPath)
-		defer ff.Close()
-		if fErr != nil {
-			return fErr
-		}
-		f = ff
-	}
-	defer f.Close()
-
+func (l *LoadBalancer) SaveConfig(configPath string, cfg interface{}, proxyContainers []dockerclient.Container) error {
 	t := template.New("lb")
 	confTmpl := l.backend.Template()
 
@@ -257,11 +244,40 @@ func (l *LoadBalancer) SaveConfig(configPath string, cfg interface{}) error {
 		return fmt.Errorf("unknown backend type: %s", l.backend.Name())
 	}
 
-	if _, err := f.Write(c.Bytes()); err != nil {
-		return err
+	fName := path.Base(l.backend.ConfigPath())
+	proxyConfigPath := path.Dir(l.backend.ConfigPath())
+
+	data := c.Bytes()
+
+	// create tar stream to copy
+	buf := new(bytes.Buffer)
+	tw := tar.NewWriter(buf)
+	hdr := &tar.Header{
+		Name: fName,
+		Mode: 0644,
+		Size: int64(len(data)),
 	}
 
-	f.Sync()
+	if err := tw.WriteHeader(hdr); err != nil {
+		return fmt.Errorf("error writing proxy config header: %s", err)
+	}
+
+	if _, err := tw.Write(data); err != nil {
+		return fmt.Errorf("error writing proxy config: %s", err)
+	}
+
+	if err := tw.Close(); err != nil {
+		return fmt.Errorf("error closing tar writer: %s", err)
+	}
+
+	// copy to proxy nodes
+	for _, cnt := range proxyContainers {
+		log().Debugf("updating proxy config: id=%s", cnt.Id)
+		if err := l.client.CopyToContainer(cnt.Id, proxyConfigPath, buf); err != nil {
+			log().Errorf("error copying proxy config: %s", err)
+			continue
+		}
+	}
 
 	return nil
 }
@@ -303,7 +319,6 @@ func (l *LoadBalancer) HandleEvent(event *dockerclient.Event) error {
 	return nil
 }
 
-// TODO: update for overlay?
 func (l *LoadBalancer) isExposedContainer(id string) bool {
 	log().Debugf("inspecting container: id=%s", id)
 	c, err := l.client.InspectContainer(id)
