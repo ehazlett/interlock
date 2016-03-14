@@ -3,8 +3,8 @@ dockerURL = "unix:///var/run/docker.sock"
 
 [[extensions]]
 name = "nginx"
-configPath = "/etc/conf/nginx.conf"
-pidPath = "/etc/conf/nginx.pid"
+configPath = "/etc/nginx/nginx.conf"
+pidPath = "/tmp/nginx.pid"
 backendOverrideAddress = "172.17.0.1"
 maxConn = 1024
 port = 80
