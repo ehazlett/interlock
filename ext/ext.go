@@ -17,6 +17,7 @@ const (
 	InterlockSSLCertLabel             = "interlock.ssl_cert"               // nginx
 	InterlockSSLCertKeyLabel          = "interlock.ssl_cert_key"           // nginx
 	InterlockPortLabel                = "interlock.port"                   // haproxy, nginx
+	InterlockProtocolLabel            = "interlock.protocol"               // haproxy
 	InterlockWebsocketEndpointLabel   = "interlock.websocket_endpoint"     // nginx
 	InterlockAliasDomainLabel         = "interlock.alias_domain"           // haproxy, nginx
 	InterlockHealthCheckLabel         = "interlock.health_check"           // haproxy

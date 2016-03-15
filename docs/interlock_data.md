@@ -24,4 +24,5 @@ compatibility.
 |`interlock.health_check_interval`  | haproxy|
 |`interlock.balance_algorithm`      | haproxy|
 |`interlock.backend_option`         | haproxy|
+|`interlock.protocol`           	| haproxy|
 
