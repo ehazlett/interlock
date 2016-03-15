@@ -272,8 +272,6 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 				}
 			}
 
-			log().Debug(interlockNodes)
-
 			proxyContainersToRestart := extension.proxyContainersToRestart(interlockNodes, proxyContainers)
 
 			// trigger reload
