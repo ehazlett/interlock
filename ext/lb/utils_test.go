@@ -1,7 +1,10 @@
 package lb
 
 import (
+<<<<<<< HEAD
 	"io"
+=======
+>>>>>>> e2cf8e1... calculate proxy container restart among interlock instances
 	"os"
 	"testing"
 )
@@ -15,10 +18,13 @@ func TestGetNodeID(t *testing.T) {
 
 	id, err := getNodeID()
 	if err != nil {
+<<<<<<< HEAD
 		if err == io.EOF {
 			t.Skipf("skipping GetNodeID; does not look like i am in a normal container")
 		}
 
+=======
+>>>>>>> e2cf8e1... calculate proxy container restart among interlock instances
 		t.Fatal(err)
 	}
 
