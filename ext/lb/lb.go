@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"path"
 	"path/filepath"
+	"strings"
 	"sync"
 	"text/template"
 	"time"
@@ -44,6 +45,7 @@ type LoadBalancer struct {
 	cache   *ttlcache.TTLCache
 	lock    *sync.Mutex
 	backend LoadBalancerBackend
+	nodeID  string
 }
 
 func log() *logrus.Entry {
@@ -79,11 +81,20 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 		lbUpdateChan <- true
 	})
 
+	// load nodeID
+	nodeID, err := getNodeID()
+	if err != nil {
+		return nil, err
+	}
+
+	log().Infof("interlock node: id=%s", nodeID)
+
 	extension := &LoadBalancer{
 		cfg:    c,
 		client: client,
 		cache:  cache,
 		lock:   &sync.Mutex{},
+		nodeID: nodeID,
 	}
 
 	// select backend
@@ -133,6 +144,7 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 
 			// save proxy config
 			configPath := extension.backend.ConfigPath()
+			log().Debugf("proxy config path: %s", configPath)
 
 			proxyNetworks := map[string]string{}
 
@@ -177,9 +189,36 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 				}
 			}
 
+			// get interlock nodes
+			interlockNodes := []dockerclient.Container{}
+
+			for _, cnt := range containers {
+				// always include self container
+				if cnt.Id == nodeID {
+					interlockNodes = append(interlockNodes, cnt)
+					continue
+				}
+
+				cInfo, err := client.InspectContainer(cnt.Id)
+				if err != nil {
+					log().Errorf("unable to inspect interlock container: %s", err)
+					continue
+				}
+
+				if strings.Index(cInfo.Config.Image, "interlock") > 0 {
+					if _, ok := cInfo.Config.Labels[ext.InterlockAppLabel]; ok {
+						interlockNodes = append(interlockNodes, cnt)
+					}
+				}
+			}
+
+			log().Debug(interlockNodes)
+
+			proxyContainersToRestart := extension.proxyContainersToRestart(interlockNodes, proxyContainers)
+
 			// trigger reload
 			log().Debug("reloading")
-			if err := extension.backend.Reload(proxyContainers); err != nil {
+			if err := extension.backend.Reload(proxyContainersToRestart); err != nil {
 				errChan <- err
 				continue
 			}
@@ -319,6 +358,49 @@ func (l *LoadBalancer) HandleEvent(event *dockerclient.Event) error {
 	return nil
 }
 
+// proxyContainersToRestart returns a slice of proxy containers to restart
+// based upon this instance's hash
+func (l *LoadBalancer) proxyContainersToRestart(nodes []dockerclient.Container, proxyContainers []dockerclient.Container) []dockerclient.Container {
+	numNodes := len(nodes)
+	if numNodes == 0 {
+		return nil
+	}
+
+	log().Debugf("calculating restart across interlock nodes: num=%d", numNodes)
+
+	sub := len(proxyContainers) / numNodes
+
+	work := map[string][]dockerclient.Container{}
+
+	for i := 0; i < len(nodes)-1; i++ {
+		p, n := proxyContainers[:len(proxyContainers)-sub], proxyContainers[len(proxyContainers)-sub:]
+		proxyContainers = p
+		work[nodes[i].Id] = n
+	}
+
+	work[nodes[len(nodes)-1].Id] = proxyContainers
+
+	containersToRestart := work[l.nodeID]
+
+	for k, v := range work {
+		cntID := k[:8]
+		workIDs := []string{}
+		for _, c := range v {
+			workIDs = append(workIDs, c.Id[:8])
+		}
+		log().Debugf("work: node=%s containers=%s", cntID, strings.Join(workIDs, ","))
+	}
+
+	ids := []string{}
+	for _, c := range containersToRestart {
+		ids = append(ids, c.Id[:8])
+	}
+
+	log().Debugf("proxy containers to restart: num=%d containers=%s", len(containersToRestart), strings.Join(ids, ","))
+
+	return containersToRestart
+}
+
 func (l *LoadBalancer) isExposedContainer(id string) bool {
 	log().Debugf("inspecting container: id=%s", id)
 	c, err := l.client.InspectContainer(id)
@@ -332,6 +414,11 @@ func (l *LoadBalancer) isExposedContainer(id string) bool {
 	// ignore proxy containers
 	if _, ok := c.Config.Labels[ext.InterlockExtNameLabel]; ok {
 		log().Debugf("ignoring proxy container: id=%s", id)
+		return false
+	}
+
+	if _, ok := c.Config.Labels[ext.InterlockAppLabel]; ok {
+		log().Debugf("ignoring interlock container: id=%s", id)
 		return false
 	}
 

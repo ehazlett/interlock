@@ -24,7 +24,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []dockerclient.Contai
 	for _, c := range containers {
 		cntId := c.Id[:12]
 		// load interlock data
-		cInfo, err := p.client.InspectContainer(cntId)
+		cInfo, err := p.client.InspectContainer(c.Id)
 		if err != nil {
 			return nil, err
 		}
