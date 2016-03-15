@@ -34,5 +34,9 @@ func getNodeID() (string, error) {
 
 	id := dataParts[2]
 
+<<<<<<< HEAD
 	return strings.TrimSpace(id), nil
+=======
+	return id, nil
+>>>>>>> e2cf8e1... calculate proxy container restart among interlock instances
 }
