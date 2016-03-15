@@ -27,7 +27,7 @@ const (
 	// (v1.17) and
 	// ListVolumes, {Remove,Create}Volume, ListNetworks,
 	// {Inspect,Create,Connect,Disconnect,Remove}Network (v1.21)
-	APIVersion = "v1.20"
+	APIVersion = "v1.15"
 )
 
 var (
