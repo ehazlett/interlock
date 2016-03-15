@@ -215,7 +215,7 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 			proxyContainersToRestart := extension.proxyContainersToRestart(interlockNodes, proxyContainers)
 
 			// trigger reload
-			log().Debug("reloading")
+			log().Debug("signaling reload")
 			if err := extension.backend.Reload(proxyContainersToRestart); err != nil {
 				errChan <- err
 				continue
@@ -379,15 +379,6 @@ func (l *LoadBalancer) proxyContainersToRestart(nodes []dockerclient.Container, 
 	work[nodes[len(nodes)-1].Id] = proxyContainers
 
 	containersToRestart := work[l.nodeID]
-
-	for k, v := range work {
-		cntID := k[:8]
-		workIDs := []string{}
-		for _, c := range v {
-			workIDs = append(workIDs, c.Id[:8])
-		}
-		log().Debugf("work: node=%s containers=%s", cntID, strings.Join(workIDs, ","))
-	}
 
 	ids := []string{}
 	for _, c := range containersToRestart {
