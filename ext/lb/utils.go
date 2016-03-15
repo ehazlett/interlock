@@ -34,5 +34,5 @@ func getNodeID() (string, error) {
 
 	id := dataParts[2]
 
-	return id, nil
+	return strings.TrimSpace(id), nil
 }
