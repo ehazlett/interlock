@@ -442,15 +442,6 @@ func (l *LoadBalancer) proxyContainersToRestart(nodes []dockerclient.Container, 
 
 	containersToRestart := work[l.nodeID]
 
-	for k, v := range work {
-		cntID := k[:8]
-		workIDs := []string{}
-		for _, c := range v {
-			workIDs = append(workIDs, c.Id[:8])
-		}
-		log().Debugf("work: node=%s containers=%s", cntID, strings.Join(workIDs, ","))
-	}
-
 	ids := []string{}
 	for _, c := range containersToRestart {
 		ids = append(ids, c.Id[:8])
