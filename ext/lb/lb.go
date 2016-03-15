@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"path"
 	"path/filepath"
+	"strings"
 	"sync"
 	"text/template"
 	"time"
@@ -44,6 +45,7 @@ type LoadBalancer struct {
 	cache   *ttlcache.TTLCache
 	lock    *sync.Mutex
 	backend LoadBalancerBackend
+	nodeID  string
 }
 
 func log() *logrus.Entry {
@@ -79,11 +81,18 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 		lbUpdateChan <- true
 	})
 
+	// load nodeID
+	nodeID, err := getNodeID()
+	if err != nil {
+		return nil, err
+	}
+
 	extension := &LoadBalancer{
 		cfg:    c,
 		client: client,
 		cache:  cache,
 		lock:   &sync.Mutex{},
+		nodeID: nodeID,
 	}
 
 	// select backend
@@ -177,9 +186,38 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 				}
 			}
 
+			// get interlock nodes
+			// always include self container
+			interlockNodes := []dockerclient.Container{
+				{
+					Id: extension.nodeID,
+				},
+			}
+
+			for _, cnt := range containers {
+				// skip current container
+				if cnt.Id == extension.nodeID {
+					continue
+				}
+
+				cInfo, err := client.InspectContainer(cnt.Id)
+				if err != nil {
+					log().Errorf("unable to inspect interlock container: %s", err)
+					continue
+				}
+
+				if strings.Index(cInfo.Config.Image, "interlock") > 0 {
+					if _, ok := cInfo.Config.Labels["interlock.ext"]; ok {
+						interlockNodes = append(interlockNodes, cnt)
+					}
+				}
+			}
+
+			proxyContainersToRestart := extension.proxyContainersToRestart(interlockNodes, proxyContainers)
+
 			// trigger reload
 			log().Debug("reloading")
-			if err := extension.backend.Reload(proxyContainers); err != nil {
+			if err := extension.backend.Reload(proxyContainersToRestart); err != nil {
 				errChan <- err
 				continue
 			}
@@ -317,6 +355,40 @@ func (l *LoadBalancer) HandleEvent(event *dockerclient.Event) error {
 	}
 
 	return nil
+}
+
+// proxyContainersToRestart returns a slice of proxy containers to restart
+// based upon this instance's hash
+func (l *LoadBalancer) proxyContainersToRestart(nodes []dockerclient.Container, proxyContainers []dockerclient.Container) []dockerclient.Container {
+	numNodes := len(nodes)
+	if numNodes == 0 {
+		return nil
+	}
+
+	log().Debugf("calculating restart across interlock nodes: num=%d", numNodes)
+
+	sub := len(proxyContainers) / numNodes
+
+	work := map[string][]dockerclient.Container{}
+
+	for i := 0; i < len(nodes)-1; i++ {
+		p, n := proxyContainers[:len(proxyContainers)-sub], proxyContainers[len(proxyContainers)-sub:]
+		proxyContainers = p
+		work[nodes[i].Id] = n
+	}
+
+	work[nodes[len(nodes)-1].Id] = proxyContainers
+
+	containersToRestart := work[l.nodeID]
+
+	ids := []string{}
+	for _, c := range containersToRestart {
+		ids = append(ids, c.Id[:8])
+	}
+
+	log().Debugf("proxy containers to restart: num=%d containers=%s", len(containersToRestart), strings.Join(ids, ","))
+
+	return containersToRestart
 }
 
 func (l *LoadBalancer) isExposedContainer(id string) bool {
