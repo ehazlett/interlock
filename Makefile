@@ -43,5 +43,5 @@ image: build-static build-image
 clean:
 	@rm cmd/$(APP)/$(APP)
 
-.PHONY: add-deps build build-static build-app build-image image clean test
+.PHONY: deps build build-static build-app build-image image clean test
 

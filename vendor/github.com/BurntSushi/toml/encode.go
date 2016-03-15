@@ -347,15 +347,14 @@ func (enc *Encoder) eStruct(key Key, rv reflect.Value) {
 				continue
 			}
 
-			keyName := sft.Tag.Get("toml")
-			if keyName == "-" {
+			tag := sft.Tag.Get("toml")
+			if tag == "-" {
 				continue
 			}
+			keyName, opts := getOptions(tag)
 			if keyName == "" {
 				keyName = sft.Name
 			}
-
-			keyName, opts := getOptions(keyName)
 			if _, ok := opts["omitempty"]; ok && isEmpty(sf) {
 				continue
 			} else if _, ok := opts["omitzero"]; ok && isZero(sf) {
@@ -468,34 +467,22 @@ func getOptions(keyName string) (string, map[string]struct{}) {
 func isZero(rv reflect.Value) bool {
 	switch rv.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		if rv.Int() == 0 {
-			return true
-		}
+		return rv.Int() == 0
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		if rv.Uint() == 0 {
-			return true
-		}
+		return rv.Uint() == 0
 	case reflect.Float32, reflect.Float64:
-		if rv.Float() == 0.0 {
-			return true
-		}
+		return rv.Float() == 0.0
 	}
-
 	return false
 }
 
 func isEmpty(rv reflect.Value) bool {
 	switch rv.Kind() {
-	case reflect.String:
-		if len(strings.TrimSpace(rv.String())) == 0 {
-			return true
-		}
-	case reflect.Array, reflect.Slice, reflect.Map:
-		if rv.Len() == 0 {
-			return true
-		}
+	case reflect.Array, reflect.Slice, reflect.Map, reflect.String:
+		return rv.Len() == 0
+	case reflect.Bool:
+		return !rv.Bool()
 	}
-
 	return false
 }
 
