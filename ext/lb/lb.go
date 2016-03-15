@@ -87,6 +87,8 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 		return nil, err
 	}
 
+	log().Infof("interlock node: id=%s", nodeID)
+
 	extension := &LoadBalancer{
 		cfg:    c,
 		client: client,
@@ -142,6 +144,7 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 
 			// save proxy config
 			configPath := extension.backend.ConfigPath()
+			log().Debugf("proxy config path: %s", configPath)
 
 			proxyNetworks := map[string]string{}
 
@@ -187,16 +190,12 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 			}
 
 			// get interlock nodes
-			// always include self container
-			interlockNodes := []dockerclient.Container{
-				{
-					Id: extension.nodeID,
-				},
-			}
+			interlockNodes := []dockerclient.Container{}
 
 			for _, cnt := range containers {
-				// skip current container
-				if cnt.Id == extension.nodeID {
+				// always include self container
+				if cnt.Id == nodeID {
+					interlockNodes = append(interlockNodes, cnt)
 					continue
 				}
 
@@ -207,11 +206,13 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 				}
 
 				if strings.Index(cInfo.Config.Image, "interlock") > 0 {
-					if _, ok := cInfo.Config.Labels["interlock.ext"]; ok {
+					if _, ok := cInfo.Config.Labels[ext.InterlockAppLabel]; ok {
 						interlockNodes = append(interlockNodes, cnt)
 					}
 				}
 			}
+
+			log().Debug(interlockNodes)
 
 			proxyContainersToRestart := extension.proxyContainersToRestart(interlockNodes, proxyContainers)
 
@@ -381,6 +382,15 @@ func (l *LoadBalancer) proxyContainersToRestart(nodes []dockerclient.Container, 
 
 	containersToRestart := work[l.nodeID]
 
+	for k, v := range work {
+		cntID := k[:8]
+		workIDs := []string{}
+		for _, c := range v {
+			workIDs = append(workIDs, c.Id[:8])
+		}
+		log().Debugf("work: node=%s containers=%s", cntID, strings.Join(workIDs, ","))
+	}
+
 	ids := []string{}
 	for _, c := range containersToRestart {
 		ids = append(ids, c.Id[:8])
@@ -404,6 +414,11 @@ func (l *LoadBalancer) isExposedContainer(id string) bool {
 	// ignore proxy containers
 	if _, ok := c.Config.Labels[ext.InterlockExtNameLabel]; ok {
 		log().Debugf("ignoring proxy container: id=%s", id)
+		return false
+	}
+
+	if _, ok := c.Config.Labels[ext.InterlockAppLabel]; ok {
+		log().Debugf("ignoring interlock container: id=%s", id)
 		return false
 	}
 
