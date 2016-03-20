@@ -286,30 +286,30 @@ func (l *LoadBalancer) SaveConfig(configPath string, cfg interface{}, proxyConta
 
 	data := c.Bytes()
 
-	// create tar stream to copy
-	buf := new(bytes.Buffer)
-	tw := tar.NewWriter(buf)
-	hdr := &tar.Header{
-		Name: fName,
-		Mode: 0644,
-		Size: int64(len(data)),
-	}
-
-	if err := tw.WriteHeader(hdr); err != nil {
-		return fmt.Errorf("error writing proxy config header: %s", err)
-	}
-
-	if _, err := tw.Write(data); err != nil {
-		return fmt.Errorf("error writing proxy config: %s", err)
-	}
-
-	if err := tw.Close(); err != nil {
-		return fmt.Errorf("error closing tar writer: %s", err)
-	}
-
 	// copy to proxy nodes
 	for _, cnt := range proxyContainers {
 		log().Debugf("updating proxy config: id=%s", cnt.Id)
+		// create tar stream to copy
+		buf := new(bytes.Buffer)
+		tw := tar.NewWriter(buf)
+		hdr := &tar.Header{
+			Name: fName,
+			Mode: 0644,
+			Size: int64(len(data)),
+		}
+
+		if err := tw.WriteHeader(hdr); err != nil {
+			return fmt.Errorf("error writing proxy config header: %s", err)
+		}
+
+		if _, err := tw.Write(data); err != nil {
+			return fmt.Errorf("error writing proxy config: %s", err)
+		}
+
+		if err := tw.Close(); err != nil {
+			return fmt.Errorf("error closing tar writer: %s", err)
+		}
+
 		if err := l.client.CopyToContainer(cnt.Id, proxyConfigPath, buf); err != nil {
 			log().Errorf("error copying proxy config: %s", err)
 			continue
