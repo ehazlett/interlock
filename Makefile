@@ -38,7 +38,7 @@ build-image:
 test:
 	@go test -v -cover -race ${PACKAGES}
 
-image: build-app build-image
+image: build build-image
 
 clean:
 	@rm cmd/$(APP)/$(APP)

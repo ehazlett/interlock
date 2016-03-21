@@ -35,7 +35,7 @@ var cmdRun = cli.Command{
 		cli.StringFlag{
 			Name:  "config, c",
 			Usage: "path to config file",
-			Value: "config.toml",
+			Value: "",
 		},
 		cli.StringFlag{
 			Name:  "discovery, k",
@@ -110,7 +110,16 @@ func runAction(c *cli.Context) {
 	dTLSCert := c.String("discovery-tls-cert")
 	dTLSKey := c.String("discovery-tls-key")
 
+	// attempt to load config from environment
+	envCfg := os.Getenv("INTERLOCK_CONFIG")
+
 	var data string
+
+	if envCfg != "" {
+		log.Debug("loading config from environment")
+		data = envCfg
+	}
+
 	if dURL != "" {
 		log.Debugf("using kv: addr=%s", dURL)
 		if dTLSCACert != "" && dTLSCert != "" && dTLSKey != "" {
@@ -155,16 +164,18 @@ func runAction(c *cli.Context) {
 		}
 	} else {
 		configPath := c.String("config")
+		if configPath != "" {
+			log.Debugf("loading config from: %s", configPath)
 
-		d, err := ioutil.ReadFile(configPath)
-		switch {
-		case os.IsNotExist(err):
-			log.Debug("no config detected; using default config")
-			data = defaultConfig
-		case err == nil:
-			data = string(d)
-		default:
-			log.Fatal(err)
+			d, err := ioutil.ReadFile(configPath)
+			switch {
+			case os.IsNotExist(err):
+				log.Fatalf("config not found: %s", configPath)
+			case err == nil:
+				data = string(d)
+			default:
+				log.Fatal(err)
+			}
 		}
 	}
 
