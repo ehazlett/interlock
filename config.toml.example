@@ -9,8 +9,9 @@ EnableMetrics = true
 
 [[extensions]]
     Name = "nginx"
-    ConfigPath = "nginx.conf"
-    PidPath = "nginx.pid"
+    ConfigPath = "/etc/nginx/nginx.conf"
+    templatePath = "/etc/interlock/nginx.conf.template"
+    PidPath = "/tmp/nginx.pid"
     BackendOverrideAddress = ""
     ConnectTimeout = 5000
     ServerTimeout = 10000
