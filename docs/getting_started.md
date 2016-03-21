@@ -82,7 +82,7 @@ docker run \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -v $(pwd)/config.toml:/etc/config.toml \
     ehazlett/interlock:1.0.0 \
-    -D run -c /etc/config.toml \
+    -D run -c /etc/config.toml
 
 ```
 
@@ -91,6 +91,7 @@ docker run \
 ```
 docker run \
     -ti \
+    -d \
     --net=host \
     --label interlock.ext.name=nginx \
     -v nginx:/etc/conf \
@@ -101,7 +102,7 @@ docker run \
 # Interlock
 You can now start some containers with exposed ports to see Interlock add them to Nginx and reload:
 
-`docker run -d -ti -P --hostname foo.local nginx`
+`docker run -d -ti -p 80 --hostname foo.local nginx`
 
 ```
 INFO[0000] interlock 1.0.0
