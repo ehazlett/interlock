@@ -15,7 +15,8 @@ interlock:
             [[Extensions]]
             Name = "nginx"
             ConfigPath = "/etc/nginx/nginx.conf"
-            PidPath = "/etc/nginx/nginx.pid"
+            PidPath = "/var/run/nginx.pid"
+            TemplatePath = "/etc/interlock/nginx.conf.template"
             MaxConn = 1024
             Port = 80
     volumes:
