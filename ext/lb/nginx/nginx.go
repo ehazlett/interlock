@@ -6,6 +6,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/ehazlett/interlock/config"
 	"github.com/samalba/dockerclient"
+	"io/ioutil"
 )
 
 const (
@@ -44,11 +45,14 @@ func (p *NginxLoadBalancer) HandleEvent(event *dockerclient.Event) error {
 }
 
 func (p *NginxLoadBalancer) Template() string {
-	if p.cfg.NginxPlusEnabled {
-		return nginxPlusConfTemplate
-	}
+	d, err := ioutil.ReadFile(p.cfg.TemplatePath)
 
-	return nginxConfTemplate
+	if err == nil {
+		return string(d)
+	} else {
+		log().Fatal(err)
+		return err.Error()
+	}
 }
 
 func (p *NginxLoadBalancer) ConfigPath() string {
