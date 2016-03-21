@@ -1,0 +1,9 @@
+listenAddr = ":8080"
+dockerURL = "tcp://127.0.0.1:3375"
+
+[[extensions]]
+name = "nginx"
+configPath = "/etc/conf/nginx.conf"
+pidPath = "/etc/conf/nginx.pid"
+maxConn = 1024
+port = 80
