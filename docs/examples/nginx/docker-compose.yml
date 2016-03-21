@@ -1,5 +1,5 @@
 interlock:
-    image: ehazlett/interlock:ng
+    image: ehazlett/interlock:1.0
     command: run
     ports:
         - 8080
