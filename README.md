@@ -9,7 +9,7 @@ tagged as the new version after a couple of releases to allow for migration
 from legacy users.  It is strongly recommended to use the latest release 
 as legacy is no longer maintained.
 
-The recommended release is `ehazlett/interlock:1.0`
+The recommended release is `ehazlett/interlock:1.0.1`
 
 # Getting Started
 To get started with Interlock view the [Documentation](docs).
