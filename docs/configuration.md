@@ -40,6 +40,11 @@ EnableMetrics = true
   SSLProtocols = "SSLv3 TLSv1 TLSv1.1 TLSv1.2"
 ```
 
+# Environment
+You can also put the config as text in the environment variable 
+`INTERLOCK_CONFIG`.  If you pass command flags they will override the
+environment data.
+
 # Reference
 The following table lists all options, their type and the extensions in which
 they are compatible:
