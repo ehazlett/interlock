@@ -5,7 +5,6 @@ interlock:
     ports:
         - 8080
     environment: 
-        NODE: "agent1"
         INTERLOCK_CONFIG: |
             ListenAddr = ":8080"
             DockerURL = "${SWARM_HOST}"
@@ -28,8 +27,6 @@ nginx:
     image: nginx:latest
     entrypoint: nginx
     command: -g "daemon off;" -c /etc/conf/nginx.conf
-    environment: 
-        NODE: "agent1"
     ports:
         - 80:80
     labels:
