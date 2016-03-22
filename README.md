@@ -11,7 +11,10 @@ as legacy is no longer maintained.
 
 The recommended release is `ehazlett/interlock:1.0`
 
-# Getting Started
+# Quickstart
+For a quick start with Compose, see the [Swarm Example](docs/examples/nginx-swarm-machine).
+
+# Documentation
 To get started with Interlock view the [Documentation](docs).
 
 # Building
