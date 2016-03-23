@@ -50,8 +50,9 @@ func (p *NginxLoadBalancer) Template() string {
 	if err == nil {
 		return string(d)
 	} else {
-		log().Infof("Missing nginx configuration template: template=%s", p.cfg.TemplatePath)
-		log().Infof("Examples of an nginx configuration template: url=https://github.com/ehazlett/interlock/tree/master/docs/examples/nginx")
+		log().Infof("Missing nginx configuration template: file=%s", p.cfg.TemplatePath)
+		log().Info("Use the TemplatePath option in your Interlock config to set a custom location for the nginx configuration template")
+		log().Info("Examples of an nginx configuration template: url=https://github.com/ehazlett/interlock/tree/master/docs/examples/nginx")
 		log().Fatal(err)
 		return err.Error()
 	}

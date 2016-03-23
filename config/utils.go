@@ -26,7 +26,7 @@ func ParseConfig(data string) (*Config, error) {
 }
 
 // SetConfigDefaults sets default values if not present
-// ExtensionConfig.Name must be set
+// ExtensionConfig.Name must be set before calling this function
 func SetConfigDefaults(c *ExtensionConfig) error {
 	if c.MaxConn == 0 {
 		c.MaxConn = 1024

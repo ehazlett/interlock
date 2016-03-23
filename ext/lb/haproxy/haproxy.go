@@ -4,6 +4,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/ehazlett/interlock/config"
 	"github.com/samalba/dockerclient"
+	"io/ioutil"
 )
 
 const (
@@ -43,7 +44,17 @@ func (p *HAProxyLoadBalancer) ConfigPath() string {
 }
 
 func (p *HAProxyLoadBalancer) Template() string {
-	return haproxyConfTemplate
+	d, err := ioutil.ReadFile(p.cfg.TemplatePath)
+
+	if err == nil {
+		return string(d)
+	} else {
+		log().Infof("Missing haproxy configuration template: file=%s", p.cfg.TemplatePath)
+		log().Info("Use the TemplatePath option in your Interlock config to set a custom location for the haproxy configuration template")
+		log().Info("Examples of an haproxy configuration template: url=https://github.com/ehazlett/interlock/tree/master/docs/examples/haproxy")
+		log().Fatal(err)
+		return err.Error()
+	}
 }
 
 func (p *HAProxyLoadBalancer) Reload(proxyContainers []dockerclient.Container) error {
