@@ -28,7 +28,7 @@ func TestParseConfig(t *testing.T) {
 
 func TestSetConfigDefaults(t *testing.T) {
 	cfg := &ExtensionConfig{
-		Name: "test",
+		Name: "haproxy",
 	}
 
 	if err := SetConfigDefaults(cfg); err != nil {

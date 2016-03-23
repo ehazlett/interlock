@@ -13,8 +13,8 @@ type ExtensionConfig struct {
 	Name                   string           // extension name
 	ConfigPath             string           // config file path
 	ConfigBasePath         string           `toml:"-"` // internal
-	TemplatePath           string           // template file path
 	PidPath                string           // haproxy, nginx
+	TemplatePath           string           // template file path
 	BackendOverrideAddress string           // haproxy, nginx
 	ConnectTimeout         int              // haproxy
 	ServerTimeout          int              // haproxy

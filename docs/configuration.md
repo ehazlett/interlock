@@ -15,6 +15,7 @@ EnableMetrics = true
   Name = "nginx"
   ConfigPath = "/etc/conf/nginx.conf"
   PidPath = "/etc/conf/nginx.pid"
+  TemplatePath = "/etc/interlock/nginx.conf.template"
   BackendOverrideAddress = ""
   ConnectTimeout = 5000
   ServerTimeout = 10000
@@ -54,6 +55,7 @@ they are compatible:
 |Name                   | string | extension name |
 |ConfigPath             | string | config file path |
 |PidPath                | string | haproxy, nginx |
+|TemplatePath           | string | haproxy, nginx |
 |BackendOverrideAddress | string | haproxy, nginx |
 |ConnectTimeout         | int    | haproxy |
 |ServerTimeout          | int    | haproxy |
@@ -101,6 +103,7 @@ DockerURL = "tcp://127.0.0.1:2376"
   Name = "haproxy"
   ConfigPath = "/usr/local/etc/haproxy/haproxy.cfg"
   PidPath = "/usr/local/etc/haproxy/haproxy.pid"
+  TemplatePath = "/usr/local/etc/interlock/haproxy.cfg.template"
   MaxConn = 1024
   Port = 80'
 ```
