@@ -121,11 +121,14 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []dockerclient.Cont
 			}
 		}
 
+		protocol := utils.Protocol(cInfo.Config);
+
 		container_name := cInfo.Name[1:]
 		up := &Upstream{
 			Addr:          addr,
 			Container:     container_name,
 			CheckInterval: healthCheckInterval,
+			Protocol:      protocol,
 		}
 
 		log().Infof("%s: upstream=%s container=%s", domain, addr, container_name)
