@@ -33,6 +33,6 @@ Try scaling to see Interlock add the new containers:
 
 `docker-compose scale app=4`
 
-You should now be able to put a host entry for `agent1` to `test.local` and
-access via your browser.
-
+You should now be able to put a host entry for the node the `nginx` container
+is running on (use `docker ps` to find the node) to `test.local` 
+and access via your browser.
