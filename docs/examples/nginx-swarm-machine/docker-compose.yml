@@ -4,14 +4,14 @@ interlock:
     tty: true
     ports:
         - 8080
-    environment: 
+    environment:
         INTERLOCK_CONFIG: |
             ListenAddr = ":8080"
             DockerURL = "${SWARM_HOST}"
             TLSCACert = "/var/lib/boot2docker/ca.pem"
             TLSCert = "/var/lib/boot2docker/server.pem"
             TLSKey = "/var/lib/boot2docker/server-key.pem"
-            
+
             [[Extensions]]
             Name = "nginx"
             ConfigPath = "/etc/conf/nginx.conf"

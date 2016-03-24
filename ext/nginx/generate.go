@@ -25,6 +25,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig() (*Config, error) {
 	hostSSLOnly := map[string]bool{}
 	hostSSLBackend := map[string]bool{}
 	hostWebsocketEndpoints := map[string][]string{}
+	hostIpHash := map[string]bool{}
 
 	for _, c := range containers {
 		cntId := c.Id[:12]
@@ -68,6 +69,13 @@ func (p *NginxLoadBalancer) GenerateProxyConfig() (*Config, error) {
 		if _, ok := cInfo.Config.Labels[ext.InterlockSSLOnlyLabel]; ok {
 			log().Infof("configuring ssl redirect for %s", domain)
 			hostSSLOnly[domain] = true
+		}
+
+		hostIpHash[domain] = false
+
+		if _, ok := cInfo.Config.Labels[ext.InterlockIpHash]; ok {
+			log().Infof("Sticky sessions for %s", domain)
+			hostIpHash[domain] = true
 		}
 
 		// check ssl backend
@@ -176,6 +184,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig() (*Config, error) {
 			SSLOnly:            hostSSLOnly[k],
 			SSLBackend:         hostSSLBackend[k],
 			WebsocketEndpoints: hostWebsocketEndpoints[k],
+			IpHash:             hostIpHash[k],
 		}
 
 		servers := []*Server{}

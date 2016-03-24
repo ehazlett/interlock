@@ -23,6 +23,7 @@ type Host struct {
 	SSLBackend         bool
 	Upstream           *Upstream
 	WebsocketEndpoints []string
+	IpHash             bool
 }
 type Config struct {
 	Hosts  []*Host

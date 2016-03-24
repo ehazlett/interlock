@@ -17,6 +17,7 @@ const (
 	InterlockHealthCheckIntervalLabel = "interlock.health_check_interval"  //haproxy
 	InterlockBalanceAlgorithmLabel    = "interlock.balance_algorithm"      // haproxy
 	InterlockBackendOptionLabel       = "interlock.backend_option"         // haproxy
+	InterlockIpHash                   = "interlock.ip_hash"                // nginx
 )
 
 type Extension interface {

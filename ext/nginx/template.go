@@ -74,7 +74,7 @@ http {
 
     {{ range $host := .Hosts }}
     upstream {{ $host.Upstream.Name }} {
-        zone {{ $host.Upstream.Name }}_backend 64k;
+        {{ if $host.IpHash }}ip_hash; {{else}}zone {{ $host.Upstream.Name }}_backend 64k;{{ end }}
 
         {{ range $up := $host.Upstream.Servers }}server {{ $up.Addr }};
         {{ end }}
