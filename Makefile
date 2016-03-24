@@ -6,10 +6,7 @@ COMMIT=`git rev-parse --short HEAD`
 APP=interlock
 REPO?=ehazlett/$(APP)
 TAG?=latest
-SHELL=/bin/bash
 BUILD?=-dev
-
-PACKAGES=$(shell go list ./... | grep -v /vendor/)
 
 export GO15VENDOREXPERIMENT=1
 export GOPATH:=$(PWD)/vendor:$(GOPATH)
@@ -35,10 +32,16 @@ build-image:
 	@docker build -t $(REPO):$(TAG) .
 	@echo "Image created: $(REPO):$(TAG)"
 
-test:
-	@go test -v -cover -race ${PACKAGES}
+build-container:
+	@docker build -t interlock-build -f Dockerfile.build .
+	@docker run -it -e BUILD -e TAG --name interlock-build -ti interlock-build make build
+	@docker cp interlock-build:/go/src/github.com/$(REPO)/cmd/$(APP)/$(APP) ./cmd/$(APP)/$(APP)
+	@docker rm -fv interlock-build
 
-image: build build-image
+test:
+	@go test -v -cover -race `go list ./... | grep /vendor/`
+
+image: build-container build-image
 
 clean:
 	@rm cmd/$(APP)/$(APP)

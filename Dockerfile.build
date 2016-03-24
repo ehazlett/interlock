@@ -1,0 +1,13 @@
+FROM golang:1.6-alpine
+RUN apk add -U git make
+RUN go get github.com/tools/godep
+ENV DOCKER_VERSION 1.10.3
+ENV APP interlock
+ENV REPO ehazlett/$APP
+
+RUN curl -sL https://get.docker.com/builds/Linux/x86_64/docker-${DOCKER_VERSION} > /usr/local/bin/docker && \
+    chmod +x /usr/local/bin/docker
+
+WORKDIR /go/src/github.com/$REPO
+
+COPY . /go/src/github.com/$REPO
