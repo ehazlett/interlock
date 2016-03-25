@@ -32,6 +32,10 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []dockerclient.Contai
 		hostname := utils.Hostname(cInfo.Config)
 		domain := utils.Domain(cInfo.Config)
 
+		if domain == "" {
+			continue
+		}
+
 		if hostname != domain && hostname != "" {
 			domain = fmt.Sprintf("%s.%s", hostname, domain)
 		}
