@@ -23,7 +23,6 @@ EnableMetrics = true
   MaxConn = 1024
   Port = 80
   SyslogAddr = ""
-  NginxPlusEnabled = false
   AdminUser = "admin"
   AdminPass = ""
   SSLCertPath = ""
@@ -63,7 +62,6 @@ they are compatible:
 |MaxConn                | int    | haproxy, nginx |
 |Port                   | int    | haproxy, nginx |
 |SyslogAddr             | string | haproxy |
-|NginxPlusEnabled       | bool   | nginx |
 |AdminUser              | string | haproxy |
 |AdminPass              | string | haproxy |
 |SSLCertPath            | string | haproxy, nginx |
