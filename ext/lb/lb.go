@@ -26,10 +26,16 @@ const (
 )
 
 var (
-	errChan      chan (error)
-	restartChan  = make(chan bool)
-	lbUpdateChan chan (bool)
+	errChan                 chan (error)
+	restartChan             = make(chan bool)
+	lbUpdateChan            chan (bool)
+	proxyNetworkCleanupChan chan ([]proxyContainerNetworkConfig)
 )
+
+type proxyContainerNetworkConfig struct {
+	ContainerID   string
+	ProxyNetworks map[string]string
+}
 
 type LoadBalancerBackend interface {
 	Name() string
@@ -70,6 +76,8 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 	}()
 
 	lbUpdateChan = make(chan bool)
+
+	proxyNetworkCleanupChan = make(chan []proxyContainerNetworkConfig)
 
 	cache, err := ttlcache.NewTTLCache(ReloadThreshold)
 	if err != nil {
@@ -114,6 +122,52 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 	default:
 		return nil, fmt.Errorf("unknown load balancer backend: %s", c.Name)
 	}
+
+	// proxy network cleanup chan
+	// this waits for a reload event and removes the proxy containers
+	// from unused proxy networks
+	go func() {
+		for {
+			nc := <-proxyNetworkCleanupChan
+
+			log().Debug("checking to remove proxy containers from networks")
+
+			for _, c := range nc {
+				cID := c.ContainerID
+				cnt, err := client.InspectContainer(cID)
+				if err != nil {
+					log().Errorf("error inspecting proxy container: id=%s err=%s", cID, err)
+					continue
+				}
+
+				for net, _ := range cnt.NetworkSettings.Networks {
+					// HACK?: special ignore case for bridge
+					if net == "bridge" {
+						continue
+					}
+
+					if _, ok := c.ProxyNetworks[net]; !ok {
+						// attempt to disconnect
+						log().Debugf("disconnecting proxy container from network: id=%s net=%s", cID, net)
+
+						retries := 5
+						for i := 0; i < retries; i++ {
+							err := client.DisconnectNetwork(net, cID, false)
+							if err == nil {
+								break
+							}
+
+							log().Warnf("unable to disconnect proxy container %s from network %s (retrying): %s", cID, net, err)
+
+							// wait for network to disconnect
+							time.Sleep(2 * time.Second)
+						}
+					}
+
+				}
+			}
+		}
+	}()
 
 	// lbUpdateChan handler
 	go func() {
@@ -175,7 +229,13 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 				continue
 			}
 
+			proxyContainerNetworkConfigs := []proxyContainerNetworkConfig{}
+
 			for _, cnt := range proxyContainers {
+				proxyContainerNetworkConfigs = append(proxyContainerNetworkConfigs, proxyContainerNetworkConfig{
+					ContainerID:   cnt.Id,
+					ProxyNetworks: proxyNetworks,
+				})
 				for net, _ := range proxyNetworks {
 					if _, ok := cnt.NetworkSettings.Networks[net]; !ok {
 						log().Debugf("connecting proxy container %s to network %s", cnt.Id, net)
@@ -224,7 +284,10 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 			d := time.Since(start)
 			duration := float64(d.Seconds() * float64(1000))
 
-			log().Debugf("reload duration: %0.2fms", duration)
+			log().Debug("triggering proxy network cleanup")
+			proxyNetworkCleanupChan <- proxyContainerNetworkConfigs
+
+			log().Infof("reload duration: %0.2fms", duration)
 		}
 	}()
 
