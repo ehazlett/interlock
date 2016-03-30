@@ -20,12 +20,11 @@ func specAction(c *cli.Context) {
 		Name:                   "nginx",
 		ConfigPath:             "/etc/conf/nginx.conf",
 		PidPath:                "/etc/conf/nginx.pid",
+		TemplatePath:           "/etc/interlock/nginx.conf.template",
 		BackendOverrideAddress: "",
 	}
 
-	if err := config.SetConfigDefaults(ec); err != nil {
-		log.Fatal(err)
-	}
+	config.SetConfigDefaults(ec)
 
 	cfg := &config.Config{
 		ListenAddr:    ":8080",
