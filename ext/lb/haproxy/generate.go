@@ -14,6 +14,7 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []dockerclient.Cont
 	proxyUpstreams := map[string][]*Upstream{}
 	hostChecks := map[string]string{}
 	hostBalanceAlgorithms := map[string]string{}
+	hostContextRoots := map[string]*ContextRoot{}
 	hostBackendOptions := map[string][]string{}
 	hostSSLOnly := map[string]bool{}
 	hostSSLBackend := map[string]bool{}
@@ -21,8 +22,6 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []dockerclient.Cont
 
 	networks := map[string]string{}
 
-	// TODO: instead of setting defaults here use
-	// SetDefaultConfig in the utils package
 	for _, cnt := range containers {
 		cntId := cnt.Id[:12]
 		// load interlock data
@@ -34,12 +33,27 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []dockerclient.Cont
 		hostname := utils.Hostname(cInfo.Config)
 		domain := utils.Domain(cInfo.Config)
 
-		if domain == "" {
+		// context root
+		contextRoot := utils.ContextRoot(cInfo.Config)
+		contextRootName := strings.Replace(contextRoot, "/", "_", -1)
+
+		if domain == "" && contextRoot == "" {
 			continue
 		}
 
-		if hostname != domain && hostname != "" {
-			domain = fmt.Sprintf("%s.%s", hostname, domain)
+		// we check if a context root is passed and overwrite the
+		// domain component
+		if contextRoot != "" {
+			domain = contextRootName
+		} else {
+			if hostname != domain && hostname != "" {
+				domain = fmt.Sprintf("%s.%s", hostname, domain)
+			}
+		}
+
+		hostContextRoots[domain] = &ContextRoot{
+			Name: contextRootName,
+			Path: contextRoot,
 		}
 
 		healthCheck := utils.HealthCheck(cInfo.Config)
@@ -147,6 +161,7 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []dockerclient.Cont
 		name := strings.Replace(k, ".", "_", -1)
 		host := &Host{
 			Name:                name,
+			ContextRoot:         hostContextRoots[k],
 			Domain:              k,
 			Upstreams:           v,
 			Check:               hostChecks[k],
@@ -156,7 +171,7 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []dockerclient.Cont
 			SSLBackend:          hostSSLBackend[k],
 			SSLBackendTLSVerify: hostSSLBackendTLSVerify[k],
 		}
-		log().Debugf("adding host name=%s domain=%s", host.Name, host.Domain)
+		log().Debugf("adding host name=%s domain=%s contextroot=%v", host.Name, host.Domain, host.ContextRoot)
 		hosts = append(hosts, host)
 	}
 

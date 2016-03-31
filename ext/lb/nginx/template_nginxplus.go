@@ -64,11 +64,12 @@ http {
 
 	    root /usr/share/nginx/html;
 
+	    # nginxplus
     	    location = / {
     	        return 301 /status.html;
     	    }
-
     	    location = /status.html { }
+	    # end nginxplus
 
     	    location /status {
     	        status;

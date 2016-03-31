@@ -4,8 +4,14 @@ import (
 	"github.com/ehazlett/interlock/config"
 )
 
+type ContextRoot struct {
+	Name string
+	Path string
+}
+
 type Host struct {
 	Name                string
+	ContextRoot         *ContextRoot
 	Domain              string
 	Check               string
 	BackendOptions      []string
