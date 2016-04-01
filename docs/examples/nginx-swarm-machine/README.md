@@ -11,7 +11,7 @@ sure you have the latest version installed.
 To make this example portable, we use an environment variable to configure
 Interlock to your Swarm cluster.  Run the following to set it up:
 
-`export DOCKER_HOST=tcp://$(docker-machine ip manager):3376`
+`export SWARM_HOST=tcp://$(docker-machine ip manager):3376`
 
 # Start Interlock
 
