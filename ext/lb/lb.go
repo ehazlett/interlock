@@ -182,7 +182,8 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 
 			log().Debug("updating load balancers")
 
-			containers, err := client.ListContainers(true, false, "")
+			containers, err := extension.ListContainers()
+
 			if err != nil {
 				errChan <- err
 				continue
@@ -202,7 +203,7 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 
 			proxyNetworks := map[string]string{}
 
-			proxyContainers, err := extension.ProxyContainers(extension.backend.Name())
+			proxyContainers, err := extension.ProxyContainers(extension.backend.Name(), containers)
 			if err != nil {
 				errChan <- err
 				continue
@@ -298,12 +299,27 @@ func (l *LoadBalancer) Name() string {
 	return pluginName
 }
 
-func (l *LoadBalancer) ProxyContainers(name string) ([]dockerclient.Container, error) {
-	containers, err := l.client.ListContainers(false, false, "")
+
+func (l *LoadBalancer) ListContainers() ([]dockerclient.Container, error) {
+	var containers []dockerclient.Container
+	var err error
+
+	allContainers, err := l.client.ListContainers(false, false, "")
+
 	if err != nil {
 		return nil, err
 	}
 
+	for _, cnt := range allContainers {
+		if l.isServiceContainer(cnt.Labels) {
+			containers = append(containers, cnt)
+		}
+	}
+
+	return containers, nil
+}
+
+func (l *LoadBalancer) ProxyContainers(name string, containers []dockerclient.Container) ([]dockerclient.Container, error) {
 	proxyContainers := []dockerclient.Container{}
 
 	// find interlock proxy containers
@@ -461,10 +477,8 @@ func (l *LoadBalancer) isExposedContainer(id string) bool {
 		return false
 	}
 
-	log().Debugf("checking container labels: id=%s", id)
-	// ignore proxy containers
-	if _, ok := c.Config.Labels[ext.InterlockExtNameLabel]; ok {
-		log().Debugf("ignoring proxy container: id=%s", id)
+	if !l.isServiceContainer(c.Config.Labels) {
+		log().Debugf("ignoring service container: id=%s labels=%s", id, c.Config.Labels)
 		return false
 	}
 
@@ -473,8 +487,6 @@ func (l *LoadBalancer) isExposedContainer(id string) bool {
 		return false
 	}
 
-	log().Debugf("checking container ports: id=%s", id)
-	// ignore containers without exposed ports
 	if len(c.Config.ExposedPorts) == 0 {
 		log().Debugf("no ports exposed; ignoring: id=%s", id)
 		return false
@@ -482,4 +494,15 @@ func (l *LoadBalancer) isExposedContainer(id string) bool {
 
 	log().Debugf("container is monitored; triggering reload: id=%s", id)
 	return true
+}
+
+func (l *LoadBalancer) isServiceContainer(labels map[string]string) bool {
+	containerServiceName, labelled := labels[ext.InterlockExtServiceNameLabel]
+
+	if (len(l.cfg.ServiceName) > 0 && containerServiceName == l.cfg.ServiceName) ||
+		(len(l.cfg.ServiceName) == 0 && !labelled) {
+		return true
+	} else {
+		return false
+	}
 }

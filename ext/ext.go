@@ -7,6 +7,7 @@ import (
 const (
 	InterlockAppLabel                 = "interlock.app"                    // internal
 	InterlockExtNameLabel             = "interlock.ext.name"               // common
+	InterlockExtServiceNameLabel      = "interlock.ext.service.name"       // common
 	InterlockHostnameLabel            = "interlock.hostname"               // haproxy, nginx
 	InterlockNetworkLabel             = "interlock.network"                // common
 	InterlockDomainLabel              = "interlock.domain"                 // haproxy, nginx
