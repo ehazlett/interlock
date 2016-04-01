@@ -10,6 +10,8 @@ import (
 	"sync"
 	"text/template"
 	"time"
+	"encoding/json"
+	"net/url"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/ehazlett/interlock/config"
@@ -128,7 +130,7 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 
 			log().Debug("updating load balancers")
 
-			containers, err := client.ListContainers(false, false, "")
+			containers, err := extension.ListContainers()
 			if err != nil {
 				errChan <- err
 				continue
@@ -235,20 +237,50 @@ func (l *LoadBalancer) Name() string {
 	return pluginName
 }
 
+
+func (l *LoadBalancer) ListContainers() ([]dockerclient.Container, error) {
+	var containers []dockerclient.Container
+	var err error
+
+	if len(l.cfg.ServiceName) > 0 {
+		labelFilter := fmt.Sprintf("%s=%s", ext.InterlockExtServiceNameLabel, l.cfg.ServiceName)
+		filterMap := map[string][]string{ "label":[]string{labelFilter} }
+		filterJSON, _ := json.Marshal(filterMap)
+		filterStr := string(filterJSON)
+		filter := url.QueryEscape(filterStr)
+
+		containers, err = l.client.ListContainers(false, false, filter)
+	} else {
+		containers, err = l.client.ListContainers(false, false, "")
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return containers, nil
+}
+
 func (l *LoadBalancer) ProxyContainers(name string) ([]dockerclient.Container, error) {
-	containers, err := l.client.ListContainers(false, false, "")
+	containers, err := l.ListContainers()
+
 	if err != nil {
 		return nil, err
 	}
 
 	proxyContainers := []dockerclient.Container{}
 
+	log().Debugf("backend name: %s", l.backend.Name())
+
 	// find interlock proxy containers
 	for _, cnt := range containers {
+		log().Debugf("container: names=%s labels=%s", cnt.Names, cnt.Labels[ext.InterlockExtNameLabel])
 		if v, ok := cnt.Labels[ext.InterlockExtNameLabel]; ok && v == l.backend.Name() {
 			proxyContainers = append(proxyContainers, cnt)
 		}
 	}
+
+	log().Debugf("proxy containers: %s", proxyContainers)
 
 	return proxyContainers, nil
 }
@@ -399,25 +431,35 @@ func (l *LoadBalancer) isExposedContainer(id string) bool {
 		return false
 	}
 
-	log().Debugf("checking container labels: id=%s", id)
+	log().Debugf("checking container labels: name=%s", c.Name)
 	// ignore proxy containers
 	if _, ok := c.Config.Labels[ext.InterlockExtNameLabel]; ok {
-		log().Debugf("ignoring proxy container: id=%s", id)
+		log().Debugf("ignoring proxy container: name=%s", c.Name)
 		return false
+	}
+
+	if len(l.cfg.ServiceName) > 0 {
+		log().Infof("l.cfg.ServiceName = %s", l.cfg.ServiceName)
+		serviceName, ok := c.Config.Labels[ext.InterlockExtServiceNameLabel]
+		log().Infof("ok = %s serviceName = %s", ok, serviceName)
+		if !ok || serviceName != l.cfg.ServiceName {
+			log().Debugf("ignoring service container: name=%s labels=%s", c.Name, c.Config.Labels)
+			return false
+		}
 	}
 
 	if _, ok := c.Config.Labels[ext.InterlockAppLabel]; ok {
-		log().Debugf("ignoring interlock container: id=%s", id)
+		log().Debugf("ignoring interlock container: name=%s", c.Name)
 		return false
 	}
 
-	log().Debugf("checking container ports: id=%s", id)
+	log().Debugf("checking container ports: name=%s", c.Name)
 	// ignore containers without exposed ports
 	if len(c.Config.ExposedPorts) == 0 {
-		log().Debugf("no ports exposed; ignoring: id=%s", id)
+		log().Debugf("no ports exposed; ignoring: name=%s", c.Name)
 		return false
 	}
 
-	log().Debugf("container is monitored; triggering reload: id=%s", id)
+	log().Debugf("container is monitored; triggering reload: name=%s", c.Name)
 	return true
 }

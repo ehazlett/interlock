@@ -11,6 +11,7 @@ type Rule struct {
 // the extension itself will use whichever options needed
 type ExtensionConfig struct {
 	Name                   string           // extension name
+	ServiceName            string           // service name
 	ConfigPath             string           // config file path
 	ConfigBasePath         string           `toml:"-"` // internal
 	PidPath                string           // haproxy, nginx

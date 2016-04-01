@@ -168,11 +168,16 @@ func (s *Server) loadExtensions(client *dockerclient.DockerClient) {
 		log.Debugf("loading extension: name=%s", x.Name)
 		switch strings.ToLower(x.Name) {
 		case "haproxy", "nginx":
+			if len(x.ServiceName) > 0 {
+				log.Debugf("loading extension: serviceName=%s", x.ServiceName)
+			}
+
 			p, err := lb.NewLoadBalancer(x, client)
 			if err != nil {
 				log.Errorf("error loading load balancer extension: %s", err)
 				continue
 			}
+
 			s.extensions = append(s.extensions, p)
 		case "beacon":
 			p, err := beacon.NewBeacon(x, client)
