@@ -320,7 +320,6 @@ func (l *LoadBalancer) SaveConfig(configPath string, cfg interface{}, proxyConta
 	t := template.New("lb")
 	confTmpl := l.backend.Template()
 
-	var tErr error
 	var c bytes.Buffer
 
 	tmpl, err := t.Parse(confTmpl)
@@ -333,12 +332,12 @@ func (l *LoadBalancer) SaveConfig(configPath string, cfg interface{}, proxyConta
 	case "nginx":
 		config := cfg.(*nginx.Config)
 		if err := tmpl.Execute(&c, config); err != nil {
-			return tErr
+			return err
 		}
 	case "haproxy":
 		config := cfg.(*haproxy.Config)
 		if err := tmpl.Execute(&c, config); err != nil {
-			return tErr
+			return err
 		}
 	default:
 		return fmt.Errorf("unknown backend type: %s", l.backend.Name())
