@@ -12,6 +12,7 @@ type ContextRoot struct {
 type Host struct {
 	Name                string
 	ContextRoot         *ContextRoot
+	ContextRootRewrite  bool
 	Domain              string
 	Check               string
 	BackendOptions      []string

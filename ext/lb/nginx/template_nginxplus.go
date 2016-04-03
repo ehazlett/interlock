@@ -77,8 +77,8 @@ http {
 	    {{ range $host := .Hosts }}
 	    {{ if ne $host.ContextRoot.Path "" }}
 	    location {{ $host.ContextRoot.Path }} {
-		rewrite ^([^.]*[^/])$ $1/ permanent;
-		rewrite  ^{{ $host.ContextRoot.Path }}/(.*)  /$1 break;
+		{{ if $host.ContextRootRewrite }}rewrite ^([^.]*[^/])$ $1/ permanent;
+		rewrite  ^{{ $host.ContextRoot.Path }}/(.*)  /$1 break;{{ end }}
 		proxy_pass http://ctx{{ $host.ContextRoot.Name }};
 	    }
 	    {{ end }}

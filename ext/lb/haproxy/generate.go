@@ -15,6 +15,7 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []dockerclient.Cont
 	hostChecks := map[string]string{}
 	hostBalanceAlgorithms := map[string]string{}
 	hostContextRoots := map[string]*ContextRoot{}
+	hostContextRootRewrites := map[string]bool{}
 	hostBackendOptions := map[string][]string{}
 	hostSSLOnly := map[string]bool{}
 	hostSSLBackend := map[string]bool{}
@@ -55,6 +56,7 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []dockerclient.Cont
 			Name: contextRootName,
 			Path: contextRoot,
 		}
+		hostContextRootRewrites[domain] = utils.ContextRootRewrite(cInfo.Config)
 
 		healthCheck := utils.HealthCheck(cInfo.Config)
 		healthCheckInterval, err := utils.HealthCheckInterval(cInfo.Config)
@@ -162,6 +164,7 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []dockerclient.Cont
 		host := &Host{
 			Name:                name,
 			ContextRoot:         hostContextRoots[k],
+			ContextRootRewrite:  hostContextRootRewrites[k],
 			Domain:              k,
 			Upstreams:           v,
 			Check:               hostChecks[k],

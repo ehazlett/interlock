@@ -41,7 +41,7 @@ frontend http-default
 {{ range $host := .Hosts }}{{ if ne $host.ContextRoot.Path "" }}backend ctx{{ $host.ContextRoot.Name }}
     acl missing_slash path_reg ^{{ $host.ContextRoot.Path }}[^/]*$
     redirect code 301 prefix / drop-query append-slash if missing_slash
-    reqrep ^([^\ :]*)\ {{ $host.ContextRoot.Path }}/(.*)     \1\ /\2{{ else }}
+    {{ if $host.ContextRootRewrite }}reqrep ^([^\ :]*)\ {{ $host.ContextRoot.Path }}/(.*)     \1\ /\2{{ end }}{{ else }}
     backend {{ $host.Name }}{{ end }}
     http-response add-header X-Request-Start %Ts.%ms
     balance {{ $host.BalanceAlgorithm }}

@@ -22,6 +22,7 @@ type Host struct {
 	ServerNames        []string
 	Port               int
 	ContextRoot        *ContextRoot
+	ContextRootRewrite bool
 	SSLPort            int
 	SSL                bool
 	SSLCert            string

@@ -22,3 +22,17 @@ func TestContextRoot(t *testing.T) {
 		t.Fatalf("expected %s; received %s", testContext, context)
 	}
 }
+
+func TestContextRootRewrite(t *testing.T) {
+	cfg := &dockerclient.ContainerConfig{
+		Labels: map[string]string{
+			ext.InterlockContextRootRewriteLabel: "true",
+		},
+	}
+
+	rewrite := ContextRootRewrite(cfg)
+
+	if !rewrite {
+		t.Fatal("expected context root rewrite")
+	}
+}

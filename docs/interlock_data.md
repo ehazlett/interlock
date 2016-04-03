@@ -19,6 +19,7 @@ compatibility.
 |`interlock.ssl_cert_key`           | nginx|
 |`interlock.port`                   | haproxy, nginx|
 |`interlock.context_root`           | haproxy, nginx|
+|`interlock.context_root_rewrite`   | haproxy, nginx|
 |`interlock.websocket_endpoint`     | nginx|
 |`interlock.alias_domain`           | haproxy, nginx|
 |`interlock.health_check`           | haproxy|
@@ -43,3 +44,9 @@ Interlock supports specifying a context root instead of using a hostname.
 Specify a label such as `interlock.context_root=/myapp`.  The upstreams
 will be configured to serve under the context instead of the hostname and
 domain.  The proxy will also rewrite requests so they appear from the root.
+
+By default no rewrite rules will be added.  You can enable rewrites to be added
+by adding the label `interlock.context_root_rewrite=true`.  This will cause
+requests to be rewritten before being sent to the application.  For example,
+if you use a context of `/myapp` and you have rewrite enabled, requests to
+`/myapp/foo` will be rewritten as `/foo`.

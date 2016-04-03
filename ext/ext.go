@@ -24,6 +24,7 @@ const (
 	InterlockBalanceAlgorithmLabel    = "interlock.balance_algorithm"      // haproxy
 	InterlockBackendOptionLabel       = "interlock.backend_option"         // haproxy
 	InterlockContextRootLabel         = "interlock.context_root"           // haproxy, nginx
+	InterlockContextRootRewriteLabel  = "interlock.context_root_rewrite"   // haproxy, nginx
 )
 
 type Extension interface {

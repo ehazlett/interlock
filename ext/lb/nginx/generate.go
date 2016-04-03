@@ -14,6 +14,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []dockerclient.Contai
 	upstreamServers := map[string][]string{}
 	serverNames := map[string][]string{}
 	hostContextRoots := map[string]*ContextRoot{}
+	hostContextRootRewrites := map[string]bool{}
 	hostSSL := map[string]bool{}
 	hostSSLCert := map[string]string{}
 	hostSSLCertKey := map[string]string{}
@@ -56,6 +57,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []dockerclient.Contai
 			Name: contextRootName,
 			Path: contextRoot,
 		}
+		hostContextRootRewrites[domain] = utils.ContextRootRewrite(cInfo.Config)
 
 		// check if the first server name is there; if not, add
 		// this happens if there are multiple backend containers
@@ -149,6 +151,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []dockerclient.Contai
 			ServerNames:        serverNames[k],
 			Port:               p.cfg.Port,
 			ContextRoot:        hostContextRoots[k],
+			ContextRootRewrite: hostContextRootRewrites[k],
 			SSLPort:            p.cfg.SSLPort,
 			SSL:                hostSSL[k],
 			SSLCert:            hostSSLCert[k],

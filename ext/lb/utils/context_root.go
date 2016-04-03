@@ -12,3 +12,11 @@ func ContextRoot(config *dockerclient.ContainerConfig) string {
 
 	return ""
 }
+
+func ContextRootRewrite(config *dockerclient.ContainerConfig) bool {
+	if _, ok := config.Labels[ext.InterlockContextRootRewriteLabel]; ok {
+		return true
+	}
+
+	return false
+}
