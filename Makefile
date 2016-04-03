@@ -39,7 +39,7 @@ build-container:
 	@docker rm -fv interlock-build
 
 test:
-	@go test -v -cover -race `go list ./... | grep /vendor/`
+	@go test -v -cover -race `go list ./... | grep -v /vendor/`
 
 image: build-container build-image
 
