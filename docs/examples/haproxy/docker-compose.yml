@@ -1,11 +1,10 @@
 interlock:
-    image: ehazlett/interlock:1.0.1
+    image: ehazlett/interlock:1.1.0
     command: run
     ports:
         - 8080
     volumes:
         - ./config.toml:/bin/config.toml
-        - haproxy:/etc
         - /var/run/docker.sock:/var/run/docker.sock
 
 haproxy:
@@ -16,8 +15,6 @@ haproxy:
         - "interlock.ext.name=haproxy"
     links:
         - interlock:interlock
-    volumes:
-        - haproxy:/usr/local/etc/haproxy
 
 app:
     image: ehazlett/docker-demo:latest
