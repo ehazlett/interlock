@@ -1,4 +1,4 @@
-package lb
+package utils
 
 import (
 	"io"
@@ -6,14 +6,14 @@ import (
 	"testing"
 )
 
-func TestGetNodeID(t *testing.T) {
+func TestGetContainerID(t *testing.T) {
 	if _, err := os.Stat("/proc/self/cgroup"); err != nil {
 		if os.IsNotExist(err) {
 			t.Skipf("skipping GetNodeID; does not look like i am in a container")
 		}
 	}
 
-	id, err := getNodeID()
+	id, err := GetContainerID()
 	if err != nil {
 		if err == io.EOF {
 			t.Skipf("skipping GetNodeID; does not look like i am in a normal container")

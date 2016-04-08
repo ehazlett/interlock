@@ -45,13 +45,14 @@ type ExtensionConfig struct {
 
 // Config is the top level configuration
 type Config struct {
-	ListenAddr    string
-	DockerURL     string
-	TLSCACert     string
-	TLSCert       string
-	TLSKey        string
-	AllowInsecure bool
-	EnableMetrics bool
-	Extensions    []*ExtensionConfig
-	Rules         map[string]*Rule // beacon TODO: move to ExtensionConfig
+	ListenAddr        string
+	DockerURL         string
+	TLSCACert         string
+	TLSCert           string
+	TLSKey            string
+	AllowInsecure     bool
+	EnableMetrics     bool
+	HeartbeatInterval int // interval to check the system health
+	Extensions        []*ExtensionConfig
+	Rules             map[string]*Rule // beacon TODO: move to ExtensionConfig
 }

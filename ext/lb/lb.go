@@ -16,6 +16,7 @@ import (
 	"github.com/ehazlett/interlock/ext"
 	"github.com/ehazlett/interlock/ext/lb/haproxy"
 	"github.com/ehazlett/interlock/ext/lb/nginx"
+	"github.com/ehazlett/interlock/utils"
 	"github.com/ehazlett/ttlcache"
 	"github.com/samalba/dockerclient"
 )
@@ -90,7 +91,7 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 	})
 
 	// load nodeID
-	nodeID, err := getNodeID()
+	nodeID, err := utils.GetContainerID()
 	if err != nil {
 		return nil, err
 	}

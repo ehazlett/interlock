@@ -6,6 +6,7 @@ TLSCert = ""
 TLSKey = ""
 AllowInsecure = false
 EnableMetrics = true
+HeartbeatInterval = 60
 
 [[extensions]]
     Name = "nginx"

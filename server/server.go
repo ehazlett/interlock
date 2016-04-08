@@ -11,15 +11,25 @@ import (
 	"github.com/ehazlett/interlock/ext"
 	"github.com/ehazlett/interlock/ext/beacon"
 	"github.com/ehazlett/interlock/ext/lb"
+	"github.com/ehazlett/interlock/utils"
+	"github.com/ehazlett/ttlcache"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/samalba/dockerclient"
 )
 
+const (
+	heartbeatKey          = "interlock.heartbeat"
+	heartbeatContainerKey = "interlock.heartbeat.container"
+	heartbeatLabel        = heartbeatKey
+)
+
 type Server struct {
-	cfg        *config.Config
-	client     *dockerclient.DockerClient
-	extensions []ext.Extension
-	metrics    *Metrics
+	cfg            *config.Config
+	client         *dockerclient.DockerClient
+	extensions     []ext.Extension
+	metrics        *Metrics
+	heartbeatCache *ttlcache.TTLCache
+	heartbeatImage string
 }
 
 var (
@@ -37,10 +47,34 @@ func NewServer(cfg *config.Config) (*Server, error) {
 		metrics: NewMetrics(),
 	}
 
+	if cfg.HeartbeatInterval == 0 {
+		log.Warn("HeartbeatInterval too low; using default of 60s")
+		cfg.HeartbeatInterval = 60
+	}
+
+	c, err := ttlcache.NewTTLCache(time.Second * time.Duration(cfg.HeartbeatInterval))
+	if err != nil {
+		return nil, err
+	}
+	s.heartbeatCache = c
+
 	client, err := s.getDockerClient()
 	if err != nil {
 		return nil, err
 	}
+
+	// check for current image and set as heartbeat
+	cID, err := utils.GetContainerID()
+	if err != nil {
+		return nil, err
+	}
+
+	// inspect current container to get image
+	currentContainer, err := client.InspectContainer(cID)
+	if err != nil {
+		return nil, err
+	}
+	s.heartbeatImage = currentContainer.Config.Image
 
 	// channel setup
 	errChan = make(chan error)
@@ -119,6 +153,46 @@ func NewServer(cfg *config.Config) (*Server, error) {
 				continue
 			}
 
+			// check for heartbeat event
+			if e.Action == "create" {
+				c, err := s.client.InspectContainer(e.ID)
+				if err != nil {
+					log.Error(err)
+					continue
+				}
+
+				// TODO: handle proper failure where event is never seen
+				if _, exists := c.Config.Labels[heartbeatLabel]; exists {
+					if err := s.heartbeatCache.Set(heartbeatKey, "alive"); err != nil {
+						log.Errorf("unable to update heartbeat cache: %s", err)
+						continue
+					}
+
+					if err := s.heartbeatCache.Set(heartbeatContainerKey, e.ID); err != nil {
+						log.Errorf("unable to update heartbeat container info in cache: %s", err)
+						continue
+					}
+
+					go func() {
+						// allow time for cluster refresh
+						time.Sleep(time.Millisecond * 1000)
+
+						// remove heartbeat container
+						if err := s.client.RemoveContainer(e.ID, true, true); err != nil {
+							log.Warnf("error removing heartbeat container: %s", err)
+						}
+					}()
+
+					continue
+				}
+			}
+
+			// ignore heartbeat container
+			heartbeatID := s.heartbeatCache.Get(heartbeatContainerKey)
+			if e.ID == heartbeatID {
+				continue
+			}
+
 			// send the raw event for extension handling
 			for _, ext := range s.extensions {
 				log.Debugf("notifying extension: %s", ext.Name())
@@ -141,8 +215,41 @@ func NewServer(cfg *config.Config) (*Server, error) {
 		}
 	}()
 
+	// heartbeat ticker
+	hbt := time.NewTicker(time.Second * time.Duration(s.cfg.HeartbeatInterval))
+	go func() {
+		for range hbt.C {
+			log.Debug("heartbeat: checking system health")
+			// run health container and watch for run event from this container and update TTL
+			cfg := &dockerclient.ContainerConfig{
+				Image: s.heartbeatImage,
+				Cmd: []string{
+					"sh",
+				},
+				Labels: map[string]string{
+					heartbeatLabel: "alive",
+				},
+			}
+
+			if _, err := s.client.CreateContainer(cfg, "", nil); err != nil {
+				log.Errorf("error creating heartbeat container: %s", err)
+			}
+
+			// check for the heartbeat key; if not exists, warn and attempt reconnect
+			if v := s.heartbeatCache.Get(heartbeatKey); v == nil {
+				log.Warn("heartbeat failed; attempting reconnect")
+				restartChan <- true
+			}
+		}
+	}()
+
 	// start event handler
 	restartChan <- true
+
+	// set initial heartbeat key
+	if err := s.heartbeatCache.Set(heartbeatKey, "alive"); err != nil {
+		log.Errorf("unable to update heartbeat cache: %s", err)
+	}
 
 	return s, nil
 }

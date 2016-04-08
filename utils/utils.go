@@ -1,4 +1,4 @@
-package lb
+package utils
 
 import (
 	"bufio"
@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func getNodeID() (string, error) {
+func GetContainerID() (string, error) {
 	f, err := os.Open("/proc/self/cgroup")
 	if err != nil {
 		return "", fmt.Errorf("unable to detect cgroup.  are you sure you are in a container? error: %s", err)
