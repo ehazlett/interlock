@@ -35,7 +35,7 @@ var cmdRun = cli.Command{
 		cli.StringFlag{
 			Name:  "config, c",
 			Usage: "path to config file",
-			Value: "",
+			Value: "/etc/interlock/config.toml",
 		},
 		cli.StringFlag{
 			Name:  "discovery, k",
@@ -164,26 +164,19 @@ func runAction(c *cli.Context) {
 	} else {
 		configPath := c.String("config")
 
-		if configPath != "" {
-			log.Debugf("loading config from: %s", configPath)
+		log.Debugf("loading config from: %s", configPath)
 
-			d, err := ioutil.ReadFile(configPath)
-			switch {
-			case os.IsNotExist(err):
-				log.Infof("Missing Interlock configuration: file=%s", configPath)
-				log.Info("Use the run --config option to set a custom location for the configuration file")
-				log.Info("Examples of an Interlock configuration file: url=https://github.com/ehazlett/interlock/tree/master/docs/examples")
-				log.Fatalf("config not found: %s", configPath)
-			case err == nil:
-				data = string(d)
-			default:
-				log.Fatal(err)
-			}
-		} else {
-			log.Info("Missing Interlock configuration file")
-			log.Info("Use the run --config option to set a custom location for the configuration file")
-			log.Info("Examples of an Interlock configuration file: url=https://github.com/ehazlett/interlock/tree/master/docs/examples")
-			log.Fatal("config not found")
+		d, err := ioutil.ReadFile(configPath)
+		switch {
+		case os.IsNotExist(err):
+			log.Errorf("Missing Interlock configuration: file=%s", configPath)
+			log.Error("Use the run --config option to set a custom location for the configuration file")
+			log.Error("Examples of an Interlock configuration file: url=https://github.com/ehazlett/interlock/tree/master/docs/examples")
+			log.Fatalf("config not found: file=%s", configPath)
+		case err == nil:
+			data = string(d)
+		default:
+			log.Fatal(err)
 		}
 	}
 

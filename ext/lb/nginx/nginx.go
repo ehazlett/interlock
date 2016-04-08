@@ -50,10 +50,6 @@ func (p *NginxLoadBalancer) Template() string {
 	if err == nil {
 		return string(d)
 	} else {
-		log().Infof("Missing nginx configuration template: file=%s", p.cfg.TemplatePath)
-		log().Info("Use the TemplatePath option in your Interlock config to set a custom location for the nginx configuration template")
-		log().Info("Examples of an nginx configuration template: url=https://github.com/ehazlett/interlock/tree/master/docs/examples/nginx")
-		log().Fatal(err)
 		return err.Error()
 	}
 }
@@ -63,7 +59,7 @@ func (p *NginxLoadBalancer) ConfigPath() string {
 }
 
 func (p *NginxLoadBalancer) Reload(proxyContainers []dockerclient.Container) error {
-	// restart all interlock managed haproxy containers
+	// restart all interlock managed nginx containers
 	for _, cnt := range proxyContainers {
 		// restart
 		if err := p.client.KillContainer(cnt.Id, "HUP"); err != nil {
