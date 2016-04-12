@@ -13,13 +13,13 @@ Interlock to your Swarm cluster.  Run the following to set it up:
 
 `export SWARM_HOST=tcp://$(docker-machine ip manager):3376`
 
-# Start Interlock
-
-`docker-compose up -d interlock`
-
 # Start Nginx
 
 `docker-compose up -d nginx`
+
+# Start Interlock
+
+`docker-compose up -d interlock`
 
 # Start Example App
 

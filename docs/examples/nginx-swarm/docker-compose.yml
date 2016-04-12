@@ -1,6 +1,6 @@
 interlock:
-    image: ehazlett/interlock:1.0.1
-    command: run
+    image: ehazlett/interlock:1.1.0
+    command: run -c /bin/config.toml
     ports:
         - 8080
     volumes:
