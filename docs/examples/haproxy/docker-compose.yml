@@ -4,7 +4,7 @@ interlock:
     ports:
         - 8080
     volumes:
-        - ./config.toml:/bin/config.toml
+        - ./config.toml:/etc/interlock/config.toml
         - /var/run/docker.sock:/var/run/docker.sock
 
 haproxy:
