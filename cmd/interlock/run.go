@@ -180,6 +180,10 @@ func runAction(c *cli.Context) {
 		}
 	}
 
+	if data == "" {
+		log.Fatal("you must specify a config from file, kv or environment")
+	}
+
 	config, err := config.ParseConfig(data)
 	if err != nil {
 		log.Fatal(err)
