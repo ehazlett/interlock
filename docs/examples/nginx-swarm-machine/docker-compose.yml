@@ -1,6 +1,6 @@
 interlock:
     image: ehazlett/interlock:1.1.0
-    command: -D run
+    command: -D run -c /etc/interlock/config.toml
     tty: true
     ports:
         - 8080

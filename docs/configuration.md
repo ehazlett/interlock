@@ -1,7 +1,13 @@
 # Configuration
-Interlock uses a configuration store (file/kv) to configure options and extensions.
 
-# Example Configuration
+Interlock uses a configuration store to configure options and extensions. The configuration store can be one of:
+
+* File
+* Environment variable
+* Key value store
+
+## File configuration
+
 ```
 ListenAddr = ":8080"
 DockerURL = "unix:///var/run/docker.sock"
@@ -13,22 +19,14 @@ EnableMetrics = true
 
 [[Extensions]]
   Name = "nginx"
-  ConfigPath = "/etc/conf/nginx.conf"
-  PidPath = "/etc/conf/nginx.pid"
+  ConfigPath = "/etc/nginx/nginx.conf"
+  PidPath = "/etc/nginx/nginx.pid"
   TemplatePath = "/etc/interlock/nginx.conf.template"
   BackendOverrideAddress = ""
-  ConnectTimeout = 5000
-  ServerTimeout = 10000
-  ClientTimeout = 10000
   MaxConn = 1024
   Port = 80
-  SyslogAddr = ""
-  AdminUser = "admin"
-  AdminPass = ""
   SSLCertPath = ""
-  SSLCert = ""
   SSLPort = 0
-  SSLOpts = ""
   User = "www-data"
   WorkerProcesses = 2
   RLimitNoFile = 65535
@@ -40,12 +38,44 @@ EnableMetrics = true
   SSLProtocols = "SSLv3 TLSv1 TLSv1.1 TLSv1.2"
 ```
 
-# Environment
+# Environment variable configuration
+
 You can also put the config as text in the environment variable 
 `INTERLOCK_CONFIG`.  If you pass command flags they will override the
 environment data.
 
+# Key value store configuration
+
+Interlock supports etcd and consul [libkv](https://github.com/docker/libkv)
+key-value store backends.  This can be used to store the configuration instead
+of the file.  This is useful when deploying several instances of Interlock
+for HA and scaling.
+
+To configure Interlock to use a kv store, use the `--discovery` option.  You
+will need to have the configuration loaded in the KV store.
+
+Interlock will read the key `/interlock/v1/config` for the configuration.  You
+can use `curl` to load the config.  Here is an example:
+
+```
+curl https://1.2.3.4:4001/v2/keys/interlock/v1/config -XPUT -d value='ListenAddr = ":8080"
+DockerURL = "tcp://127.0.0.1:2376"
+
+[[Extensions]]
+  Name = "haproxy"
+  ConfigPath = "/usr/local/etc/haproxy/haproxy.cfg"
+  PidPath = "/usr/local/etc/haproxy/haproxy.pid"
+  TemplatePath = "/usr/local/etc/interlock/haproxy.cfg.template"
+  MaxConn = 1024
+  Port = 80'
+```
+
+You can then start Interlock and point it at the KV store:
+
+`docker run -ti -d --net=host ehazlett/interlock run --discovery etcd://1.2.3.4:4001`
+
 # Reference
+
 The following table lists all options, their type and the extensions in which
 they are compatible:
 
@@ -80,33 +110,3 @@ they are compatible:
 |SSLCiphers             | string | nginx |
 |SSLProtocols           | string | nginx |
 |StatInterval           | int    | beacon |
-
-# Key Value Storage Support
-Interlock supports etcd and consul [libkv](https://github.com/docker/libkv)
-key-value store backends.  This can be used to store the configuration instead
-of the file.  This is useful when deploying several instances of Interlock
-for HA and scaling.
-
-To configure Interlock to use a kv store, use the `--discovery` option.  You
-will need to have the configuration loaded in the KV store.
-
-Interlock will read the key `/interlock/v1/config` for the configuration.  You
-can use `curl` to load the config.  Here is an example:
-
-```
-curl https://1.2.3.4:4001/v2/keys/interlock/v1/config -XPUT -d value='ListenAddr = ":8080"
-DockerURL = "tcp://127.0.0.1:2376"
-
-[[Extensions]]
-  Name = "haproxy"
-  ConfigPath = "/usr/local/etc/haproxy/haproxy.cfg"
-  PidPath = "/usr/local/etc/haproxy/haproxy.pid"
-  TemplatePath = "/usr/local/etc/interlock/haproxy.cfg.template"
-  MaxConn = 1024
-  Port = 80'
-```
-
-You can then start Interlock and point it at the KV store:
-
-`docker run -ti -d --net=host ehazlett/interlock run --discovery etcd://1.2.3.4:4001`
-

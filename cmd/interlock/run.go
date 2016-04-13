@@ -35,7 +35,7 @@ var cmdRun = cli.Command{
 		cli.StringFlag{
 			Name:  "config, c",
 			Usage: "path to config file",
-			Value: "/etc/interlock/config.toml",
+			Value: "",
 		},
 		cli.StringFlag{
 			Name:  "discovery, k",
@@ -99,28 +99,26 @@ func getKVStore(addr string, options *kvstore.Config) (kvstore.Store, error) {
 func runAction(c *cli.Context) {
 	log.Infof("interlock %s", version.FullVersion())
 
-	// init kv
-	kvOpts := &kvstore.Config{
-		ConnectionTimeout: time.Second * 10,
-	}
-
-	dURL := c.String("discovery")
-	dTLSCACert := c.String("discovery-tls-ca-cert")
-	dTLSCert := c.String("discovery-tls-cert")
-	dTLSKey := c.String("discovery-tls-key")
-
-	// attempt to load config from environment
-	envCfg := os.Getenv("INTERLOCK_CONFIG")
-
 	var data string
 
-	if envCfg != "" {
+	if envCfg := os.Getenv("INTERLOCK_CONFIG"); envCfg != "" {
 		log.Debug("loading config from environment")
+
 		data = envCfg
 	}
 
-	if dURL != "" {
-		log.Debugf("using kv: addr=%s", dURL)
+	if dURL := c.String("discovery"); dURL != "" {
+		log.Debugf("loading config from key value store: addr=%s", dURL)
+
+		// init kv
+		kvOpts := &kvstore.Config{
+			ConnectionTimeout: time.Second * 10,
+		}
+
+		dTLSCACert := c.String("discovery-tls-ca-cert")
+		dTLSCert := c.String("discovery-tls-cert")
+		dTLSKey := c.String("discovery-tls-key")
+
 		if dTLSCACert != "" && dTLSCert != "" && dTLSKey != "" {
 			tlsConfig, err := tlsconfig.Client(tlsconfig.Options{
 				CAFile:   dTLSCACert,
@@ -152,7 +150,7 @@ func runAction(c *cli.Context) {
 		} else {
 			kvPair, err := kv.Get(kvConfigKey)
 			if err != nil {
-				log.Fatalf("error getting configuration from kv: %s", err)
+				log.Fatalf("error getting configuration from key value store: %s", err)
 			}
 
 			data = string(kvPair.Value)
@@ -161,10 +159,10 @@ func runAction(c *cli.Context) {
 				data = defaultConfig
 			}
 		}
-	} else {
-		configPath := c.String("config")
+	}
 
-		log.Debugf("loading config from: %s", configPath)
+	if configPath := c.String("config"); configPath != "" {
+		log.Debugf("loading config from: file=%s", configPath)
 
 		d, err := ioutil.ReadFile(configPath)
 		switch {
@@ -181,7 +179,8 @@ func runAction(c *cli.Context) {
 	}
 
 	if data == "" {
-		log.Fatal("you must specify a config from file, kv or environment")
+		log.Error("Examples of Interlock configuration: url=https://github.com/ehazlett/interlock/blob/master/docs/configuration.md")
+		log.Fatal("You must specify a config from a file, environment variable, or key value store")
 	}
 
 	config, err := config.ParseConfig(data)
