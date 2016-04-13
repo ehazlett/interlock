@@ -66,6 +66,15 @@ http {
                 return 503;
             }
 
+	    {{ range $host := .Hosts }}
+	    {{ if ne $host.ContextRoot.Path "" }}
+	    location {{ $host.ContextRoot.Path }} {
+		{{ if $host.ContextRootRewrite }}rewrite ^([^.]*[^/])$ $1/ permanent;
+		rewrite  ^{{ $host.ContextRoot.Path }}/(.*)  /$1 break;{{ end }}
+		proxy_pass http://ctx{{ $host.ContextRoot.Name }};
+	    }
+	    {{ end }}
+	    {{ end }}
             location /nginx_status {
                 stub_status on;
                 access_log off;
@@ -73,6 +82,13 @@ http {
     }
 
     {{ range $host := .Hosts }}
+    {{ if ne $host.ContextRoot.Path "" }}
+    upstream ctx{{ $host.ContextRoot.Name }} {
+        zone ctx{{ $host.Upstream.Name }}_backend 64k;
+
+        {{ range $up := $host.Upstream.Servers }}server {{ $up.Addr }};
+        {{ end }}
+    }{{ else }}
     upstream {{ $host.Upstream.Name }} {
         zone {{ $host.Upstream.Name }}_backend 64k;
 
@@ -131,7 +147,9 @@ http {
         {{ end }}
     }
     {{ end }}
-    {{ end }}
+
+    {{ end }} {{/* end context root */}}
+    {{ end }} {{/* end host range */}}
 
     include {{ .Config.ConfigBasePath }}/conf.d/*.conf;
 }

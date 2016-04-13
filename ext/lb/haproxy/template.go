@@ -31,10 +31,18 @@ frontend http-default
     stats enable
     stats uri /haproxy?stats
     stats refresh 5s
-    {{ range $host := .Hosts }}acl is_{{ $host.Name }} hdr_beg(host) {{ $host.Domain }}
+    {{ range $host := .Hosts }}{{ if ne $host.ContextRoot.Path "" }}acl url{{ $host.ContextRoot.Name }} path_beg {{ $host.ContextRoot.Path }}
+    use_backend ctx{{ $host.ContextRoot.Name }} if url{{ $host.ContextRoot.Name }}{{ else }}
+    acl is_{{ $host.Name }} hdr_beg(host) {{ $host.Domain }}
     use_backend {{ $host.Name }} if is_{{ $host.Name }}
     {{ end }}
-{{ range $host := .Hosts }}backend {{ $host.Name }}
+    {{ end }}
+
+{{ range $host := .Hosts }}{{ if ne $host.ContextRoot.Path "" }}backend ctx{{ $host.ContextRoot.Name }}
+    acl missing_slash path_reg ^{{ $host.ContextRoot.Path }}[^/]*$
+    redirect code 301 prefix / drop-query append-slash if missing_slash
+    {{ if $host.ContextRootRewrite }}reqrep ^([^\ :]*)\ {{ $host.ContextRoot.Path }}/(.*)     \1\ /\2{{ end }}{{ else }}
+    backend {{ $host.Name }}{{ end }}
     http-response add-header X-Request-Start %Ts.%ms
     balance {{ $host.BalanceAlgorithm }}
     {{ range $option := $host.BackendOptions }}option {{ $option }}
@@ -43,5 +51,6 @@ frontend http-default
     {{ if $host.SSLOnly }}redirect scheme https if !{ ssl_fc  }{{ end }}
     {{ range $i,$up := $host.Upstreams }}server {{ $up.Container }} {{ $up.Addr }} check inter {{ $up.CheckInterval }}{{ if $host.SSLBackend }} ssl verify {{ $host.SSLBackendTLSVerify }} sni req.hdr(Host){{ end }}
     {{ end }}
-{{ end }}`
+{{ end }}
+`
 )
