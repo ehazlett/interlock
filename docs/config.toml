@@ -1,0 +1,4 @@
+baseurl = "http://interlock-project.com/"
+languageCode = "en-us"
+title = "interlock"
+theme = "hugo-theme-learn"
