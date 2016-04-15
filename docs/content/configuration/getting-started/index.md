@@ -14,9 +14,8 @@ ways.
 # File
 As Interlock runs in a [Container](https://www.docker.com) there are a few
 different ways to use a file for configuration.  The easiest way is to bind
-mount an external file into an known location in the container.  For example,
-if you create the file at `/data/config.toml` you can use this in an
-Interlock container by running it as follows:
+mount an external file into a known location in the container.  For example,
+if you create the file at `/data/config.toml` you can use it by running:
 
 ```bash
 docker run \
