@@ -52,11 +52,6 @@ This will get a quick Interlock + Nginx load balancer.
 Note: It is recommended to use [Swarm](https://www.docker.com/products/docker-swarm) as Interlock will handle updating the configuration with the proper
 Swarm node.  If you do not use Swarm, you will need to set the `BackendOverrideAddress` option to a resolvable IP address so Nginx knows which node to route the request.  In the example below, we will use the Docker socket for simplicity.
 
-# Config Volume
-Create a volume for the Nginx config:
-
-`docker volume create --name nginx`
-
 # Interlock Config
 Create the Interlock config `config.toml`:
 
@@ -66,8 +61,8 @@ DockerURL = "unix:///var/run/docker.sock"
 
 [[Extensions]]
   Name = "nginx"
-  ConfigPath = "/etc/conf/nginx.conf"
-  PidPath = "/etc/conf/nginx.pid"
+  ConfigPath = "/etc/nginx/nginx.conf"
+  PidPath = "/etc/nginx/nginx.pid"
   BackendOverrideAddress = "172.17.0.1"
 ```
 
@@ -78,11 +73,10 @@ docker run \
     -P \
     -d \
     -ti \
-    -v nginx:/etc/conf \
     -v /var/run/docker.sock:/var/run/docker.sock \
-    -v $(pwd)/config.toml:/etc/config.toml \
+    -v $(pwd)/config.toml:/etc/interlock/config.toml \
     ehazlett/interlock:1.0.0 \
-    -D run -c /etc/config.toml
+    -D run -c /etc/interlock/config.toml
 
 ```
 
@@ -94,9 +88,8 @@ docker run \
     -d \
     --net=host \
     --label interlock.ext.name=nginx \
-    -v nginx:/etc/conf \
     nginx \
-    nginx -g "daemon off;" -c /etc/conf/nginx.conf
+    nginx -g "daemon off;" -c /etc/nginx/nginx.conf
 ```
 
 # Interlock
@@ -107,7 +100,7 @@ You can now start some containers with exposed ports to see Interlock add them t
 ```
 INFO[0000] interlock 1.0.0
 DEBU[0000] docker client: url=unix:///var/run/docker.sock 
-DEBU[0000] loading extension: name=nginx configpath=/etc/conf/nginx.conf 
+DEBU[0000] loading extension: name=nginx configpath=/etc/nginx/nginx.conf 
 DEBU[0000] updating load balancers                      
 INFO[0000] configuration updated                         ext=nginx
 DEBU[0077] container start: id=bc9c4f2b9a8697406377191ade8a187c80ef37d9cb59391e1e14608e974 image=nginx 

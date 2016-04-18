@@ -1,16 +1,16 @@
 interlock:
     image: ehazlett/interlock:1.1.0
-    command: run -c /bin/config.toml
+    command: run -c /etc/interlock/config.toml
     ports:
         - 8080
     volumes:
-        - ./config.toml:/bin/config.toml
-        - nginx:/etc/conf
+        - ./config.toml:/etc/interlock/config.toml
+        - nginx:/etc/nginx
 
 nginx:
     image: nginx:latest
     entrypoint: nginx
-    command: -g "daemon off;" -c /etc/conf/nginx.conf
+    command: -g "daemon off;" -c /etc/nginx/nginx.conf
     ports:
         - 80:80
     labels:
@@ -18,7 +18,7 @@ nginx:
     links:
         - interlock:interlock
     volumes:
-        - nginx:/etc/conf
+        - nginx:/etc/nginx
 
 app:
     image: ehazlett/docker-demo:latest
