@@ -1,6 +1,6 @@
 +++
 date = "2016-04-14T13:16:01-04:00"
-next = ""
+next = "/configuration/reference/"
 prev = "/configuration/getting-started/"
 title = "Application"
 toc = true

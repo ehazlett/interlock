@@ -2,7 +2,7 @@
 chapter = true
 date = "2016-04-13T23:23:39-04:00"
 icon = "<b></b>"
-next = ""
+next = "/configuration/getting-started/"
 prev = ""
 title = "Configuration"
 weight = 0

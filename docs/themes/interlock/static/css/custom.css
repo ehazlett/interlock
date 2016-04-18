@@ -1,0 +1,23 @@
+/* background behind the logo*/
+#header {
+    background: #1e1e1f;
+    border-color: #2d2c2e;
+}
+
+/* Background color of the menu */
+#sidebar {
+  background-color: #232324;
+}
+
+/* Background color of the menu, when clicked */
+#sidebar ul.topics > li.parent, #sidebar ul.topics > li.active {
+  background-color: #2d2c2e;
+}
+
+/* Color of all links, including arrows to get to previous and next pages */
+a {
+    color: #8a8a8a;
+}
+a:hover {
+    color: #3f5eac;
+}
