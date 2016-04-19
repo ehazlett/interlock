@@ -14,7 +14,6 @@ type ExtensionConfig struct {
 	ConfigPath             string           // config file path
 	ConfigBasePath         string           `toml:"-"` // internal
 	PidPath                string           // haproxy, nginx
-	TemplatePath           string           // template file path
 	BackendOverrideAddress string           // haproxy, nginx
 	ConnectTimeout         int              // haproxy
 	ServerTimeout          int              // haproxy
@@ -22,6 +21,7 @@ type ExtensionConfig struct {
 	MaxConn                int              // haproxy, nginx
 	Port                   int              // haproxy, nginx
 	SyslogAddr             string           // haproxy
+	NginxPlusEnabled       bool             // nginx
 	AdminUser              string           // haproxy
 	AdminPass              string           // haproxy
 	SSLCertPath            string           // haproxy, nginx

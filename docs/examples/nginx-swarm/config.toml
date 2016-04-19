@@ -3,8 +3,7 @@ DockerURL = "tcp://127.0.0.1:3375"
 
 [[Extensions]]
 Name = "nginx"
-ConfigPath = "/etc/nginx/nginx.conf"
-PidPath = "/etc/nginx/nginx.pid"
-TemplatePath = "/etc/interlock/nginx.conf.template"
+ConfigPath = "/etc/conf/nginx.conf"
+PidPath = "/etc/conf/nginx.pid"
 MaxConn = 1024
 Port = 80

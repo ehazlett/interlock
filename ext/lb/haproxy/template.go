@@ -1,4 +1,7 @@
-# managed by interlock
+package haproxy
+
+const (
+	haproxyConfTemplate = `# managed by interlock
 global
     {{ if .Config.SyslogAddr }}log {{ .Config.SyslogAddr }} local0
     log-send-hostname{{ end }}
@@ -49,3 +52,5 @@ frontend http-default
     {{ range $i,$up := $host.Upstreams }}server {{ $up.Container }} {{ $up.Addr }} check inter {{ $up.CheckInterval }}{{ if $host.SSLBackend }} ssl verify {{ $host.SSLBackendTLSVerify }} sni req.hdr(Host){{ end }}
     {{ end }}
 {{ end }}
+`
+)

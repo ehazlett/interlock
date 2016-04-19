@@ -1,4 +1,6 @@
-# managed by interlock
+package nginx
+
+var nginxConfTemplate = `# managed by interlock
 user  {{ .Config.User }};
 worker_processes  {{ .Config.WorkerProcesses }};
 worker_rlimit_nofile {{ .Config.RLimitNoFile }};
@@ -151,3 +153,4 @@ http {
 
     include {{ .Config.ConfigBasePath }}/conf.d/*.conf;
 }
+`
