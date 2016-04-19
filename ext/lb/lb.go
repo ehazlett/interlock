@@ -190,7 +190,7 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 
 			log().Debug("updating load balancers")
 
-			containers, err := client.ListContainers(false, false, "")
+			containers, err := client.ListContainers(true, false, "")
 			if err != nil {
 				errChan <- err
 				continue
