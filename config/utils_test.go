@@ -53,10 +53,6 @@ func TestSetNginxConfigDefaults(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if cfg.TemplatePath != "/etc/interlock/nginx.conf.template" {
-		t.Fatalf("expected default template path of /etc/interlock/nginx.conf.template; received %d", cfg.TemplatePath)
-	}
-
 	if cfg.User != "www-data" {
 		t.Fatalf("expected default user of www-data; received %d", cfg.User)
 	}
@@ -101,10 +97,6 @@ func TestSetHAProxyConfigDefaults(t *testing.T) {
 
 	if err := SetConfigDefaults(cfg); err != nil {
 		t.Fatal(err)
-	}
-
-	if cfg.TemplatePath != "/etc/interlock/haproxy.cfg.template" {
-		t.Fatalf("expected default template path of /etc/interlock/haproxy.cfg.template; received %d", cfg.TemplatePath)
 	}
 
 	if cfg.ConnectTimeout != 5000 {
