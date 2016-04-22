@@ -44,13 +44,18 @@ func (p *HAProxyLoadBalancer) ConfigPath() string {
 }
 
 func (p *HAProxyLoadBalancer) Template() string {
-	d, err := ioutil.ReadFile(p.cfg.TemplatePath)
+	if (p.cfg.TemplatePath != "") {
+		d, err := ioutil.ReadFile(p.cfg.TemplatePath)
 
-	if err == nil {
-		return string(d)
+		if err == nil {
+			return string(d)
+		} else {
+			return err.Error()
+		}
 	} else {
-		return err.Error()
+		return haproxyConfTemplate
 	}
+
 }
 
 func (p *HAProxyLoadBalancer) Reload(proxyContainers []dockerclient.Container) error {

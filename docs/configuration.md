@@ -36,6 +36,7 @@ EnableMetrics = true
   SendTimeout = 600
   SSLCiphers = "HIGH:!aNULL:!MD5"
   SSLProtocols = "SSLv3 TLSv1 TLSv1.1 TLSv1.2"
+  NginxPlusEnabled = false
 ```
 
 # Environment variable configuration
@@ -100,6 +101,7 @@ they are compatible:
 |SSLOpts                | string | haproxy |
 |SSLServerVerify        | string | haproxy |
 |SSLDefaultDHParam      | int    | haproxy |
+|NginxPlusEnabled       | bool   | nginx |
 |User                   | string | nginx |
 |WorkerProcesses        | int    | nginx |
 |RLimitNoFile           | int    | nginx |

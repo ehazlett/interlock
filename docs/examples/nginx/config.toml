@@ -9,3 +9,4 @@ TemplatePath = "/etc/interlock/nginx.conf.template"
 BackendOverrideAddress = "172.17.0.1"
 MaxConn = 1024
 Port = 80
+NginxPlusEnabled = false

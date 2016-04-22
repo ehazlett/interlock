@@ -49,10 +49,6 @@ func SetConfigDefaults(c *ExtensionConfig) error {
 }
 
 func SetHAProxyConfigDefaults(c *ExtensionConfig) {
-	if c.TemplatePath == "" {
-		c.TemplatePath = "/etc/interlock/haproxy.cfg.template"
-	}
-
 	if c.ConnectTimeout == 0 {
 		c.ConnectTimeout = 5000
 	}
@@ -83,10 +79,6 @@ func SetHAProxyConfigDefaults(c *ExtensionConfig) {
 }
 
 func SetNginxConfigDefaults(c *ExtensionConfig) {
-	if c.TemplatePath == "" {
-		c.TemplatePath = "/etc/interlock/nginx.conf.template"
-	}
-
 	if c.User == "" {
 		c.User = "www-data"
 	}

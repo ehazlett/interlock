@@ -45,12 +45,20 @@ func (p *NginxLoadBalancer) HandleEvent(event *dockerclient.Event) error {
 }
 
 func (p *NginxLoadBalancer) Template() string {
-	d, err := ioutil.ReadFile(p.cfg.TemplatePath)
+	if p.cfg.TemplatePath != "" {
+		d, err := ioutil.ReadFile(p.cfg.TemplatePath)
 
-	if err == nil {
-		return string(d)
+		if err == nil {
+			return string(d)
+		} else {
+			return err.Error()
+		}
 	} else {
-		return err.Error()
+		if p.cfg.NginxPlusEnabled {
+			return nginxPlusConfTemplate
+		}
+
+		return nginxConfTemplate
 	}
 }
 

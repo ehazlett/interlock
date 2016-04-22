@@ -66,12 +66,19 @@ type eventArgs struct {
 }
 
 func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClient) (*LoadBalancer, error) {
-	if _, err := os.Stat(c.TemplatePath); os.IsNotExist(err) {
-		log().Errorf("Missing %s configuration template: file=%s", c.Name, c.TemplatePath)
-		log().Errorf("Use the TemplatePath option in your Interlock config.toml to set a custom location for the %s configuration template", c.Name)
-		log().Errorf("Examples of an configuration template: url=https://github.com/ehazlett/interlock/tree/master/docs/examples/%s", c.Name)
-		log().Fatal(err)
+	if c.TemplatePath != "" {
+		if _, err := os.Stat(c.TemplatePath); os.IsNotExist(err) {
+			log().Errorf("Missing %s configuration template: file=%s", c.Name, c.TemplatePath)
+			log().Errorf("Use the TemplatePath option in your Interlock config.toml to set a custom location for the %s configuration template", c.Name)
+			log().Errorf("Examples of an configuration template: url=https://github.com/ehazlett/interlock/tree/master/docs/examples/%s", c.Name)
+			log().Fatal(err)
+		} else {
+			log().Debugf("using configuration template: file=%s", c.TemplatePath)
+		}
+	} else {
+		log().Debugf("using internal configuration template")
 	}
+
 
 	// parse config base dir
 	c.ConfigBasePath = filepath.Dir(c.ConfigPath)
