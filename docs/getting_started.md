@@ -62,7 +62,7 @@ DockerURL = "unix:///var/run/docker.sock"
 [[Extensions]]
   Name = "nginx"
   ConfigPath = "/etc/nginx/nginx.conf"
-  PidPath = "/etc/nginx/nginx.pid"
+  PidPath = "/var/run/nginx.pid"
   BackendOverrideAddress = "172.17.0.1"
 ```
 

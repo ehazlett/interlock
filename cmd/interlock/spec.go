@@ -18,8 +18,8 @@ var cmdSpec = cli.Command{
 func specAction(c *cli.Context) {
 	ec := &config.ExtensionConfig{
 		Name:                   "nginx",
-		ConfigPath:             "/etc/conf/nginx.conf",
-		PidPath:                "/etc/conf/nginx.pid",
+		ConfigPath:             "/etc/nginx/nginx.conf",
+		PidPath:                "/var/run/nginx.pid",
 		TemplatePath:           "/etc/interlock/nginx.conf.template",
 		BackendOverrideAddress: "",
 	}

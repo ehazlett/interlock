@@ -20,7 +20,7 @@ EnableMetrics = true
 [[Extensions]]
   Name = "nginx"
   ConfigPath = "/etc/nginx/nginx.conf"
-  PidPath = "/etc/nginx/nginx.pid"
+  PidPath = "/var/run/nginx.pid"
   TemplatePath = "/etc/interlock/nginx.conf.template"
   BackendOverrideAddress = ""
   MaxConn = 1024
@@ -65,7 +65,7 @@ DockerURL = "tcp://127.0.0.1:2376"
 [[Extensions]]
   Name = "haproxy"
   ConfigPath = "/usr/local/etc/haproxy/haproxy.cfg"
-  PidPath = "/usr/local/etc/haproxy/haproxy.pid"
+  PidPath = "/var/run/haproxy.pid"
   TemplatePath = "/usr/local/etc/interlock/haproxy.cfg.template"
   MaxConn = 1024
   Port = 80'
