@@ -29,8 +29,8 @@ build-static:
 
 build-image:
 	@echo "Building image with $$(./cmd/$(APP)/$(APP) -v)"
-	@docker build -t khamoud/interlock:sticky .
-	@echo "Image created: khamoud/interlock:sticky"
+	@docker build -t $(REPO):$(TAG) .
+	@echo "Image created: $(REPO):$(TAG)"
 
 build-container:
 	@docker build -t interlock-build -f Dockerfile.build .
