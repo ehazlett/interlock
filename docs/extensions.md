@@ -10,9 +10,8 @@ Docker images from the Docker Hub for each extension.
 # Load Balancing
 The following load balancing extensions are supported:
 
-## HAProxy
-[HAProxy](http://www.haproxy.org/) is a high performance TCP/HTTP load balancer.
-It is recommended to use the official [Docker Hub HAProxy Image](https://hub.docker.com/_/haproxy/).
+- [HAProxy](./extensions/haproxy.md)
+- [Nginx](./extensions/nginx.md)
 
 Interlock will re-configure HAProxy upon a container event (start, stop, kill, remove, etc)
 and trigger a reload on the HAProxy container or containers.

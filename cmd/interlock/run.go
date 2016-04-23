@@ -91,7 +91,6 @@ func getKVStore(addr string, options *kvstore.Config) (kvstore.Store, error) {
 
 	if err != nil {
 		return nil, err
-
 	}
 
 	return kv, nil
@@ -177,6 +176,10 @@ func runAction(c *cli.Context) {
 				log.Fatal(err)
 			}
 		}
+	}
+
+	if data == "" {
+		log.Fatal("you must specify a config from file, kv or environment")
 	}
 
 	config, err := config.ParseConfig(data)

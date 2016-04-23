@@ -1,12 +1,12 @@
-listenAddr = ":8080"
-dockerURL = "unix:///var/run/docker.sock"
+ListenAddr = ":8080"
+DockerURL = "unix:///var/run/docker.sock"
 
-[[extensions]]
-name = "haproxy"
-configPath = "/etc/haproxy.cfg"
-pidPath = "/etc/haproxy.pid"
-backendOverrideAddress = "172.17.0.1"
-maxConn = 1024
-port = 80
-adminUser = "admin"
-adminPass = "interlock"
+[[Extensions]]
+Name = "haproxy"
+ConfigPath = "/usr/local/etc/haproxy.cfg"
+PidPath = "/etc/haproxy.pid"
+BackendOverrideAddress = "172.17.0.1"
+MaxConn = 1024
+Port = 80
+AdminUser = "admin"
+AdminPass = "interlock"

@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -249,6 +250,34 @@ func (client *DockerClient) ContainerLogs(id string, options *LogOptions) (io.Re
 		return nil, err
 	}
 	return resp.Body, nil
+}
+
+func (client *DockerClient) CopyToContainer(id, destPath string, rdr io.Reader) error {
+	p := filepath.ToSlash(destPath)
+
+	uri := fmt.Sprintf("/%s/containers/%s/archive?path=%s", APIVersion, id, p)
+
+	req, err := http.NewRequest("PUT", client.URL.String()+uri, rdr)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Add("Content-Type", "application/x-tar")
+	resp, err := client.HTTPClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode > 200 {
+		defer resp.Body.Close()
+		data, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		return Error{StatusCode: resp.StatusCode, Status: resp.Status, msg: string(data)}
+	}
+
+	return nil
 }
 
 func (client *DockerClient) ContainerChanges(id string) ([]*ContainerChanges, error) {

@@ -29,8 +29,8 @@ build-static:
 
 build-image:
 	@echo "Building image with $$(./cmd/$(APP)/$(APP) -v)"
-	@docker build -t $(REPO):$(TAG) .
-	@echo "Image created: $(REPO):$(TAG)"
+	@docker build -t khamoud/interlock:sticky .
+	@echo "Image created: khamoud/interlock:sticky"
 
 build-container:
 	@docker build -t interlock-build -f Dockerfile.build .
@@ -39,11 +39,11 @@ build-container:
 	@docker rm -fv interlock-build
 
 test:
-	@go test -v -cover -race `go list ./... | grep /vendor/`
+	@go test -v -cover -race `go list ./... | grep -v /vendor/`
 
 image: build-container build-image
 
 clean:
 	@rm cmd/$(APP)/$(APP)
 
-.PHONY: add-deps build build-static build-app build-image image clean test
+.PHONY: deps build build-static build-app build-image image clean test
