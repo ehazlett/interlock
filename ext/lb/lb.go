@@ -299,7 +299,7 @@ func (l *LoadBalancer) Name() string {
 }
 
 func (l *LoadBalancer) ProxyContainers(name string) ([]dockerclient.Container, error) {
-	containers, err := l.client.ListContainers(false, false, "")
+	containers, err := l.client.ListContainers(true, false, "")
 	if err != nil {
 		return nil, err
 	}

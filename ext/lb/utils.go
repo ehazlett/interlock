@@ -14,25 +14,30 @@ func getNodeID() (string, error) {
 	}
 	defer f.Close()
 
-	r := bufio.NewReader(f)
-	l, err := r.ReadString('\n')
-	if err != nil {
-		return "", err
+	id := ""
+
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		l := scanner.Text()
+
+		parts := strings.Split(l, ":")
+		if len(parts) < 3 {
+			continue
+		}
+
+		data := parts[2]
+		dataParts := strings.Split(data, "/")
+
+		if len(dataParts) < 3 {
+			continue
+		}
+
+		id = dataParts[2]
 	}
 
-	parts := strings.Split(l, ":")
-	if len(parts) < 2 {
-		return "", fmt.Errorf("unable to parse cgroups for ID")
+	if id == "" {
+		return "", fmt.Errorf("unable to get node id")
 	}
-
-	data := parts[2]
-	dataParts := strings.Split(data, "/")
-
-	if len(dataParts) < 2 {
-		return "", fmt.Errorf("unable to parse ID")
-	}
-
-	id := dataParts[2]
 
 	return strings.TrimSpace(id), nil
 }
