@@ -21,7 +21,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []dockerclient.Contai
 	hostSSLOnly := map[string]bool{}
 	hostSSLBackend := map[string]bool{}
 	hostWebsocketEndpoints := map[string][]string{}
-
+	hostIpHash := map[string]bool{}
 	networks := map[string]string{}
 
 	for _, c := range containers {
@@ -67,6 +67,8 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []dockerclient.Contai
 
 		hostSSL[domain] = utils.SSLEnabled(cInfo.Config)
 		hostSSLOnly[domain] = utils.SSLOnly(cInfo.Config)
+
+		hostIpHash[domain] = utils.IpHash(cInfo.Config)
 
 		// check ssl backend
 		hostSSLBackend[domain] = utils.SSLBackend(cInfo.Config)
@@ -159,6 +161,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []dockerclient.Contai
 			SSLOnly:            hostSSLOnly[k],
 			SSLBackend:         hostSSLBackend[k],
 			WebsocketEndpoints: hostWebsocketEndpoints[k],
+			IpHash:             hostIpHash[k],
 		}
 
 		servers := []*Server{}

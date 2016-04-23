@@ -47,4 +47,3 @@ clean:
 	@rm cmd/$(APP)/$(APP)
 
 .PHONY: deps build build-static build-app build-image image clean test
-
