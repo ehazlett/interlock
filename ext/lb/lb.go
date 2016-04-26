@@ -89,20 +89,20 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 		lbUpdateChan <- true
 	})
 
-	// load nodeID
-	nodeID, err := getNodeID()
+	// load containerID for the following nodeID
+	containerID, err := getContainerID()
 	if err != nil {
 		return nil, err
 	}
 
-	log().Infof("interlock node: id=%s", nodeID)
+	log().Infof("interlock node: container id=%s", containerID)
 
 	extension := &LoadBalancer{
 		cfg:    c,
 		client: client,
 		cache:  cache,
 		lock:   &sync.Mutex{},
-		nodeID: nodeID,
+		nodeID: containerID,
 	}
 
 	// select backend
@@ -254,7 +254,7 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 
 			for _, cnt := range containers {
 				// always include self container
-				if cnt.Id == nodeID {
+				if cnt.Id == containerID {
 					interlockNodes = append(interlockNodes, cnt)
 					continue
 				}
