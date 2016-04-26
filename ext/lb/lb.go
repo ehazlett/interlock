@@ -108,20 +108,20 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *client.Client) (*LoadBal
 		lbUpdateChan <- true
 	})
 
-	// load nodeID
-	nodeID, err := utils.GetNodeID()
+	// load containerID for the following nodeID
+	containerID, err := utils.GetContainerID()
 	if err != nil {
 		return nil, err
 	}
 
-	log().Infof("interlock node: id=%s", nodeID)
+	log().Infof("interlock node: container id=%s", containerID)
 
 	extension := &LoadBalancer{
 		cfg:    c,
 		client: client,
 		cache:  cache,
 		lock:   &sync.Mutex{},
-		nodeID: nodeID,
+		nodeID: containerID,
 	}
 
 	// select backend
@@ -277,7 +277,7 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *client.Client) (*LoadBal
 
 			for _, cnt := range containers {
 				// always include self container
-				if cnt.ID == nodeID && cnt.State == "running" {
+				if cnt.ID == containerID && cnt.State == "running" {
 					interlockNodes = append(interlockNodes, cnt)
 					continue
 				}
