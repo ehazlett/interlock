@@ -26,7 +26,6 @@ const (
 )
 
 var (
-<<<<<<< HEAD
 	errChan                 chan (error)
 	restartChan             = make(chan bool)
 	lbUpdateChan            chan (bool)
@@ -38,13 +37,6 @@ type proxyContainerNetworkConfig struct {
 	ProxyNetworks map[string]string
 }
 
-=======
-	errChan      chan (error)
-	restartChan  = make(chan bool)
-	lbUpdateChan chan (bool)
-)
-
->>>>>>> fe1739529c0f1908291b79455cf132ed000d2e42
 type LoadBalancerBackend interface {
 	Name() string
 	ConfigPath() string
@@ -85,11 +77,8 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 
 	lbUpdateChan = make(chan bool)
 
-<<<<<<< HEAD
 	proxyNetworkCleanupChan = make(chan []proxyContainerNetworkConfig)
 
-=======
->>>>>>> fe1739529c0f1908291b79455cf132ed000d2e42
 	cache, err := ttlcache.NewTTLCache(ReloadThreshold)
 	if err != nil {
 		return nil, err
@@ -134,7 +123,6 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 		return nil, fmt.Errorf("unknown load balancer backend: %s", c.Name)
 	}
 
-<<<<<<< HEAD
 	// proxy network cleanup chan
 	// this waits for a reload event and removes the proxy containers
 	// from unused proxy networks
@@ -181,8 +169,6 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 		}
 	}()
 
-=======
->>>>>>> fe1739529c0f1908291b79455cf132ed000d2e42
 	// lbUpdateChan handler
 	go func() {
 		for range lbUpdateChan {
@@ -243,7 +229,6 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 				continue
 			}
 
-<<<<<<< HEAD
 			proxyContainerNetworkConfigs := []proxyContainerNetworkConfig{}
 
 			for _, cnt := range proxyContainers {
@@ -251,9 +236,6 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 					ContainerID:   cnt.Id,
 					ProxyNetworks: proxyNetworks,
 				})
-=======
-			for _, cnt := range proxyContainers {
->>>>>>> fe1739529c0f1908291b79455cf132ed000d2e42
 				for net, _ := range proxyNetworks {
 					if _, ok := cnt.NetworkSettings.Networks[net]; !ok {
 						log().Debugf("connecting proxy container %s to network %s", cnt.Id, net)
@@ -302,14 +284,10 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 			d := time.Since(start)
 			duration := float64(d.Seconds() * float64(1000))
 
-<<<<<<< HEAD
 			log().Debug("triggering proxy network cleanup")
 			proxyNetworkCleanupChan <- proxyContainerNetworkConfigs
 
 			log().Infof("reload duration: %0.2fms", duration)
-=======
-			log().Debugf("reload duration: %0.2fms", duration)
->>>>>>> fe1739529c0f1908291b79455cf132ed000d2e42
 		}
 	}()
 
@@ -342,10 +320,6 @@ func (l *LoadBalancer) SaveConfig(configPath string, cfg interface{}, proxyConta
 	t := template.New("lb")
 	confTmpl := l.backend.Template()
 
-<<<<<<< HEAD
-=======
-	var tErr error
->>>>>>> fe1739529c0f1908291b79455cf132ed000d2e42
 	var c bytes.Buffer
 
 	tmpl, err := t.Parse(confTmpl)
@@ -358,20 +332,12 @@ func (l *LoadBalancer) SaveConfig(configPath string, cfg interface{}, proxyConta
 	case "nginx":
 		config := cfg.(*nginx.Config)
 		if err := tmpl.Execute(&c, config); err != nil {
-<<<<<<< HEAD
 			return err
-=======
-			return tErr
->>>>>>> fe1739529c0f1908291b79455cf132ed000d2e42
 		}
 	case "haproxy":
 		config := cfg.(*haproxy.Config)
 		if err := tmpl.Execute(&c, config); err != nil {
-<<<<<<< HEAD
 			return err
-=======
-			return tErr
->>>>>>> fe1739529c0f1908291b79455cf132ed000d2e42
 		}
 	default:
 		return fmt.Errorf("unknown backend type: %s", l.backend.Name())
@@ -382,7 +348,6 @@ func (l *LoadBalancer) SaveConfig(configPath string, cfg interface{}, proxyConta
 
 	data := c.Bytes()
 
-<<<<<<< HEAD
 	// copy to proxy nodes
 	for _, cnt := range proxyContainers {
 		log().Debugf("updating proxy config: id=%s", cnt.Id)
@@ -407,32 +372,6 @@ func (l *LoadBalancer) SaveConfig(configPath string, cfg interface{}, proxyConta
 			return fmt.Errorf("error closing tar writer: %s", err)
 		}
 
-=======
-	// create tar stream to copy
-	buf := new(bytes.Buffer)
-	tw := tar.NewWriter(buf)
-	hdr := &tar.Header{
-		Name: fName,
-		Mode: 0644,
-		Size: int64(len(data)),
-	}
-
-	if err := tw.WriteHeader(hdr); err != nil {
-		return fmt.Errorf("error writing proxy config header: %s", err)
-	}
-
-	if _, err := tw.Write(data); err != nil {
-		return fmt.Errorf("error writing proxy config: %s", err)
-	}
-
-	if err := tw.Close(); err != nil {
-		return fmt.Errorf("error closing tar writer: %s", err)
-	}
-
-	// copy to proxy nodes
-	for _, cnt := range proxyContainers {
-		log().Debugf("updating proxy config: id=%s", cnt.Id)
->>>>>>> fe1739529c0f1908291b79455cf132ed000d2e42
 		if err := l.client.CopyToContainer(cnt.Id, proxyConfigPath, buf); err != nil {
 			log().Errorf("error copying proxy config: %s", err)
 			continue
@@ -543,8 +482,4 @@ func (l *LoadBalancer) isExposedContainer(id string) bool {
 
 	log().Debugf("container is monitored; triggering reload: id=%s", id)
 	return true
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> fe1739529c0f1908291b79455cf132ed000d2e42

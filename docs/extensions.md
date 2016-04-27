@@ -13,7 +13,6 @@ The following load balancing extensions are supported:
 - [HAProxy](./extensions/haproxy.md)
 - [Nginx](./extensions/nginx.md)
 
-<<<<<<< HEAD
 Interlock will re-configure HAProxy upon a container event (start, stop, kill, remove, etc)
 and trigger a reload on the HAProxy container or containers.
 
