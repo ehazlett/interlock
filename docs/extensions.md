@@ -49,3 +49,6 @@ label upon start: `interlock.ext.name=nginx`.  For example:
 Interlock will reload all containers with that label whenever the Nginx config
 is updated.  Interlock sends a `SIGHUP` to the container.  This will cause
 Nginx to reload the configuration without connection interruption.
+
+# Metrics
+- [Beacon](./extensions/beacon.md)
