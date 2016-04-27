@@ -20,7 +20,6 @@ interlock:
             Port = 80
     volumes:
         - /var/lib/boot2docker:/var/lib/boot2docker:ro
-        - /var/tmp/config.toml:/bin/config.toml
 
 nginx:
     image: nginx:latest
