@@ -23,6 +23,7 @@ const (
 	InterlockHealthCheckIntervalLabel = "interlock.health_check_interval"  // haproxy
 	InterlockBalanceAlgorithmLabel    = "interlock.balance_algorithm"      // haproxy
 	InterlockBackendOptionLabel       = "interlock.backend_option"         // haproxy
+	InterlockIPHashLabel              = "interlock.ip_hash"                // nginx
 	InterlockContextRootLabel         = "interlock.context_root"           // haproxy, nginx
 	InterlockContextRootRewriteLabel  = "interlock.context_root_rewrite"   // haproxy, nginx
 )
