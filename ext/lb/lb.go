@@ -304,7 +304,7 @@ func (l *LoadBalancer) ListContainers() ([]dockerclient.Container, error) {
 	var containers []dockerclient.Container
 	var err error
 
-	allContainers, err := l.client.ListContainers(false, false, "")
+	allContainers, err := l.client.ListContainers(true, false, "")
 
 	if err != nil {
 		return nil, err
@@ -497,12 +497,22 @@ func (l *LoadBalancer) isExposedContainer(id string) bool {
 }
 
 func (l *LoadBalancer) isServiceContainer(labels map[string]string) bool {
-	containerServiceName, labelled := labels[ext.InterlockExtServiceNameLabel]
+	serviceName, labelled := labels[ext.InterlockExtServiceNameLabel]
 
-	if (len(l.cfg.ServiceName) > 0 && containerServiceName == l.cfg.ServiceName) ||
-		(len(l.cfg.ServiceName) == 0 && !labelled) {
+	switch {
+	case l.serviceNameMatch(serviceName):
 		return true
-	} else {
+	case l.serviceNamelessMatch(serviceName, labelled):
+		return true
+	default:
 		return false
 	}
+}
+
+func (l *LoadBalancer) serviceNameMatch(serviceName string) bool {
+	return len(l.cfg.ServiceName) > 0 && serviceName == l.cfg.ServiceName
+}
+
+func (l *LoadBalancer) serviceNamelessMatch(serviceName string, labelled bool) bool {
+	return len(l.cfg.ServiceName) == 0 && !labelled
 }

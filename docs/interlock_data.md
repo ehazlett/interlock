@@ -9,7 +9,7 @@ compatibility.
 |Label|Extensions Supported|
 |----|----|
 |`interlock.ext.name`               | internal |
-|`interlock.ext.service.name`       | internal |
+|`interlock.ext.service_name`       | internal |
 |`interlock.hostname`               | haproxy, nginx|
 |`interlock.domain`                 | haproxy, nginx|
 |`interlock.ssl`                    | nginx|
@@ -30,25 +30,25 @@ compatibility.
 
 # Service Name
 To have Interlock work with multiple independent services, run the Interlock
-container with the `interlock.ext.service.name` label. This will cause it to
+container with the `interlock.ext.service_name` label. This will cause it to
 only manage the load balancer and all application service containers with the
 same label. For example:
 
 ```
 docker run -d -p 8080:8080 \
   --name interlock_foo \
-  --label interlock.ext.service.name=foo \
+  --label interlock.ext.service_name=foo \
   ehazlett/interlock:1.2.0 \
   -D run -c /etc/interlock/config.toml
 
 docker run -d -p 80:80 \
   --name nginx_foo \
   --label interlock.ext.name=nginx \
-  --label interlock.ext.service.name=foo \
+  --label interlock.ext.service_name=foo \
   nginx
   
 docker run -d -P \
-  --label interlock.ext.service.name=foo \
+  --label interlock.ext.service_name=foo \
   ehazlett/docker-demo
 ```
 
