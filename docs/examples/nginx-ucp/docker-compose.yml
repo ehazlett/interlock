@@ -37,3 +37,6 @@ app:
     labels:
         - "interlock.hostname=test"
         - "interlock.domain=local"
+volumes:
+    ucp-node-certs:
+    external: true
