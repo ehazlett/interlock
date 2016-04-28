@@ -299,7 +299,6 @@ func (l *LoadBalancer) Name() string {
 	return pluginName
 }
 
-
 func (l *LoadBalancer) ListContainers() ([]dockerclient.Container, error) {
 	var containers []dockerclient.Container
 	var err error
