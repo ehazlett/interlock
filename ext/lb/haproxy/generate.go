@@ -125,7 +125,14 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []dockerclient.Cont
 
 			networks[n] = ""
 		} else {
-			if len(cInfo.NetworkSettings.Ports) == 0 {
+			portsExposed := false
+			for _, portBindings := range cInfo.NetworkSettings.Ports {
+				if len(portBindings) != 0 {
+					portsExposed = true
+					break
+				}
+			}
+			if !portsExposed {
 				log().Warnf("%s: no ports exposed", cntId)
 				continue
 			}
