@@ -208,6 +208,8 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 				continue
 			}
 
+			log().Debugf("proxyContainers: %v", proxyContainers)
+
 			// save config
 			log().Debug("saving proxy config")
 			if err := extension.SaveConfig(configPath, cfg, proxyContainers); err != nil {
@@ -309,6 +311,7 @@ func (l *LoadBalancer) ProxyContainers(name string) ([]dockerclient.Container, e
 	// find interlock proxy containers
 	for _, cnt := range containers {
 		if v, ok := cnt.Labels[ext.InterlockExtNameLabel]; ok && v == l.backend.Name() {
+			log().Debugf("detected proxy container: id=%s backend=%v", cnt.Id, v)
 			proxyContainers = append(proxyContainers, cnt)
 		}
 	}
@@ -424,6 +427,10 @@ func (l *LoadBalancer) proxyContainersToRestart(nodes []dockerclient.Container, 
 	numNodes := len(nodes)
 	if numNodes == 0 {
 		return nil
+	}
+
+	if numNodes == 1 {
+		return proxyContainers
 	}
 
 	log().Debugf("calculating restart across interlock nodes: num=%d", numNodes)
