@@ -1,10 +1,12 @@
 ListenAddr = ":8080"
 DockerURL = "unix:///var/run/docker.sock"
 
-[[extensions]]
+[[Extensions]]
 Name = "nginx"
 ConfigPath = "/etc/nginx/nginx.conf"
-PidPath = "/tmp/nginx.pid"
+PidPath = "/var/run/nginx.pid"
+TemplatePath = "/etc/interlock/nginx.conf.template"
 BackendOverrideAddress = "172.17.0.1"
 MaxConn = 1024
 Port = 80
+NginxPlusEnabled = false

@@ -1,10 +1,10 @@
 interlock:
     image: ehazlett/interlock:1.1.0
-    command: run -c /bin/config.toml
+    command: run -c /etc/interlock/config.toml
     ports:
         - 8080
     volumes:
-        - ./config.toml:/bin/config.toml
+        - ./config.toml:/etc/interlock/config.toml
         - /var/run/docker.sock:/var/run/docker.sock
 
 haproxy:

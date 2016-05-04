@@ -1,12 +1,54 @@
 package config
 
 import (
+	"fmt"
 	"github.com/BurntSushi/toml"
 )
 
+// ParseConfig returns a Config object from a raw string config TOML
+func ParseConfig(data string) (*Config, error) {
+	var cfg Config
+	if _, err := toml.Decode(data, &cfg); err != nil {
+		return nil, err
+	}
+
+	for _, ext := range cfg.Extensions {
+		// setup defaults for missing config entries
+		if err := SetConfigDefaults(ext); err != nil {
+			return nil, err
+		}
+
+		// FIXME: toml isn't being parse right so we hack the rules in like so
+		ext.Rules = cfg.Rules
+	}
+
+	return &cfg, nil
+}
+
 // SetConfigDefaults sets default values if not present
-// TODO: set config defaults for each extension
+// ExtensionConfig.Name must be set before calling this function
 func SetConfigDefaults(c *ExtensionConfig) error {
+	if c.MaxConn == 0 {
+		c.MaxConn = 1024
+	}
+
+	if c.Port == 0 {
+		c.Port = 80
+	}
+
+	switch c.Name {
+	case "haproxy":
+		SetHAProxyConfigDefaults(c)
+	case "nginx":
+		SetNginxConfigDefaults(c)
+	default:
+		return fmt.Errorf("unknown load balancer backend: %s", c.Name)
+	}
+
+	return nil
+}
+
+func SetHAProxyConfigDefaults(c *ExtensionConfig) {
 	if c.ConnectTimeout == 0 {
 		c.ConnectTimeout = 5000
 	}
@@ -19,14 +61,6 @@ func SetConfigDefaults(c *ExtensionConfig) error {
 		c.ClientTimeout = 10000
 	}
 
-	if c.MaxConn == 0 {
-		c.MaxConn = 1024
-	}
-
-	if c.Port == 0 {
-		c.Port = 80
-	}
-
 	if c.AdminUser == "" {
 		c.AdminUser = "admin"
 	}
@@ -35,6 +69,16 @@ func SetConfigDefaults(c *ExtensionConfig) error {
 		c.AdminPass = ""
 	}
 
+	if c.SSLDefaultDHParam == 0 {
+		c.SSLDefaultDHParam = 1024
+	}
+
+	if c.SSLServerVerify == "" {
+		c.SSLServerVerify = "required"
+	}
+}
+
+func SetNginxConfigDefaults(c *ExtensionConfig) {
 	if c.User == "" {
 		c.User = "www-data"
 	}
@@ -70,38 +114,4 @@ func SetConfigDefaults(c *ExtensionConfig) error {
 	if c.SSLProtocols == "" {
 		c.SSLProtocols = "SSLv3 TLSv1 TLSv1.1 TLSv1.2"
 	}
-
-	if c.SSLDefaultDHParam == 0 {
-		c.SSLDefaultDHParam = 1024
-	}
-
-	if c.SSLServerVerify == "" {
-		c.SSLServerVerify = "required"
-	}
-
-	if c.StatInterval == 0 {
-		c.StatInterval = 60
-	}
-
-	return nil
-}
-
-// ParseConfig returns a Config object from a raw string config TOML
-func ParseConfig(data string) (*Config, error) {
-	var cfg Config
-	if _, err := toml.Decode(data, &cfg); err != nil {
-		return nil, err
-	}
-
-	for _, ext := range cfg.Extensions {
-		// setup defaults for missing config entries
-		if err := SetConfigDefaults(ext); err != nil {
-			return nil, err
-		}
-
-		// FIXME: toml isn't being parse right so we hack the rules in like so
-		ext.Rules = cfg.Rules
-	}
-
-	return &cfg, nil
 }

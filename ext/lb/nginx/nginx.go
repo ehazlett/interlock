@@ -6,6 +6,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/ehazlett/interlock/config"
 	"github.com/samalba/dockerclient"
+	"io/ioutil"
 )
 
 const (
@@ -44,11 +45,21 @@ func (p *NginxLoadBalancer) HandleEvent(event *dockerclient.Event) error {
 }
 
 func (p *NginxLoadBalancer) Template() string {
-	if p.cfg.NginxPlusEnabled {
-		return nginxPlusConfTemplate
-	}
+	if p.cfg.TemplatePath != "" {
+		d, err := ioutil.ReadFile(p.cfg.TemplatePath)
 
-	return nginxConfTemplate
+		if err == nil {
+			return string(d)
+		} else {
+			return err.Error()
+		}
+	} else {
+		if p.cfg.NginxPlusEnabled {
+			return nginxPlusConfTemplate
+		}
+
+		return nginxConfTemplate
+	}
 }
 
 func (p *NginxLoadBalancer) ConfigPath() string {
@@ -56,7 +67,7 @@ func (p *NginxLoadBalancer) ConfigPath() string {
 }
 
 func (p *NginxLoadBalancer) Reload(proxyContainers []dockerclient.Container) error {
-	// restart all interlock managed haproxy containers
+	// restart all interlock managed nginx containers
 	for _, cnt := range proxyContainers {
 		// restart
 		if err := p.client.KillContainer(cnt.Id, "HUP"); err != nil {
