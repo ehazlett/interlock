@@ -41,7 +41,7 @@ build-container:
 test:
 	@go test -v -cover -race `go list ./... | grep -v /vendor/`
 
-image: build-static build-image
+image: build-container build-image
 
 clean:
 	@rm cmd/$(APP)/$(APP)
