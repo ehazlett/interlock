@@ -1,25 +1,32 @@
-interlock:
-    image: ehazlett/interlock:1.1.0
-    command: run -c /etc/interlock/config.toml
-    ports:
-        - 8080
-    volumes:
-        - ./config.toml:/etc/interlock/config.toml
-        - /var/run/docker.sock:/var/run/docker.sock
+version: "2"
 
-haproxy:
-    image: haproxy:latest
-    ports:
-        - 80:80
-    labels:
-        - "interlock.ext.name=haproxy"
-    links:
-        - interlock:interlock
-
-app:
-    image: ehazlett/docker-demo:latest
-    ports:
-        - 8080
-    labels:
-        - "interlock.hostname=test"
-        - "interlock.domain=local"
+services:
+    interlock:
+        image: ehazlett/interlock:master
+        command: run -c /etc/interlock/config.toml
+        ports:
+            - 8080
+        volumes:
+            - ./config.toml:/etc/interlock/config.toml
+            - /var/run/docker.sock:/var/run/docker.sock
+    
+    haproxy:
+        image: haproxy:latest
+        ports:
+            - 80:80
+        labels:
+            - "interlock.ext.name=haproxy"
+        links:
+            - interlock:interlock
+        depends_on:
+            - interlock
+    
+    app:
+        image: ehazlett/docker-demo:latest
+        ports:
+            - 8080
+        labels:
+            - "interlock.hostname=test"
+            - "interlock.domain=local"
+        depends_on:
+            - haproxy

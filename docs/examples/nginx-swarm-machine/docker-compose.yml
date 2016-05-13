@@ -1,5 +1,5 @@
 interlock:
-    image: ehazlett/interlock:1.1.0
+    image: ehazlett/interlock:master
     command: -D run -c /etc/interlock/config.toml
     tty: true
     ports:
@@ -16,7 +16,7 @@ interlock:
             Name = "nginx"
             ConfigPath = "/etc/nginx/nginx.conf"
             PidPath = "/var/run/nginx.pid"
-            TemplatePath = "/etc/interlock/nginx.conf.template"
+            TemplatePath = ""
             MaxConn = 1024
             Port = 80
     volumes:
@@ -33,6 +33,7 @@ nginx:
 
 app:
     image: ehazlett/docker-demo:latest
+    hostname: test.local
     ports:
         - 8080
     labels:

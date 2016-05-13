@@ -1,27 +1,34 @@
-interlock:
-    image: ehazlett/interlock:1.1.0
-    command: run -c /etc/interlock/config.toml
-    ports:
-        - 8080
-    volumes:
-        - ./config.toml:/etc/interlock/config.toml
-        - /var/run/docker.sock:/var/run/docker.sock
+version: "2"
 
-nginx:
-    image: nginx:latest
-    entrypoint: nginx
-    command: -g "daemon off;" -c /etc/nginx/nginx.conf
-    ports:
-        - 80:80
-    labels:
-        - "interlock.ext.name=nginx"
-    links:
-        - interlock:interlock
-
-app:
-    image: ehazlett/docker-demo:latest
-    ports:
-        - 8080
-    labels:
-        - "interlock.hostname=test"
-        - "interlock.domain=local"
+services:
+    interlock:
+        image: ehazlett/interlock:1.1.0
+        command: run -c /etc/interlock/config.toml
+        ports:
+            - 8080
+        volumes:
+            - ./config.toml:/etc/interlock/config.toml
+            - /var/run/docker.sock:/var/run/docker.sock
+    
+    nginx:
+        image: nginx:latest
+        entrypoint: nginx
+        command: -g "daemon off;" -c /etc/nginx/nginx.conf
+        ports:
+            - 80:80
+        labels:
+            - "interlock.ext.name=nginx"
+        links:
+            - interlock:interlock
+        depends_on:
+            - interlock
+    
+    app:
+        image: ehazlett/docker-demo:latest
+        ports:
+            - 8080
+        labels:
+            - "interlock.hostname=test"
+            - "interlock.domain=local"
+        depends_on:
+            - nginx
