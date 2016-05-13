@@ -1,5 +1,5 @@
 interlock:
-    image: ehazlett/interlock:1.1.0
+    image: ehazlett/interlock:master
     command: -D run
     tty: true
     ports:

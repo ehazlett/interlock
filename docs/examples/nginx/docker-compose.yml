@@ -2,7 +2,7 @@ version: "2"
 
 services:
     interlock:
-        image: ehazlett/interlock:1.1.0
+        image: ehazlett/interlock:master
         command: run -c /etc/interlock/config.toml
         ports:
             - 8080
