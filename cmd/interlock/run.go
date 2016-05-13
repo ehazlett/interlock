@@ -161,7 +161,7 @@ func runAction(c *cli.Context) {
 		}
 	}
 
-	if configPath := c.String("config"); configPath != "" {
+	if configPath := c.String("config"); configPath != "" && data == "" {
 		log.Debugf("loading config from: file=%s", configPath)
 
 		d, err := ioutil.ReadFile(configPath)
