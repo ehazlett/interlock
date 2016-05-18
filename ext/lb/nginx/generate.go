@@ -134,7 +134,12 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []dockerclient.Contai
 		log().Debugf("websocket endpoints: %v", websocketEndpoints)
 
 		// websocket endpoints
-		for _, ws := range websocketEndpoints {
+		outer:for _, ws := range websocketEndpoints {
+			for _, existingEndpoint := range hostWebsocketEndpoints[domain] {
+				if(existingEndpoint == ws) {
+					continue outer
+				}
+			}
 			hostWebsocketEndpoints[domain] = append(hostWebsocketEndpoints[domain], ws)
 		}
 
