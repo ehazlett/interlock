@@ -3,6 +3,8 @@ package haproxy
 const (
 	haproxyConfTemplate = `# managed by interlock
 global
+	log 127.0.0.1 local0
+	log 127.0.0.1 local1 notice
     {{ if .Config.SyslogAddr }}log {{ .Config.SyslogAddr }} local0
     log-send-hostname{{ end }}
     maxconn {{ .Config.MaxConn }}
@@ -44,11 +46,14 @@ frontend http-default
     {{ if $host.ContextRootRewrite }}reqrep ^([^\ :]*)\ {{ $host.ContextRoot.Path }}/(.*)     \1\ /\2{{ end }}{{ else }}
     backend {{ $host.Name }}{{ end }}
     http-response add-header X-Request-Start %Ts.%ms
+	http-request set-header X-Forwarded-Port %[dst_port]
+    http-request add-header X-Forwarded-Proto https if { ssl_fc }
     balance {{ $host.BalanceAlgorithm }}
     {{ range $option := $host.BackendOptions }}option {{ $option }}
     {{ end }}
     {{ if $host.Check }}option {{ $host.Check }}{{ end }}
-    {{ if $host.SSLOnly }}redirect scheme https if !{ ssl_fc  }{{ end }}
+    {{ if $host.SSLOnly }}redirect scheme https code 301 if !{ ssl_fc }{{ end }}
+	{{ if $host.SSLOnly }}http-response set-header Strict-Transport-Security "max-age=16000000; includeSubDomains; preload;"{{ end }}
     {{ range $i,$up := $host.Upstreams }}server {{ $up.Container }} {{ $up.Addr }} check inter {{ $up.CheckInterval }}{{ if $host.SSLBackend }} ssl verify {{ $host.SSLBackendTLSVerify }} sni req.hdr(Host){{ end }}
     {{ end }}
 {{ end }}
