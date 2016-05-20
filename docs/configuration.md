@@ -36,14 +36,22 @@ EnableMetrics = true
   SendTimeout = 600
   SSLCiphers = "HIGH:!aNULL:!MD5"
   SSLProtocols = "SSLv3 TLSv1 TLSv1.1 TLSv1.2"
+  DHParam = "true"
+  DHParamPath = "/etc/nginx/dhparam.pem"
   NginxPlusEnabled = false
 ```
 
 # Environment variable configuration
 
-You can also put the config as text in the environment variable 
+You can also put the config as text in the environment variable
 `INTERLOCK_CONFIG`.  If you pass command flags they will override the
 environment data.
+
+[Diffie-Hellman](https://scotthelme.co.uk/squeezing-a-little-more-out-of-your-qualys-score/) parameters can be added by adding the following
+```
+DHParam = "true"
+DHParamPath = "/etc/nginx/dhparam.pem"
+```
 
 # Key value store configuration
 
@@ -111,4 +119,6 @@ they are compatible:
 |SendTimeout            | int    | nginx |
 |SSLCiphers             | string | nginx |
 |SSLProtocols           | string | nginx |
+|DHParam                | bool   | nginx |
+|DHParamPath            | string | nginx |
 |StatInterval           | int    | beacon |
