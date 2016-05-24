@@ -86,3 +86,10 @@ func parseSwarmNodes(driverStatus [][]string) ([]*Node, error) {
 
 	return nodes, nil
 }
+
+// custom sort for containers
+type ByContainerID []dockerclient.Container
+
+func (a ByContainerID) Len() int           { return len(a) }
+func (a ByContainerID) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByContainerID) Less(i, j int) bool { return a[i].Id < a[j].Id }

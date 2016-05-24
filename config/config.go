@@ -53,6 +53,7 @@ type Config struct {
 	TLSKey        string
 	AllowInsecure bool
 	EnableMetrics bool
+	PollInterval  string
 	Extensions    []*ExtensionConfig
 	Rules         map[string]*Rule // beacon TODO: move to ExtensionConfig
 }

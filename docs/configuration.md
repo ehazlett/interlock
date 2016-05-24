@@ -16,6 +16,7 @@ TLSCert = ""
 TLSKey = ""
 AllowInsecure = false
 EnableMetrics = true
+PollInterval = ""
 
 [[Extensions]]
   Name = "nginx"
@@ -38,6 +39,18 @@ EnableMetrics = true
   SSLProtocols = "SSLv3 TLSv1 TLSv1.1 TLSv1.2"
   NginxPlusEnabled = false
 ```
+
+# Event Stream vs. Polling
+Different infrastructure requires different strategy.  Interlock can trigger
+updates based upon two methods: event stream and polling.  In some
+environments the event stream can be interrupted.  Interlock has the ability
+to reconnect if there is a failure but if the events simply stop sending
+you can get stuck.  Interlock also offers the ability to poll.  Interlock
+will poll Docker at the given interval (must be greater than two (2) seconds)
+for changes.  If changes are detected, Interlock will trigger an update.
+
+To enable the event stream, simply omit the `PollInterval` or set the value
+to `""`.  If you set an interval, Interlock will switch to use polling.
 
 # Environment variable configuration
 

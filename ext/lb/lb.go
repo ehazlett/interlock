@@ -23,7 +23,7 @@ import (
 
 const (
 	pluginName      = "lb"
-	ReloadThreshold = time.Millisecond * 500
+	ReloadThreshold = time.Millisecond * 2000
 )
 
 var (
@@ -47,12 +47,12 @@ type LoadBalancerBackend interface {
 }
 
 type LoadBalancer struct {
+	nodeID  string
 	cfg     *config.ExtensionConfig
 	client  *dockerclient.DockerClient
 	cache   *ttlcache.TTLCache
 	lock    *sync.Mutex
 	backend LoadBalancerBackend
-	nodeID  string
 }
 
 func log() *logrus.Entry {
@@ -78,7 +78,6 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 	} else {
 		log().Debugf("using internal configuration template")
 	}
-
 
 	// parse config base dir
 	c.ConfigBasePath = filepath.Dir(c.ConfigPath)
@@ -293,6 +292,8 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 
 			// trigger reload
 			log().Debug("signaling reload")
+			// pause to ensure file write sync
+			time.Sleep(time.Millisecond * 2000)
 			if err := extension.backend.Reload(proxyContainersToRestart); err != nil {
 				errChan <- err
 				continue
@@ -411,7 +412,7 @@ func (l *LoadBalancer) HandleEvent(event *dockerclient.Event) error {
 
 		// wait for container to stop
 		time.Sleep(time.Millisecond * 250)
-	case "interlock-start", "destroy":
+	case "interlock-start", "interlock-restart", "destroy":
 		// force reload
 		reload = true
 	}
