@@ -1,7 +1,12 @@
 package server
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"fmt"
 	"net/http"
+	"sort"
 	"strings"
 	"time"
 
@@ -15,11 +20,16 @@ import (
 	"github.com/samalba/dockerclient"
 )
 
+const (
+	defaultPollInterval = time.Millisecond * 2000
+)
+
 type Server struct {
-	cfg        *config.Config
-	client     *dockerclient.DockerClient
-	extensions []ext.Extension
-	metrics    *Metrics
+	cfg           *config.Config
+	client        *dockerclient.DockerClient
+	extensions    []ext.Extension
+	metrics       *Metrics
+	containerHash string
 }
 
 var (
@@ -33,8 +43,9 @@ var (
 
 func NewServer(cfg *config.Config) (*Server, error) {
 	s := &Server{
-		cfg:     cfg,
-		metrics: NewMetrics(),
+		cfg:           cfg,
+		metrics:       NewMetrics(),
+		containerHash: "",
 	}
 
 	client, err := s.getDockerClient()
@@ -98,13 +109,19 @@ func NewServer(cfg *config.Config) (*Server, error) {
 
 			handler = h
 
-			s.client.StartMonitorEvents(handler.Handle, eventErrChan)
+			if s.cfg.PollInterval != "" {
+				log.Infof("using polling for container updates: interval=%s", s.cfg.PollInterval)
+			} else {
+				log.Info("using event stream")
+				s.client.StartMonitorEvents(handler.Handle, eventErrChan)
 
-			// trigger initial load
-			eventChan <- &dockerclient.Event{
-				ID:     "0",
-				Status: "interlock-start",
+				// trigger initial load
+				eventChan <- &dockerclient.Event{
+					ID:     "0",
+					Status: "interlock-start",
+				}
 			}
+
 		}
 	}()
 
@@ -187,10 +204,67 @@ func (s *Server) loadExtensions(client *dockerclient.DockerClient) {
 	}
 }
 
+func (s *Server) runPoller(d time.Duration) {
+	t := time.NewTicker(d)
+	go func() {
+		for range t.C {
+			containers, err := s.client.ListContainers(false, false, "")
+			if err != nil {
+				log.Warnf("unable to get containers: %s", err)
+				continue
+			}
+
+			containerIDs := []string{}
+
+			for _, c := range containers {
+				containerIDs = append(containerIDs, c.Id)
+			}
+
+			sort.Strings(containerIDs)
+
+			data, err := json.Marshal(containerIDs)
+			if err != nil {
+				log.Errorf("unable to marshal containers: %s", err)
+				continue
+			}
+
+			h := sha256.New()
+			h.Write(data)
+			sum := hex.EncodeToString(h.Sum(nil))
+
+			if sum != s.containerHash {
+				log.Debug("detected new containers; triggering reload")
+				s.containerHash = sum
+				// trigger update
+				eventChan <- &dockerclient.Event{
+					ID:     fmt.Sprintf("%d", time.Now().UnixNano()),
+					Status: "interlock-restart",
+				}
+			}
+		}
+	}()
+}
+
 func (s *Server) Run() error {
 	if s.cfg.EnableMetrics {
 		// start prometheus listener
 		http.Handle("/metrics", prometheus.Handler())
+	}
+
+	if s.cfg.PollInterval != "" {
+		// run background poller
+		d, err := time.ParseDuration(s.cfg.PollInterval)
+		if err != nil {
+			return err
+		}
+
+		if d < defaultPollInterval {
+			log.Warnf("poll interval too quick; defaulting to %dms", defaultPollInterval)
+			s.cfg.PollInterval = "2000ms"
+			d = defaultPollInterval
+		}
+
+		s.runPoller(d)
 	}
 
 	if err := http.ListenAndServe(s.cfg.ListenAddr, nil); err != nil {
