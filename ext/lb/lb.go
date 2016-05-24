@@ -236,7 +236,6 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 			case "nginx":
 				proxyConfig := cfg.(*nginx.Config)
 				proxyNetworks = proxyConfig.Networks
-
 			case "haproxy":
 				proxyConfig := cfg.(*haproxy.Config)
 				proxyNetworks = proxyConfig.Networks
@@ -292,9 +291,11 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 
 			// trigger reload
 			log().Debug("signaling reload")
+
 			// pause to ensure file write sync
-			time.Sleep(time.Millisecond * 2000)
+			time.Sleep(time.Millisecond * 1000)
 			if err := extension.backend.Reload(proxyContainersToRestart); err != nil {
+				log().Error(err)
 				errChan <- err
 				continue
 			}
@@ -442,7 +443,8 @@ func (l *LoadBalancer) HandleEvent(event *dockerclient.Event) error {
 func (l *LoadBalancer) proxyContainersToRestart(nodes []dockerclient.Container, proxyContainers []dockerclient.Container) []dockerclient.Container {
 	numNodes := len(nodes)
 	if numNodes == 0 {
-		return nil
+		log().Warn("unable to detect interlock node; to ensure optimal reloads make sure interlock is visible in the swarm cluster")
+		return proxyContainers
 	}
 
 	if numNodes == 1 {

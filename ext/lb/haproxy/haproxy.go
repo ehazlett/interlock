@@ -44,7 +44,7 @@ func (p *HAProxyLoadBalancer) ConfigPath() string {
 }
 
 func (p *HAProxyLoadBalancer) Template() string {
-	if (p.cfg.TemplatePath != "") {
+	if p.cfg.TemplatePath != "" {
 		d, err := ioutil.ReadFile(p.cfg.TemplatePath)
 
 		if err == nil {
@@ -66,6 +66,7 @@ func (p *HAProxyLoadBalancer) Reload(proxyContainers []dockerclient.Container) e
 
 	for _, cnt := range proxyContainers {
 		// restart
+		log().Debugf("restarting proxy container: id=%s", cnt.Id)
 		if err := p.client.RestartContainer(cnt.Id, 1); err != nil {
 			log().Errorf("error restarting container: id=%s err=%s", cnt.Id[:12], err)
 			continue

@@ -70,6 +70,7 @@ func (p *NginxLoadBalancer) Reload(proxyContainers []dockerclient.Container) err
 	// restart all interlock managed nginx containers
 	for _, cnt := range proxyContainers {
 		// restart
+		log().Debugf("reloading proxy container: id=%s", cnt.Id)
 		if err := p.client.KillContainer(cnt.Id, "HUP"); err != nil {
 			log().Errorf("error reloading container: id=%s err=%s", cnt.Id[:12], err)
 			continue
