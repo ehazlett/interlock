@@ -18,11 +18,12 @@ import (
 	"github.com/ehazlett/interlock/ext/lb/nginx"
 	"github.com/ehazlett/ttlcache"
 	"github.com/samalba/dockerclient"
+	"os"
 )
 
 const (
 	pluginName      = "lb"
-	ReloadThreshold = time.Millisecond * 500
+	ReloadThreshold = time.Millisecond * 2000
 )
 
 var (
@@ -46,12 +47,12 @@ type LoadBalancerBackend interface {
 }
 
 type LoadBalancer struct {
+	nodeID  string
 	cfg     *config.ExtensionConfig
 	client  *dockerclient.DockerClient
 	cache   *ttlcache.TTLCache
 	lock    *sync.Mutex
 	backend LoadBalancerBackend
-	nodeID  string
 }
 
 func log() *logrus.Entry {
@@ -65,6 +66,19 @@ type eventArgs struct {
 }
 
 func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClient) (*LoadBalancer, error) {
+	if c.TemplatePath != "" {
+		if _, err := os.Stat(c.TemplatePath); os.IsNotExist(err) {
+			log().Errorf("Missing %s configuration template: file=%s", c.Name, c.TemplatePath)
+			log().Errorf("Use the TemplatePath option in your Interlock config.toml to set a custom location for the %s configuration template", c.Name)
+			log().Errorf("Examples of an configuration template: url=https://github.com/ehazlett/interlock/tree/master/docs/examples/%s", c.Name)
+			log().Fatal(err)
+		} else {
+			log().Debugf("using configuration template: file=%s", c.TemplatePath)
+		}
+	} else {
+		log().Debugf("using internal configuration template")
+	}
+
 	// parse config base dir
 	c.ConfigBasePath = filepath.Dir(c.ConfigPath)
 
@@ -182,7 +196,7 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 
 			log().Debug("updating load balancers")
 
-			containers, err := client.ListContainers(false, false, "")
+			containers, err := client.ListContainers(true, false, "")
 			if err != nil {
 				errChan <- err
 				continue
@@ -208,6 +222,8 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 				continue
 			}
 
+			log().Debugf("proxyContainers: %v", proxyContainers)
+
 			// save config
 			log().Debug("saving proxy config")
 			if err := extension.SaveConfig(configPath, cfg, proxyContainers); err != nil {
@@ -220,7 +236,6 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 			case "nginx":
 				proxyConfig := cfg.(*nginx.Config)
 				proxyNetworks = proxyConfig.Networks
-
 			case "haproxy":
 				proxyConfig := cfg.(*haproxy.Config)
 				proxyNetworks = proxyConfig.Networks
@@ -276,7 +291,11 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 
 			// trigger reload
 			log().Debug("signaling reload")
+
+			// pause to ensure file write sync
+			time.Sleep(time.Millisecond * 1000)
 			if err := extension.backend.Reload(proxyContainersToRestart); err != nil {
+				log().Error(err)
 				errChan <- err
 				continue
 			}
@@ -299,7 +318,7 @@ func (l *LoadBalancer) Name() string {
 }
 
 func (l *LoadBalancer) ProxyContainers(name string) ([]dockerclient.Container, error) {
-	containers, err := l.client.ListContainers(false, false, "")
+	containers, err := l.client.ListContainers(true, false, "")
 	if err != nil {
 		return nil, err
 	}
@@ -309,6 +328,7 @@ func (l *LoadBalancer) ProxyContainers(name string) ([]dockerclient.Container, e
 	// find interlock proxy containers
 	for _, cnt := range containers {
 		if v, ok := cnt.Labels[ext.InterlockExtNameLabel]; ok && v == l.backend.Name() {
+			log().Debugf("detected proxy container: id=%s backend=%v", cnt.Id, v)
 			proxyContainers = append(proxyContainers, cnt)
 		}
 	}
@@ -393,7 +413,7 @@ func (l *LoadBalancer) HandleEvent(event *dockerclient.Event) error {
 
 		// wait for container to stop
 		time.Sleep(time.Millisecond * 250)
-	case "interlock-start", "destroy":
+	case "interlock-start", "interlock-restart", "destroy":
 		// force reload
 		reload = true
 	}
@@ -423,7 +443,12 @@ func (l *LoadBalancer) HandleEvent(event *dockerclient.Event) error {
 func (l *LoadBalancer) proxyContainersToRestart(nodes []dockerclient.Container, proxyContainers []dockerclient.Container) []dockerclient.Container {
 	numNodes := len(nodes)
 	if numNodes == 0 {
-		return nil
+		log().Warn("unable to detect interlock node; to ensure optimal reloads make sure interlock is visible in the swarm cluster")
+		return proxyContainers
+	}
+
+	if numNodes == 1 {
+		return proxyContainers
 	}
 
 	log().Debugf("calculating restart across interlock nodes: num=%d", numNodes)

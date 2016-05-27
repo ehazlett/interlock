@@ -1,6 +1,4 @@
-package nginx
-
-var nginxPlusConfTemplate = `# managed by interlock
+# managed by interlock
 user  {{ .Config.User }};
 worker_processes  {{ .Config.WorkerProcesses }};
 worker_rlimit_nofile {{ .Config.RLimitNoFile }};
@@ -94,7 +92,7 @@ http {
         {{ end }}
     }{{ else }}
     upstream {{ $host.Upstream.Name }} {
-        {{ if $host.IPHash }}ip_hash; {{else}}zone {{ $host.Upstream.Name }}_backend 64k;{{ end }}
+        zone {{ $host.Upstream.Name }}_backend 64k;
 
         {{ range $up := $host.Upstream.Servers }}server {{ $up.Addr }};
         {{ end }}
@@ -158,4 +156,3 @@ http {
 
     include {{ .Config.ConfigBasePath }}/conf.d/*.conf;
 }
-`

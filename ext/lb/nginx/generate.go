@@ -3,6 +3,7 @@ package nginx
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/ehazlett/interlock/ext/lb/utils"
 	"github.com/samalba/dockerclient"
@@ -12,13 +13,15 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []dockerclient.Contai
 	var hosts []*Host
 	upstreamServers := map[string][]string{}
 	serverNames := map[string][]string{}
+	hostContextRoots := map[string]*ContextRoot{}
+	hostContextRootRewrites := map[string]bool{}
 	hostSSL := map[string]bool{}
 	hostSSLCert := map[string]string{}
 	hostSSLCertKey := map[string]string{}
 	hostSSLOnly := map[string]bool{}
 	hostSSLBackend := map[string]bool{}
 	hostWebsocketEndpoints := map[string][]string{}
-
+	hostIPHash := map[string]bool{}
 	networks := map[string]string{}
 
 	for _, c := range containers {
@@ -32,13 +35,29 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []dockerclient.Contai
 		hostname := utils.Hostname(cInfo.Config)
 		domain := utils.Domain(cInfo.Config)
 
-		if domain == "" {
+		// context root
+		contextRoot := utils.ContextRoot(cInfo.Config)
+		contextRootName := strings.Replace(contextRoot, "/", "_", -1)
+
+		if domain == "" && contextRoot == "" {
 			continue
 		}
 
-		if hostname != domain && hostname != "" {
-			domain = fmt.Sprintf("%s.%s", hostname, domain)
+		// we check if a context root is passed and overwrite the
+		// domain component
+		if contextRoot != "" {
+			domain = contextRootName
+		} else {
+			if hostname != domain && hostname != "" {
+				domain = fmt.Sprintf("%s.%s", hostname, domain)
+			}
 		}
+
+		hostContextRoots[domain] = &ContextRoot{
+			Name: contextRootName,
+			Path: contextRoot,
+		}
+		hostContextRootRewrites[domain] = utils.ContextRootRewrite(cInfo.Config)
 
 		// check if the first server name is there; if not, add
 		// this happens if there are multiple backend containers
@@ -48,7 +67,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []dockerclient.Contai
 
 		hostSSL[domain] = utils.SSLEnabled(cInfo.Config)
 		hostSSLOnly[domain] = utils.SSLOnly(cInfo.Config)
-
+		hostIPHash[domain] = utils.IPHash(cInfo.Config)
 		// check ssl backend
 		hostSSLBackend[domain] = utils.SSLBackend(cInfo.Config)
 
@@ -90,7 +109,14 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []dockerclient.Contai
 
 			networks[n] = ""
 		} else {
-			if len(cInfo.NetworkSettings.Ports) == 0 {
+			portsExposed := false
+			for _, portBindings := range cInfo.NetworkSettings.Ports {
+				if len(portBindings) != 0 {
+					portsExposed = true
+					break
+				}
+			}
+			if !portsExposed {
 				log().Warnf("%s: no ports exposed", cntId)
 				continue
 			}
@@ -131,6 +157,8 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []dockerclient.Contai
 		h := &Host{
 			ServerNames:        serverNames[k],
 			Port:               p.cfg.Port,
+			ContextRoot:        hostContextRoots[k],
+			ContextRootRewrite: hostContextRootRewrites[k],
 			SSLPort:            p.cfg.SSLPort,
 			SSL:                hostSSL[k],
 			SSLCert:            hostSSLCert[k],
@@ -138,6 +166,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []dockerclient.Contai
 			SSLOnly:            hostSSLOnly[k],
 			SSLBackend:         hostSSLBackend[k],
 			WebsocketEndpoints: hostWebsocketEndpoints[k],
+			IPHash:             hostIPHash[k],
 		}
 
 		servers := []*Server{}

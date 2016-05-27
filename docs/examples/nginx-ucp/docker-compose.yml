@@ -1,6 +1,6 @@
 interlock:
     image: ehazlett/interlock:master
-    command: -D run -c /etc/interlock/config.toml
+    command: -D run
     tty: true
     ports:
         - 8080
@@ -8,20 +8,20 @@ interlock:
         INTERLOCK_CONFIG: |
             ListenAddr = ":8080"
             DockerURL = "${SWARM_HOST}"
-            TLSCACert = "/var/lib/boot2docker/ca.pem"
-            TLSCert = "/var/lib/boot2docker/server.pem"
-            TLSKey = "/var/lib/boot2docker/server-key.pem"
+            TLSCACert = "/certs/ca.pem"
+            TLSCert = "/certs/cert.pem"
+            TLSKey = "/certs/key.pem"
 
             [[Extensions]]
             Name = "nginx"
             ConfigPath = "/etc/nginx/nginx.conf"
-            PidPath = "/var/run/nginx.pid"
-            TemplatePath = ""
+            PidPath = "/etc/nginx/nginx.pid"
             MaxConn = 1024
             Port = 80
     volumes:
-        - /var/lib/boot2docker:/var/lib/boot2docker:ro
-
+        - ucp-node-certs:/certs
+    restart: always
+    
 nginx:
     image: nginx:latest
     entrypoint: nginx
@@ -30,10 +30,10 @@ nginx:
         - 80:80
     labels:
         - "interlock.ext.name=nginx"
-
+    restart: always
+    
 app:
     image: ehazlett/docker-demo:latest
-    hostname: test.local
     ports:
         - 8080
     labels:

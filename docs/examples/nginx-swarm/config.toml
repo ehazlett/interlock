@@ -1,9 +1,12 @@
-listenAddr = ":8080"
-dockerURL = "tcp://127.0.0.1:3375"
+ListenAddr = ":8080"
+DockerURL = "tcp://127.0.0.1:3375"
 
-[[extensions]]
-name = "nginx"
-configPath = "/etc/conf/nginx.conf"
-pidPath = "/etc/conf/nginx.pid"
-maxConn = 1024
-port = 80
+[[Extensions]]
+Name = "nginx"
+ConfigPath = "/etc/nginx/nginx.conf"
+PidPath = "/var/run/nginx.pid"
+TemplatePath = "/etc/interlock/nginx.conf.template"
+BackendOverrideAddress = "172.17.0.1"
+MaxConn = 1024
+Port = 80
+NginxPlusEnabled = false

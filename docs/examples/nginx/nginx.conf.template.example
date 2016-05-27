@@ -1,6 +1,4 @@
-package nginx
-
-var nginxPlusConfTemplate = `# managed by interlock
+# managed by interlock
 user  {{ .Config.User }};
 worker_processes  {{ .Config.WorkerProcesses }};
 worker_rlimit_nofile {{ .Config.RLimitNoFile }};
@@ -62,18 +60,10 @@ http {
             listen {{ .Config.Port }};
             server_name _;
 
-	    root /usr/share/nginx/html;
+            location / {
+                return 503;
+            }
 
-	    # nginxplus
-    	    location = / {
-    	        return 301 /status.html;
-    	    }
-    	    location = /status.html { }
-	    # end nginxplus
-
-    	    location /status {
-    	        status;
-    	    }
 	    {{ range $host := .Hosts }}
 	    {{ if ne $host.ContextRoot.Path "" }}
 	    location {{ $host.ContextRoot.Path }} {
@@ -83,6 +73,10 @@ http {
 	    }
 	    {{ end }}
 	    {{ end }}
+            location /nginx_status {
+                stub_status on;
+                access_log off;
+            }
     }
 
     {{ range $host := .Hosts }}
@@ -94,7 +88,7 @@ http {
         {{ end }}
     }{{ else }}
     upstream {{ $host.Upstream.Name }} {
-        {{ if $host.IPHash }}ip_hash; {{else}}zone {{ $host.Upstream.Name }}_backend 64k;{{ end }}
+        zone {{ $host.Upstream.Name }}_backend 64k;
 
         {{ range $up := $host.Upstream.Servers }}server {{ $up.Addr }};
         {{ end }}
@@ -108,8 +102,6 @@ http {
             {{ if $host.SSLBackend }}proxy_pass https://{{ $host.Upstream.Name }};{{ else }}proxy_pass http://{{ $host.Upstream.Name }};{{ end }}
         }
 
-        status_zone {{ $host.Upstream.Name }}_backend;
-
         {{ range $ws := $host.WebsocketEndpoints }}
         location {{ $ws }} {
             {{ if $host.SSLBackend }}proxy_pass https://{{ $host.Upstream.Name }};{{ else }}proxy_pass http://{{ $host.Upstream.Name }};{{ end }}
@@ -118,9 +110,10 @@ http {
             proxy_set_header Connection $connection_upgrade;
         }
 
-    	location /status {
-    	    status;
-    	}
+        location /nginx_status {
+            stub_status on;
+            access_log off;
+        }
 
         {{ end }}
         {{ end }}
@@ -158,4 +151,3 @@ http {
 
     include {{ .Config.ConfigBasePath }}/conf.d/*.conf;
 }
-`
