@@ -57,6 +57,35 @@ http {
         ''      close;
     }
 
+    {{ if .Config.DefaultHostSSL }}
+    # default host return 503
+    server {
+        listen {{ .Config.DefaultSSLPort }} ssl default_server;
+        server_name _;
+        ssl_certificate {{ .Config.DefaultHostSSLCrtPath }};
+        ssl_certificate_key {{ .Config.DefaultHostSSLKeyPath }};
+
+        location / {
+            return 503;
+        }
+
+      {{ range $host := .Hosts }}
+      {{ if ne $host.ContextRoot.Path "" }}
+      location {{ $host.ContextRoot.Path }} {
+    {{ if $host.ContextRootRewrite }}rewrite ^([^.]*[^/])$ $1/ permanent;
+    rewrite  ^{{ $host.ContextRoot.Path }}/(.*)  /$1 break;{{ end }}
+    proxy_pass http://ctx{{ $host.ContextRoot.Name }};
+      }
+      {{ end }}
+      {{ end }}
+        location /nginx_status {
+            stub_status on;
+            access_log off;
+        }
+
+    }
+    {{ end }}
+
     # default host return 503
     server {
             listen {{ .Config.Port }};
