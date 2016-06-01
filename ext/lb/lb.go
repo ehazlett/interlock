@@ -303,8 +303,8 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 			d := time.Since(start)
 			duration := float64(d.Seconds() * float64(1000))
 
-			log().Debug("triggering proxy network cleanup")
-			proxyNetworkCleanupChan <- proxyContainerNetworkConfigs
+			//log().Debug("triggering proxy network cleanup")
+			//proxyNetworkCleanupChan <- proxyContainerNetworkConfigs
 
 			log().Infof("reload duration: %0.2fms", duration)
 		}
