@@ -96,6 +96,7 @@ they are compatible:
 |Option|Type|Extensions Supported|
 |----|----|----|
 |Name                   | string | extension name |
+|ServiceName            | string | service name |
 |ConfigPath             | string | config file path |
 |PidPath                | string | haproxy, nginx |
 |TemplatePath           | string | haproxy, nginx |

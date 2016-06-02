@@ -18,6 +18,7 @@ import (
 	"github.com/ehazlett/interlock/ext/lb"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/samalba/dockerclient"
+	"fmt"
 )
 
 const (
@@ -182,7 +183,13 @@ func (s *Server) waitForSwarm() {
 
 func (s *Server) loadExtensions(client *dockerclient.DockerClient) {
 	for _, x := range s.cfg.Extensions {
-		log.Debugf("loading extension: name=%s", x.Name)
+		loadingMsg := fmt.Sprintf("loading extension: name=%s", x.Name)
+		if len(x.ServiceName) > 0 {
+			loadingMsg = fmt.Sprintf("%s serviceName=%s", loadingMsg, x.ServiceName)
+		}
+
+		log.Debugf(loadingMsg)
+
 		switch strings.ToLower(x.Name) {
 		case "haproxy", "nginx":
 			p, err := lb.NewLoadBalancer(x, client)
