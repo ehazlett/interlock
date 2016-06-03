@@ -11,6 +11,6 @@ label upon start: `interlock.ext.name=nginx`.  For example:
 
 `docker run -p 80:80 --label interlock.ext.name=nginx nginx`
 
-Interlock will reload all containers with that label whenever the HAProxy config
+Interlock will reload all containers with that label whenever the Nginx config
 is updated.  Interlock sends a `SIGHUP` to the container.  This will cause
 Nginx to reload the configuration without connection interruption.
