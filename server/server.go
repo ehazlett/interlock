@@ -215,21 +215,33 @@ func (s *Server) runPoller(d time.Duration) {
 			}
 
 			containerIDs := []string{}
+			ports := []int{}
 
 			for _, c := range containers {
 				containerIDs = append(containerIDs, c.Id)
+				for _, p := range c.Ports {
+					ports = append(ports, p.PublicPort)
+				}
 			}
 
 			sort.Strings(containerIDs)
+			sort.Ints(ports)
 
-			data, err := json.Marshal(containerIDs)
+			cData, err := json.Marshal(containerIDs)
 			if err != nil {
 				log.Errorf("unable to marshal containers: %s", err)
 				continue
 			}
 
+			pData, err := json.Marshal(ports)
+			if err != nil {
+				log.Errorf("unable to marshal ports: %s", err)
+				continue
+			}
+
 			h := sha256.New()
-			h.Write(data)
+			h.Write(cData)
+			h.Write(pData)
 			sum := hex.EncodeToString(h.Sum(nil))
 
 			if sum != s.containerHash {
@@ -259,8 +271,8 @@ func (s *Server) Run() error {
 		}
 
 		if d < defaultPollInterval {
-			log.Warnf("poll interval too quick; defaulting to %dms", defaultPollInterval)
-			s.cfg.PollInterval = "2000ms"
+			log.Warnf("poll interval too quick; defaulting to %v", defaultPollInterval)
+			s.cfg.PollInterval = "2s"
 			d = defaultPollInterval
 		}
 
