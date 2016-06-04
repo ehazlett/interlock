@@ -41,6 +41,10 @@ type ExtensionConfig struct {
 	SSLCiphers             string           // nginx
 	SSLProtocols           string           // nginx
 	StatInterval           int              // beacon
+	DefaultHostSSL         bool             // nginx
+	DefaultSSLPort         int              // nginx
+	DefaultHostSSLKeyPath  string           // nginx
+	DefaultHostSSLCrtPath  string           // nginx
 	Rules                  map[string]*Rule // beacon FIXME: this isn't loaded properly from toml; we set it as a hack now
 }
 
