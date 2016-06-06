@@ -12,7 +12,12 @@ func (b *Beacon) sendContainerStats(id string, stats *dockerclient.Stats, ec cha
 	// report on interval
 	timestamp := time.Now()
 
-	rem := math.Mod(float64(timestamp.Second()), float64(b.cfg.StatInterval))
+	d, err := time.ParseDuration(b.cfg.StatInterval)
+	if err != nil {
+		log().Errorf("unable to parse stat interval: %s", err)
+		return
+	}
+	rem := math.Mod(float64(timestamp.Second()), float64(d.Seconds()))
 	if rem != 0 {
 		return
 	}
@@ -188,7 +193,7 @@ func (b *Beacon) startStats(id string) error {
 		return nil
 	}
 
-	log().Debugf("gathering stats: id=%s image=%s interval=%d", id, image, b.cfg.StatInterval)
+	log().Debugf("gathering stats: id=%s image=%s interval=%s", id, image, b.cfg.StatInterval)
 
 	go b.handleStats(id, b.sendContainerStats, errChan, args)
 

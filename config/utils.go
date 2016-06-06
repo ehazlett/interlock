@@ -1,8 +1,8 @@
 package config
 
 import (
-	"fmt"
 	"github.com/BurntSushi/toml"
+	log "github.com/Sirupsen/logrus"
 )
 
 // ParseConfig returns a Config object from a raw string config TOML
@@ -41,8 +41,10 @@ func SetConfigDefaults(c *ExtensionConfig) error {
 		SetHAProxyConfigDefaults(c)
 	case "nginx":
 		SetNginxConfigDefaults(c)
+	case "beacon":
+		SetBeaconConfigDefaults(c)
 	default:
-		return fmt.Errorf("unknown load balancer backend: %s", c.Name)
+		log.Debugf("unknown extension %q; not loading config defaults", c.Name)
 	}
 
 	return nil
@@ -113,5 +115,11 @@ func SetNginxConfigDefaults(c *ExtensionConfig) {
 
 	if c.SSLProtocols == "" {
 		c.SSLProtocols = "SSLv3 TLSv1 TLSv1.1 TLSv1.2"
+	}
+}
+
+func SetBeaconConfigDefaults(c *ExtensionConfig) {
+	if c.StatInterval == "" {
+		c.StatInterval = "30s"
 	}
 }

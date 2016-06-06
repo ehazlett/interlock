@@ -40,7 +40,7 @@ type ExtensionConfig struct {
 	SendTimeout            int              // nginx
 	SSLCiphers             string           // nginx
 	SSLProtocols           string           // nginx
-	StatInterval           int              // beacon
+	StatInterval           string           // beacon
 	Rules                  map[string]*Rule // beacon FIXME: this isn't loaded properly from toml; we set it as a hack now
 }
 

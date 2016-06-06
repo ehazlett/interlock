@@ -192,6 +192,10 @@ func (s *Server) loadExtensions(client *dockerclient.DockerClient) {
 			}
 			s.extensions = append(s.extensions, p)
 		case "beacon":
+			if !s.cfg.EnableMetrics {
+				log.Errorf("unable to load beacon: metrics are disabled")
+				continue
+			}
 			p, err := beacon.NewBeacon(x, client)
 			if err != nil {
 				log.Errorf("error loading beacon extension: %s", err)
