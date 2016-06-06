@@ -1,7 +1,7 @@
 package beacon
 
 import (
-	"math"
+	"fmt"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -9,19 +9,6 @@ import (
 )
 
 func (b *Beacon) sendContainerStats(id string, stats *dockerclient.Stats, ec chan error, args ...interface{}) {
-	// report on interval
-	timestamp := time.Now()
-
-	d, err := time.ParseDuration(b.cfg.StatInterval)
-	if err != nil {
-		log().Errorf("unable to parse stat interval: %s", err)
-		return
-	}
-	rem := math.Mod(float64(timestamp.Second()), float64(d.Seconds()))
-	if rem != 0 {
-		return
-	}
-
 	log().Debugf("updating container stats: id=%s", id)
 
 	image := ""
@@ -195,7 +182,16 @@ func (b *Beacon) startStats(id string) error {
 
 	log().Debugf("gathering stats: id=%s image=%s interval=%s", id, image, b.cfg.StatInterval)
 
-	go b.handleStats(id, b.sendContainerStats, errChan, args)
+	d, err := time.ParseDuration(b.cfg.StatInterval)
+	if err != nil {
+		return fmt.Errorf("unable to parse stat interval: %s", err)
+	}
+	t := time.NewTicker(d)
+	go func() {
+		for range t.C {
+			go b.handleStats(id, b.sendContainerStats, errChan, args)
+		}
+	}()
 
 	return nil
 }
