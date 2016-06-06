@@ -49,8 +49,10 @@ http {
     send_timeout {{ .Config.SendTimeout }};
 
     # ssl
+    ssl_prefer_server_ciphers on;
     ssl_ciphers {{ .Config.SSLCiphers }};
     ssl_protocols {{ .Config.SSLProtocols }};
+    {{ if .Config.DHParam}}ssl_dhparam {{ .Config.DHParamPath }};{{ end }}
 
     map $http_upgrade $connection_upgrade {
         default upgrade;
