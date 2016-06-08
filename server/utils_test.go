@@ -1,6 +1,7 @@
 package server
 
 import (
+	"os"
 	"testing"
 )
 

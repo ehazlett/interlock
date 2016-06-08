@@ -120,6 +120,7 @@ func IsErrUnauthorized(err error) bool {
 	_, ok := err.(unauthorizedError)
 	return ok
 }
+<<<<<<< HEAD
 
 // nodeNotFoundError implements an error returned when a node is not found.
 type nodeNotFoundError struct {
@@ -201,3 +202,5 @@ func IsErrPluginPermissionDenied(err error) bool {
 	_, ok := err.(pluginPermissionDenied)
 	return ok
 }
+=======
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient

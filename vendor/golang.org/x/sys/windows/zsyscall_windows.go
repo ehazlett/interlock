@@ -2,12 +2,20 @@
 
 package windows
 
+<<<<<<< HEAD
 import "unsafe"
 import "syscall"
+=======
+import (
+	"syscall"
+	"unsafe"
+)
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 
 var _ unsafe.Pointer
 
 var (
+<<<<<<< HEAD
 	modadvapi32 = syscall.NewLazyDLL("advapi32.dll")
 	modkernel32 = syscall.NewLazyDLL("kernel32.dll")
 	modshell32  = syscall.NewLazyDLL("shell32.dll")
@@ -19,6 +27,19 @@ var (
 	modsecur32  = syscall.NewLazyDLL("secur32.dll")
 	modnetapi32 = syscall.NewLazyDLL("netapi32.dll")
 	moduserenv  = syscall.NewLazyDLL("userenv.dll")
+=======
+	modadvapi32 = NewLazySystemDLL("advapi32.dll")
+	modkernel32 = NewLazySystemDLL("kernel32.dll")
+	modshell32  = NewLazySystemDLL("shell32.dll")
+	modmswsock  = NewLazySystemDLL("mswsock.dll")
+	modcrypt32  = NewLazySystemDLL("crypt32.dll")
+	modws2_32   = NewLazySystemDLL("ws2_32.dll")
+	moddnsapi   = NewLazySystemDLL("dnsapi.dll")
+	modiphlpapi = NewLazySystemDLL("iphlpapi.dll")
+	modsecur32  = NewLazySystemDLL("secur32.dll")
+	modnetapi32 = NewLazySystemDLL("netapi32.dll")
+	moduserenv  = NewLazySystemDLL("userenv.dll")
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 
 	procRegisterEventSourceW               = modadvapi32.NewProc("RegisterEventSourceW")
 	procDeregisterEventSource              = modadvapi32.NewProc("DeregisterEventSource")
@@ -39,6 +60,10 @@ var (
 	procQueryServiceConfig2W               = modadvapi32.NewProc("QueryServiceConfig2W")
 	procGetLastError                       = modkernel32.NewProc("GetLastError")
 	procLoadLibraryW                       = modkernel32.NewProc("LoadLibraryW")
+<<<<<<< HEAD
+=======
+	procLoadLibraryExW                     = modkernel32.NewProc("LoadLibraryExW")
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 	procFreeLibrary                        = modkernel32.NewProc("FreeLibrary")
 	procGetProcAddress                     = modkernel32.NewProc("GetProcAddress")
 	procGetVersion                         = modkernel32.NewProc("GetVersion")
@@ -430,6 +455,31 @@ func _LoadLibrary(libname *uint16) (handle Handle, err error) {
 	return
 }
 
+<<<<<<< HEAD
+=======
+func LoadLibraryEx(libname string, zero Handle, flags uintptr) (handle Handle, err error) {
+	var _p0 *uint16
+	_p0, err = syscall.UTF16PtrFromString(libname)
+	if err != nil {
+		return
+	}
+	return _LoadLibraryEx(_p0, zero, flags)
+}
+
+func _LoadLibraryEx(libname *uint16, zero Handle, flags uintptr) (handle Handle, err error) {
+	r0, _, e1 := syscall.Syscall(procLoadLibraryExW.Addr(), 3, uintptr(unsafe.Pointer(libname)), uintptr(zero), uintptr(flags))
+	handle = Handle(r0)
+	if handle == 0 {
+		if e1 != 0 {
+			err = error(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 func FreeLibrary(handle Handle) (err error) {
 	r1, _, e1 := syscall.Syscall(procFreeLibrary.Addr(), 1, uintptr(handle), 0, 0)
 	if r1 == 0 {

@@ -1,2 +1,5 @@
 *.coverprofile
+<<<<<<< HEAD
 node_modules/
+=======
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient

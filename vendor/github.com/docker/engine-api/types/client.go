@@ -240,6 +240,7 @@ type VersionResponse struct {
 func (v VersionResponse) ServerOK() bool {
 	return v.Server != nil
 }
+<<<<<<< HEAD
 
 // NodeListOptions holds parameters to list  nodes with.
 type NodeListOptions struct {
@@ -262,3 +263,5 @@ type ServiceListOptions struct {
 type TaskListOptions struct {
 	Filter filters.Args
 }
+=======
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient

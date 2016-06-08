@@ -23,9 +23,14 @@ type IPAMConfig struct {
 
 // EndpointIPAMConfig represents IPAM configurations for the endpoint
 type EndpointIPAMConfig struct {
+<<<<<<< HEAD
 	IPv4Address  string   `json:",omitempty"`
 	IPv6Address  string   `json:",omitempty"`
 	LinkLocalIPs []string `json:",omitempty"`
+=======
+	IPv4Address string `json:",omitempty"`
+	IPv6Address string `json:",omitempty"`
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 }
 
 // EndpointSettings stores the network endpoint details

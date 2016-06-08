@@ -794,9 +794,12 @@ func stringifyFlag(f Flag) string {
 	case IntSliceFlag:
 		return withEnvHint(fv.FieldByName("EnvVar").String(),
 			stringifyIntSliceFlag(f.(IntSliceFlag)))
+<<<<<<< HEAD
 	case Int64SliceFlag:
 		return withEnvHint(fv.FieldByName("EnvVar").String(),
 			stringifyInt64SliceFlag(f.(Int64SliceFlag)))
+=======
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 	case StringSliceFlag:
 		return withEnvHint(fv.FieldByName("EnvVar").String(),
 			stringifyStringSliceFlag(f.(StringSliceFlag)))
@@ -842,6 +845,7 @@ func stringifyIntSliceFlag(f IntSliceFlag) string {
 	return stringifySliceFlag(f.Usage, f.Name, defaultVals)
 }
 
+<<<<<<< HEAD
 func stringifyInt64SliceFlag(f Int64SliceFlag) string {
 	defaultVals := []string{}
 	if f.Value != nil && len(f.Value.Value()) > 0 {
@@ -853,6 +857,8 @@ func stringifyInt64SliceFlag(f Int64SliceFlag) string {
 	return stringifySliceFlag(f.Usage, f.Name, defaultVals)
 }
 
+=======
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 func stringifyStringSliceFlag(f StringSliceFlag) string {
 	defaultVals := []string{}
 	if f.Value != nil && len(f.Value.Value()) > 0 {

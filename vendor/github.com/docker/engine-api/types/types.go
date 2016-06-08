@@ -7,7 +7,10 @@ import (
 	"github.com/docker/engine-api/types/container"
 	"github.com/docker/engine-api/types/network"
 	"github.com/docker/engine-api/types/registry"
+<<<<<<< HEAD
 	"github.com/docker/engine-api/types/swarm"
+=======
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 	"github.com/docker/go-connections/nat"
 )
 
@@ -254,7 +257,11 @@ type Info struct {
 	ClusterAdvertise   string
 	SecurityOptions    []string
 	Runtimes           map[string]Runtime
+<<<<<<< HEAD
 	Swarm              swarm.Info
+=======
+	DefaultRuntime     string
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 }
 
 // PluginsInfo is a temp struct holding Plugins name
@@ -503,6 +510,13 @@ type Checkpoint struct {
 	Name string // Name is the name of the checkpoint
 }
 
+<<<<<<< HEAD
+=======
+// DefaultRuntimeName is the reserved name/alias used to represent the
+// OCI runtime being shipped with the docker daemon package.
+var DefaultRuntimeName = "default"
+
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 // Runtime describes an OCI runtime
 type Runtime struct {
 	Path string   `json:"path"`

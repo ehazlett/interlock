@@ -29,12 +29,18 @@ matrix:
 
 before_script:
 - go get github.com/urfave/gfmxr/...
+<<<<<<< HEAD
 - if [ ! -f node_modules/.bin/markdown-toc ] ; then
     npm install markdown-toc ;
   fi
+=======
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 
 script:
 - ./runtests vet
 - ./runtests test
 - ./runtests gfmxr
+<<<<<<< HEAD
 - ./runtests toc
+=======
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient

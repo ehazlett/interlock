@@ -84,6 +84,10 @@ func NewCallbackCDecl(fn interface{}) uintptr
 
 //sys	GetLastError() (lasterr error)
 //sys	LoadLibrary(libname string) (handle Handle, err error) = LoadLibraryW
+<<<<<<< HEAD
+=======
+//sys	LoadLibraryEx(libname string, zero Handle, flags uintptr) (handle Handle, err error) = LoadLibraryExW
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 //sys	FreeLibrary(handle Handle) (err error)
 //sys	GetProcAddress(module Handle, procname string) (proc uintptr, err error)
 //sys	GetVersion() (ver uint32, err error)

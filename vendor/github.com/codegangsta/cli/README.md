@@ -1,6 +1,9 @@
+<<<<<<< HEAD
 cli
 ===
 
+=======
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 [![Build Status](https://travis-ci.org/urfave/cli.svg?branch=master)](https://travis-ci.org/urfave/cli)
 [![Windows Build Status](https://ci.appveyor.com/api/projects/status/rtgk5xufi932pb2v?svg=true)](https://ci.appveyor.com/project/urfave/cli)
 [![GoDoc](https://godoc.org/github.com/urfave/cli?status.svg)](https://godoc.org/github.com/urfave/cli)
@@ -9,6 +12,12 @@ cli
 [![top level coverage](https://gocover.io/_badge/github.com/urfave/cli?0 "top level coverage")](http://gocover.io/github.com/urfave/cli) /
 [![altsrc coverage](https://gocover.io/_badge/github.com/urfave/cli/altsrc?0 "altsrc coverage")](http://gocover.io/github.com/urfave/cli/altsrc)
 
+<<<<<<< HEAD
+=======
+
+# cli
+
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 **Notice:** This is the library formerly known as
 `github.com/codegangsta/cli` -- Github will automatically redirect requests
 to this repository, but we recommend updating your references for clarity.
@@ -16,6 +25,7 @@ to this repository, but we recommend updating your references for clarity.
 cli is a simple, fast, and fun package for building command line apps in Go. The
 goal is to enable developers to write fast and distributable command line
 applications in an expressive way.
+<<<<<<< HEAD
 
 <!-- toc -->
 
@@ -47,6 +57,8 @@ applications in an expressive way.
 - [Contribution Guidelines](#contribution-guidelines)
 
 <!-- tocstop -->
+=======
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 
 ## Overview
 
@@ -84,8 +96,11 @@ released version of Go on OS X and Windows.  For full details, see
 
 ### Using the `v2` branch
 
+<<<<<<< HEAD
 **Warning**: The `v2` branch is currently unreleased and considered unstable.
 
+=======
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 There is currently a long-lived branch named `v2` that is intended to land as
 the new `master` branch once development there has settled down.  The current
 `master` branch (mirrored as `v1`) is being manually merged into `v2` on
@@ -362,6 +377,7 @@ func main() {
       fmt.Println("Hello", name)
     }
     return nil
+<<<<<<< HEAD
   }
 
   app.Run(os.Args)
@@ -401,6 +417,47 @@ func main() {
   }
 
   app.Run(os.Args)
+=======
+  }
+
+  app.Run(os.Args)
+}
+```
+
+See full list of flags at http://godoc.org/github.com/urfave/cli
+
+#### Placeholder Values
+
+Sometimes it's useful to specify a flag's value within the usage string itself.
+Such placeholders are indicated with back quotes.
+
+For example this:
+
+<!-- {
+  "args": ["&#45;&#45;help"],
+  "output": "&#45;&#45;config FILE, &#45;c FILE"
+} -->
+```go
+package main
+
+import (
+  "os"
+
+  "github.com/urfave/cli"
+)
+
+func main() {
+  app := cli.NewApp()
+
+  app.Flags = []cli.Flag{
+    cli.StringFlag{
+      Name:  "config, c",
+      Usage: "Load configuration from `FILE`",
+    },
+  }
+
+  app.Run(os.Args)
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 }
 ```
 
@@ -458,6 +515,7 @@ You can also have the default value set from the environment via `EnvVar`.  e.g.
   "args": ["&#45;&#45;help"],
   "output": "language for the greeting.*APP_LANG"
 } -->
+<<<<<<< HEAD
 ``` go
 package main
 
@@ -490,6 +548,8 @@ environment variable that resolves is used as the default.
   "args": ["&#45;&#45;help"],
   "output": "language for the greeting.*LEGACY_COMPAT_LANG.*APP_LANG.*LANG"
 } -->
+=======
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 ``` go
 package main
 
@@ -507,6 +567,41 @@ func main() {
       Name: "lang, l",
       Value: "english",
       Usage: "language for the greeting",
+<<<<<<< HEAD
+=======
+      EnvVar: "APP_LANG",
+    },
+  }
+
+  app.Run(os.Args)
+}
+```
+
+The `EnvVar` may also be given as a comma-delimited "cascade", where the first
+environment variable that resolves is used as the default.
+
+<!-- {
+  "args": ["&#45;&#45;help"],
+  "output": "language for the greeting.*LEGACY_COMPAT_LANG.*APP_LANG.*LANG"
+} -->
+``` go
+package main
+
+import (
+  "os"
+
+  "github.com/urfave/cli"
+)
+
+func main() {
+  app := cli.NewApp()
+
+  app.Flags = []cli.Flag {
+    cli.StringFlag{
+      Name: "lang, l",
+      Value: "english",
+      Usage: "language for the greeting",
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
       EnvVar: "LEGACY_COMPAT_LANG,APP_LANG,LANG",
     },
   }
@@ -543,9 +638,15 @@ for this code snipped to work.
 Currently only YAML files are supported but developers can add support for other
 input sources by implementing the altsrc.InputSourceContext for their given
 sources.
+<<<<<<< HEAD
 
 Here is a more complete sample of a command using YAML support:
 
+=======
+
+Here is a more complete sample of a command using YAML support:
+
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 <!-- {
   "args": ["test-cmd", "&#45;&#45;help"],
   "output": "&#45&#45;test value.*default: 0"
@@ -1013,11 +1114,19 @@ func main() {
 
 #### Full API Example
 
+<<<<<<< HEAD
 **Notice**: This is a contrived (functioning) example meant strictly for API
 demonstration purposes.  Use of one's imagination is encouraged.
 
 <!-- {
   "output": "made it!\nPhew!"
+=======
+**NOTE**: This is a contrived (functioning) example meant strictly for API
+demonstration purposes.  Use of one's imagination is encouraged.
+
+<!-- {
+	"output": "made it!\nPhew!"
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 } -->
 ``` go
 package main
@@ -1069,6 +1178,7 @@ func (w *hexWriter) Write(p []byte) (int, error) {
   return len(p), nil
 }
 
+<<<<<<< HEAD
 type genericType struct{
   s string
 }
@@ -1082,6 +1192,8 @@ func (g *genericType) String() string {
   return g.s
 }
 
+=======
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 func main() {
   app := cli.NewApp()
   app.Name = "kənˈtrīv"
@@ -1151,6 +1263,7 @@ func main() {
   app.Flags = []cli.Flag{
     cli.BoolFlag{Name: "fancy"},
     cli.BoolTFlag{Name: "fancier"},
+<<<<<<< HEAD
     cli.DurationFlag{Name: "howlong, H", Value: time.Second * 3},
     cli.Float64Flag{Name: "howmuch"},
     cli.GenericFlag{Name: "wat", Value: &genericType{}},
@@ -1162,6 +1275,9 @@ func main() {
     cli.StringSliceFlag{Name: "names, N"},
     cli.UintFlag{Name: "age"},
     cli.Uint64Flag{Name: "bigage"},
+=======
+    cli.StringFlag{Name: "dance-move, d"},
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
   }
   app.EnableBashCompletion = true
   app.HideHelp = false
@@ -1238,14 +1354,20 @@ func main() {
     fmt.Printf("%#v\n", nc.Duration("howlong"))
     fmt.Printf("%#v\n", nc.Float64("hay"))
     fmt.Printf("%#v\n", nc.Generic("bloop"))
+<<<<<<< HEAD
     fmt.Printf("%#v\n", nc.Int64("bonk"))
     fmt.Printf("%#v\n", nc.Int64Slice("burnks"))
+=======
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
     fmt.Printf("%#v\n", nc.Int("bips"))
     fmt.Printf("%#v\n", nc.IntSlice("blups"))
     fmt.Printf("%#v\n", nc.String("snurt"))
     fmt.Printf("%#v\n", nc.StringSlice("snurkles"))
+<<<<<<< HEAD
     fmt.Printf("%#v\n", nc.Uint("flub"))
     fmt.Printf("%#v\n", nc.Uint64("florb"))
+=======
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
     fmt.Printf("%#v\n", nc.GlobalBool("global-nope"))
     fmt.Printf("%#v\n", nc.GlobalBoolT("global-nerp"))
     fmt.Printf("%#v\n", nc.GlobalDuration("global-howlong"))

@@ -3,13 +3,19 @@
 **ATTN**: This project uses [semantic versioning](http://semver.org/).
 
 ## [Unreleased]
+<<<<<<< HEAD
 
 ## [1.18.0] - 2016-06-27
+=======
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 ### Added
 - `./runtests` test runner with coverage tracking by default
 - testing on OS X
 - testing on Windows
+<<<<<<< HEAD
 - `UintFlag`, `Uint64Flag`, and `Int64Flag` types and supporting code
+=======
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 
 ### Changed
 - Use spaces for alignment in help/usage output instead of tabs, making the
@@ -17,10 +23,13 @@
 
 ### Fixed
 - Printing of command aliases in help text
+<<<<<<< HEAD
 - Printing of visible flags for both struct and struct pointer flags
 - Display the `help` subcommand when using `CommandCategories`
 - No longer swallows `panic`s that occur within the `Action`s themselves when
   detecting the signature of the `Action` field
+=======
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 
 ## [1.17.0] - 2016-05-09
 ### Added
@@ -301,8 +310,12 @@ signature of `func(*cli.Context) error`, as defined by `cli.ActionFunc`.
 ### Added
 - Initial implementation.
 
+<<<<<<< HEAD
 [Unreleased]: https://github.com/urfave/cli/compare/v1.18.0...HEAD
 [1.18.0]: https://github.com/urfave/cli/compare/v1.17.0...v1.18.0
+=======
+[Unreleased]: https://github.com/urfave/cli/compare/v1.17.0...HEAD
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 [1.17.0]: https://github.com/urfave/cli/compare/v1.16.0...v1.17.0
 [1.16.0]: https://github.com/urfave/cli/compare/v1.15.0...v1.16.0
 [1.15.0]: https://github.com/urfave/cli/compare/v1.14.0...v1.15.0

@@ -303,7 +303,11 @@ type HostConfig struct {
 	PublishAllPorts bool              // Should docker publish all exposed port for the container
 	ReadonlyRootfs  bool              // Is the container root filesystem in read-only
 	SecurityOpt     []string          // List of string values to customize labels for MLS systems, such as SELinux.
+<<<<<<< HEAD
 	StorageOpt      map[string]string `json:",omitempty"` // Storage driver options per container.
+=======
+	StorageOpt      map[string]string // Storage driver options per container.
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 	Tmpfs           map[string]string `json:",omitempty"` // List of tmpfs (mounts) used for the container
 	UTSMode         UTSMode           // UTS namespace to use for the container
 	UsernsMode      UsernsMode        // The user namespace to use for the container

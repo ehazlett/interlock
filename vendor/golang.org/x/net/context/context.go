@@ -36,12 +36,7 @@
 // Contexts.
 package context // import "golang.org/x/net/context"
 
-import (
-	"errors"
-	"fmt"
-	"sync"
-	"time"
-)
+import "time"
 
 // A Context carries a deadline, a cancelation signal, and other values across
 // API boundaries.
@@ -66,7 +61,7 @@ type Context interface {
 	//
 	//  // Stream generates values with DoSomething and sends them to out
 	//  // until DoSomething returns an error or ctx.Done is closed.
-	//  func Stream(ctx context.Context, out <-chan Value) error {
+	//  func Stream(ctx context.Context, out chan<- Value) error {
 	//  	for {
 	//  		v, err := DoSomething(ctx)
 	//  		if err != nil {
@@ -138,48 +133,6 @@ type Context interface {
 	Value(key interface{}) interface{}
 }
 
-// Canceled is the error returned by Context.Err when the context is canceled.
-var Canceled = errors.New("context canceled")
-
-// DeadlineExceeded is the error returned by Context.Err when the context's
-// deadline passes.
-var DeadlineExceeded = errors.New("context deadline exceeded")
-
-// An emptyCtx is never canceled, has no values, and has no deadline.  It is not
-// struct{}, since vars of this type must have distinct addresses.
-type emptyCtx int
-
-func (*emptyCtx) Deadline() (deadline time.Time, ok bool) {
-	return
-}
-
-func (*emptyCtx) Done() <-chan struct{} {
-	return nil
-}
-
-func (*emptyCtx) Err() error {
-	return nil
-}
-
-func (*emptyCtx) Value(key interface{}) interface{} {
-	return nil
-}
-
-func (e *emptyCtx) String() string {
-	switch e {
-	case background:
-		return "context.Background"
-	case todo:
-		return "context.TODO"
-	}
-	return "unknown empty Context"
-}
-
-var (
-	background = new(emptyCtx)
-	todo       = new(emptyCtx)
-)
-
 // Background returns a non-nil, empty Context. It is never canceled, has no
 // values, and has no deadline.  It is typically used by the main function,
 // initialization, and tests, and as the top-level Context for incoming
@@ -201,6 +154,7 @@ func TODO() Context {
 // A CancelFunc does not wait for the work to stop.
 // After the first call, subsequent calls to a CancelFunc do nothing.
 type CancelFunc func()
+<<<<<<< HEAD
 
 // WithCancel returns a copy of parent with a new Done channel. The returned
 // context's Done channel is closed when the returned cancel function is called
@@ -445,3 +399,5 @@ func (c *valueCtx) Value(key interface{}) interface{} {
 	}
 	return c.Context.Value(key)
 }
+=======
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient

@@ -31,6 +31,7 @@ func (c *Context) Int(name string) int {
 	return lookupInt(name, c.flagSet)
 }
 
+<<<<<<< HEAD
 // Int64 looks up the value of a local int flag, returns 0 if no int flag exists
 func (c *Context) Int64(name string) int64 {
 	return lookupInt64(name, c.flagSet)
@@ -46,6 +47,8 @@ func (c *Context) Uint64(name string) uint64 {
 	return lookupUint64(name, c.flagSet)
 }
 
+=======
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 // Duration looks up the value of a local time.Duration flag, returns 0 if no
 // time.Duration flag exists
 func (c *Context) Duration(name string) time.Duration {
@@ -85,12 +88,15 @@ func (c *Context) IntSlice(name string) []int {
 	return lookupIntSlice(name, c.flagSet)
 }
 
+<<<<<<< HEAD
 // Int64Slice looks up the value of a local int slice flag, returns nil if no int
 // slice flag exists
 func (c *Context) Int64Slice(name string) []int64 {
 	return lookupInt64Slice(name, c.flagSet)
 }
 
+=======
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 // Generic looks up the value of a local generic flag, returns nil if no generic
 // flag exists
 func (c *Context) Generic(name string) interface{} {
@@ -105,6 +111,7 @@ func (c *Context) GlobalInt(name string) int {
 	return 0
 }
 
+<<<<<<< HEAD
 // GlobalInt64 looks up the value of a global int flag, returns 0 if no int flag exists
 func (c *Context) GlobalInt64(name string) int64 {
 	if fs := lookupGlobalFlagSet(name, c); fs != nil {
@@ -129,6 +136,8 @@ func (c *Context) GlobalUint64(name string) uint64 {
 	return 0
 }
 
+=======
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 // GlobalFloat64 looks up the value of a global float64 flag, returns float64(0)
 // if no float64 flag exists
 func (c *Context) GlobalFloat64(name string) float64 {
@@ -192,6 +201,7 @@ func (c *Context) GlobalIntSlice(name string) []int {
 	return nil
 }
 
+<<<<<<< HEAD
 // GlobalInt64Slice looks up the value of a global int slice flag, returns nil if
 // no int slice flag exists
 func (c *Context) GlobalInt64Slice(name string) []int64 {
@@ -201,6 +211,8 @@ func (c *Context) GlobalInt64Slice(name string) []int64 {
 	return nil
 }
 
+=======
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 // GlobalGeneric looks up the value of a global generic flag, returns nil if no
 // generic flag exists
 func (c *Context) GlobalGeneric(name string) interface{} {

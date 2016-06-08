@@ -2,6 +2,10 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+<<<<<<< HEAD
+=======
+// +build windows
+>>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
 // +build go1.4
 
 package windows
