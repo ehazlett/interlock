@@ -5,11 +5,13 @@ import (
 	"net"
 	"strings"
 
+	"github.com/docker/engine-api/types"
+	ctypes "github.com/docker/engine-api/types/container"
+	"github.com/docker/go-connections/nat"
 	"github.com/ehazlett/interlock/ext"
-	"github.com/samalba/dockerclient"
 )
 
-func OverlayEnabled(config *dockerclient.ContainerConfig) (string, bool) {
+func OverlayEnabled(config *ctypes.Config) (string, bool) {
 	if v, ok := config.Labels[ext.InterlockNetworkLabel]; ok {
 		return v, true
 	}
@@ -17,10 +19,10 @@ func OverlayEnabled(config *dockerclient.ContainerConfig) (string, bool) {
 	return "", false
 }
 
-func BackendOverlayAddress(network *dockerclient.NetworkResource, containerInfo *dockerclient.ContainerInfo) (string, error) {
-	c, exists := network.Containers[containerInfo.Id]
+func BackendOverlayAddress(network types.NetworkResource, containerInfo types.ContainerJSON) (string, error) {
+	c, exists := network.Containers[containerInfo.ID]
 	if !exists {
-		return "", fmt.Errorf("container %s is not connected to network %s", containerInfo.Id, network.Name)
+		return "", fmt.Errorf("container %s is not connected to network %s", containerInfo.ID, network.Name)
 	}
 
 	ip, _, err := net.ParseCIDR(c.IPv4Address)
@@ -29,15 +31,15 @@ func BackendOverlayAddress(network *dockerclient.NetworkResource, containerInfo 
 	}
 
 	ports := containerInfo.NetworkSettings.Ports
-	portDef := dockerclient.PortBinding{}
+	portDef := nat.PortBinding{}
 	addr := ""
 
-	portDef.HostIp = ip.String()
+	portDef.HostIP = ip.String()
 
 	// parse the port
 	for k, _ := range ports {
 		if k != "" {
-			portParts := strings.Split(k, "/")
+			portParts := strings.Split(string(k), "/")
 			portDef.HostPort = portParts[0]
 			break
 		}
@@ -48,34 +50,34 @@ func BackendOverlayAddress(network *dockerclient.NetworkResource, containerInfo 
 		portDef.HostPort = v
 	}
 
-	addr = fmt.Sprintf("%s:%s", portDef.HostIp, portDef.HostPort)
+	addr = fmt.Sprintf("%s:%s", portDef.HostIP, portDef.HostPort)
 
 	return addr, nil
 }
 
-func BackendAddress(containerInfo *dockerclient.ContainerInfo, backendOverrideAddress string) (string, error) {
+func BackendAddress(containerInfo types.ContainerJSON, backendOverrideAddress string) (string, error) {
 	ports := containerInfo.NetworkSettings.Ports
-	portDef := dockerclient.PortBinding{}
+	portDef := nat.PortBinding{}
 	addr := ""
 
 	// parse the published port
 	for _, v := range ports {
 		if len(v) > 0 {
-			portDef.HostIp = v[0].HostIp
+			portDef.HostIP = v[0].HostIP
 			portDef.HostPort = v[0].HostPort
 			break
 		}
 	}
 
 	if backendOverrideAddress != "" {
-		portDef.HostIp = backendOverrideAddress
+		portDef.HostIP = backendOverrideAddress
 	}
 
 	// check for custom port
 	if v, ok := containerInfo.Config.Labels[ext.InterlockPortLabel]; ok {
 		interlockPort := v
 		for k, x := range ports {
-			parts := strings.Split(k, "/")
+			parts := strings.Split(string(k), "/")
 			if parts[0] == interlockPort {
 				port := x[0]
 				portDef.HostPort = port.HostPort
@@ -84,6 +86,6 @@ func BackendAddress(containerInfo *dockerclient.ContainerInfo, backendOverrideAd
 		}
 	}
 
-	addr = fmt.Sprintf("%s:%s", portDef.HostIp, portDef.HostPort)
+	addr = fmt.Sprintf("%s:%s", portDef.HostIP, portDef.HostPort)
 	return addr, nil
 }

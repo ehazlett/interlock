@@ -8,12 +8,13 @@ REPO?=ehazlett/$(APP)
 TAG?=latest
 BUILD?=-dev
 
-export GO15VENDOREXPERIMENT=1
-export GOPATH:=$(PWD)/vendor:$(GOPATH)
+#export GO15VENDOREXPERIMENT=1
+#export GOPATH:=$(PWD)/vendor:$(GOPATH)
 
 all: image
 
 deps:
+	@echo $(GOPATH)
 	@rm -rf Godeps vendor
 	@godep save ./...
 

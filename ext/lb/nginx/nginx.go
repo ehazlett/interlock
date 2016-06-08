@@ -1,12 +1,15 @@
 package nginx
 
 import (
+	"io/ioutil"
 	"path/filepath"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/docker/engine-api/client"
+	"github.com/docker/engine-api/types"
+	etypes "github.com/docker/engine-api/types/events"
 	"github.com/ehazlett/interlock/config"
-	"github.com/samalba/dockerclient"
-	"io/ioutil"
+	"golang.org/x/net/context"
 )
 
 const (
@@ -15,7 +18,7 @@ const (
 
 type NginxLoadBalancer struct {
 	cfg    *config.ExtensionConfig
-	client *dockerclient.DockerClient
+	client *client.Client
 }
 
 func log() *logrus.Entry {
@@ -24,13 +27,13 @@ func log() *logrus.Entry {
 	})
 }
 
-func NewNginxLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClient) (*NginxLoadBalancer, error) {
+func NewNginxLoadBalancer(c *config.ExtensionConfig, cl *client.Client) (*NginxLoadBalancer, error) {
 	// parse config base dir
 	c.ConfigBasePath = filepath.Dir(c.ConfigPath)
 
 	lb := &NginxLoadBalancer{
 		cfg:    c,
-		client: client,
+		client: cl,
 	}
 
 	return lb, nil
@@ -40,7 +43,7 @@ func (p *NginxLoadBalancer) Name() string {
 	return pluginName
 }
 
-func (p *NginxLoadBalancer) HandleEvent(event *dockerclient.Event) error {
+func (p *NginxLoadBalancer) HandleEvent(event *etypes.Message) error {
 	return nil
 }
 
@@ -66,17 +69,17 @@ func (p *NginxLoadBalancer) ConfigPath() string {
 	return p.cfg.ConfigPath
 }
 
-func (p *NginxLoadBalancer) Reload(proxyContainers []dockerclient.Container) error {
+func (p *NginxLoadBalancer) Reload(proxyContainers []types.Container) error {
 	// restart all interlock managed nginx containers
 	for _, cnt := range proxyContainers {
 		// restart
-		log().Debugf("reloading proxy container: id=%s", cnt.Id)
-		if err := p.client.KillContainer(cnt.Id, "HUP"); err != nil {
-			log().Errorf("error reloading container: id=%s err=%s", cnt.Id[:12], err)
+		log().Debugf("reloading proxy container: id=%s", cnt.ID)
+		if err := p.client.ContainerKill(context.Background(), cnt.ID, "HUP"); err != nil {
+			log().Errorf("error reloading container: id=%s err=%s", cnt.ID[:12], err)
 			continue
 		}
 
-		log().Infof("restarted proxy container: id=%s name=%s", cnt.Id[:12], cnt.Names[0])
+		log().Infof("restarted proxy container: id=%s name=%s", cnt.ID[:12], cnt.Names[0])
 	}
 
 	return nil

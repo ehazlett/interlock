@@ -1,7 +1,7 @@
 package ext
 
 import (
-	"github.com/samalba/dockerclient"
+	etypes "github.com/docker/engine-api/types/events"
 )
 
 const (
@@ -30,5 +30,5 @@ const (
 
 type Extension interface {
 	Name() string
-	HandleEvent(event *dockerclient.Event) error
+	HandleEvent(event *etypes.Message) error
 }

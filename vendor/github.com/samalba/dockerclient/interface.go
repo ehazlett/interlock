@@ -27,7 +27,6 @@ type Client interface {
 	ExecResize(id string, width, height int) error
 	StartContainer(id string, config *HostConfig) error
 	AttachContainer(id string, options *AttachOptions) (io.ReadCloser, error)
-	CopyToContainer(id, destPath string, rdr io.Reader) error
 	StopContainer(id string, timeout int) error
 	RestartContainer(id string, timeout int) error
 	KillContainer(id, signal string) error

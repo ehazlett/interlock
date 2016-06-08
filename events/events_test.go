@@ -3,11 +3,11 @@ package events
 import (
 	"testing"
 
-	"github.com/samalba/dockerclient"
+	etypes "github.com/docker/engine-api/types/events"
 )
 
 func TestEventHandler(t *testing.T) {
-	tChan := make(chan *dockerclient.Event)
+	tChan := make(chan *etypes.Message)
 
 	errChan := make(chan error)
 
@@ -22,7 +22,7 @@ func TestEventHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	testEvent := &dockerclient.Event{
+	testEvent := &etypes.Message{
 		Type: "testevent",
 	}
 

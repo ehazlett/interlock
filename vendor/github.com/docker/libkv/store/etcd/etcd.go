@@ -75,6 +75,9 @@ func New(addrs []string, options *store.Config) (store.Store, error) {
 		if options.ConnectionTimeout != 0 {
 			setTimeout(cfg, options.ConnectionTimeout)
 		}
+		if options.Username != "" {
+			setCredentials(cfg, options.Username, options.Password)
+		}
 	}
 
 	c, err := etcd.New(*cfg)
@@ -117,6 +120,12 @@ func setTLS(cfg *etcd.Config, tls *tls.Config, addrs []string) {
 // setTimeout sets the timeout used for connecting to the store
 func setTimeout(cfg *etcd.Config, time time.Duration) {
 	cfg.HeaderTimeoutPerRequest = time
+}
+
+// setCredentials sets the username/password credentials for connecting to Etcd
+func setCredentials(cfg *etcd.Config, username, password string) {
+	cfg.Username = username
+	cfg.Password = password
 }
 
 // Normalize the key for usage in Etcd

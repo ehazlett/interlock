@@ -3,12 +3,12 @@ package utils
 import (
 	"testing"
 
+	ctypes "github.com/docker/engine-api/types/container"
 	"github.com/ehazlett/interlock/ext"
-	"github.com/samalba/dockerclient"
 )
 
 func TestSSLEnabled(t *testing.T) {
-	cfg := &dockerclient.ContainerConfig{
+	cfg := &ctypes.Config{
 		Labels: map[string]string{
 			ext.InterlockSSLLabel: "1",
 		},
@@ -20,7 +20,7 @@ func TestSSLEnabled(t *testing.T) {
 }
 
 func TestSSLEnabledNoLabel(t *testing.T) {
-	cfg := &dockerclient.ContainerConfig{
+	cfg := &ctypes.Config{
 		Labels: map[string]string{},
 	}
 
@@ -30,7 +30,7 @@ func TestSSLEnabledNoLabel(t *testing.T) {
 }
 
 func TestSSLOnly(t *testing.T) {
-	cfg := &dockerclient.ContainerConfig{
+	cfg := &ctypes.Config{
 		Labels: map[string]string{
 			ext.InterlockSSLOnlyLabel: "1",
 		},
@@ -42,7 +42,7 @@ func TestSSLOnly(t *testing.T) {
 }
 
 func TestSSLOnlyNoLabel(t *testing.T) {
-	cfg := &dockerclient.ContainerConfig{
+	cfg := &ctypes.Config{
 		Labels: map[string]string{},
 	}
 
@@ -52,7 +52,7 @@ func TestSSLOnlyNoLabel(t *testing.T) {
 }
 
 func TestSSLBackend(t *testing.T) {
-	cfg := &dockerclient.ContainerConfig{
+	cfg := &ctypes.Config{
 		Labels: map[string]string{
 			ext.InterlockSSLBackendLabel: "1",
 		},
@@ -64,7 +64,7 @@ func TestSSLBackend(t *testing.T) {
 }
 
 func TestSSLBackendNoLabel(t *testing.T) {
-	cfg := &dockerclient.ContainerConfig{
+	cfg := &ctypes.Config{
 		Labels: map[string]string{},
 	}
 
@@ -76,7 +76,7 @@ func TestSSLBackendNoLabel(t *testing.T) {
 func TestSSLCertName(t *testing.T) {
 	testCert := "cert.pem"
 
-	cfg := &dockerclient.ContainerConfig{
+	cfg := &ctypes.Config{
 		Labels: map[string]string{
 			ext.InterlockSSLCertLabel: testCert,
 		},
@@ -88,7 +88,7 @@ func TestSSLCertName(t *testing.T) {
 }
 
 func TestSSLCertNameNoLabel(t *testing.T) {
-	cfg := &dockerclient.ContainerConfig{
+	cfg := &ctypes.Config{
 		Labels: map[string]string{},
 	}
 
@@ -100,7 +100,7 @@ func TestSSLCertNameNoLabel(t *testing.T) {
 func TestSSLCertKey(t *testing.T) {
 	testKey := "key.pem"
 
-	cfg := &dockerclient.ContainerConfig{
+	cfg := &ctypes.Config{
 		Labels: map[string]string{
 			ext.InterlockSSLCertKeyLabel: testKey,
 		},
@@ -112,7 +112,7 @@ func TestSSLCertKey(t *testing.T) {
 }
 
 func TestSSLCertKeyNoLabel(t *testing.T) {
-	cfg := &dockerclient.ContainerConfig{
+	cfg := &ctypes.Config{
 		Labels: map[string]string{},
 	}
 

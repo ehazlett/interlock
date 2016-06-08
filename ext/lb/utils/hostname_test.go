@@ -3,14 +3,14 @@ package utils
 import (
 	"testing"
 
+	ctypes "github.com/docker/engine-api/types/container"
 	"github.com/ehazlett/interlock/ext"
-	"github.com/samalba/dockerclient"
 )
 
 func TestHostname(t *testing.T) {
 	testHostname := "foo"
 
-	cfg := &dockerclient.ContainerConfig{
+	cfg := &ctypes.Config{
 		Hostname: testHostname,
 	}
 
@@ -25,7 +25,7 @@ func TestHostnameLabel(t *testing.T) {
 	testHostname := "foo"
 	testLabelHostname := "bar"
 
-	cfg := &dockerclient.ContainerConfig{
+	cfg := &ctypes.Config{
 		Hostname: testHostname,
 		Labels: map[string]string{
 			ext.InterlockHostnameLabel: testLabelHostname,

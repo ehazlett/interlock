@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/docker/engine-api/types"
 	"github.com/ehazlett/interlock/ext/lb/utils"
-	"github.com/samalba/dockerclient"
+	"golang.org/x/net/context"
 )
 
-func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []dockerclient.Container) (interface{}, error) {
+func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []types.Container) (interface{}, error) {
 	var hosts []*Host
 
 	proxyUpstreams := map[string][]*Upstream{}
@@ -24,9 +25,9 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []dockerclient.Cont
 	networks := map[string]string{}
 
 	for _, cnt := range containers {
-		cntId := cnt.Id[:12]
+		cntId := cnt.ID[:12]
 		// load interlock data
-		cInfo, err := p.client.InspectContainer(cntId)
+		cInfo, err := p.client.ContainerInspect(context.Background(), cntId)
 		if err != nil {
 			return nil, err
 		}
@@ -111,7 +112,7 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []dockerclient.Cont
 			//	continue
 			//}
 
-			network, err := p.client.InspectNetwork(n)
+			network, err := p.client.NetworkInspect(context.Background(), n)
 			if err != nil {
 				log().Error(err)
 				continue

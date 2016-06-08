@@ -1,5 +1,9 @@
 package server
 
+import (
+	"golang.org/x/net/context"
+)
+
 type Node struct {
 	ID             string   `json:"id,omitempty"`
 	Name           string   `json:"name,omitempty"`
@@ -16,7 +20,7 @@ func (s *Server) getSwarmNodes() ([]*Node, error) {
 		return nil, err
 	}
 
-	info, err := client.Info()
+	info, err := client.Info(context.Background())
 	if err != nil {
 		return nil, err
 	}

@@ -116,6 +116,7 @@ var (
 			"container",
 			"image",
 			"name",
+			"network",
 			"type",
 		},
 	)
@@ -130,6 +131,7 @@ var (
 			"container",
 			"image",
 			"name",
+			"network",
 			"type",
 		},
 	)
@@ -144,6 +146,7 @@ var (
 			"container",
 			"image",
 			"name",
+			"network",
 			"type",
 		},
 	)
@@ -158,6 +161,7 @@ var (
 			"container",
 			"image",
 			"name",
+			"network",
 			"type",
 		},
 	)
@@ -172,6 +176,7 @@ var (
 			"container",
 			"image",
 			"name",
+			"network",
 			"type",
 		},
 	)
@@ -186,6 +191,7 @@ var (
 			"container",
 			"image",
 			"name",
+			"network",
 			"type",
 		},
 	)
@@ -200,6 +206,7 @@ var (
 			"container",
 			"image",
 			"name",
+			"network",
 			"type",
 		},
 	)
@@ -214,6 +221,7 @@ var (
 			"container",
 			"image",
 			"name",
+			"network",
 			"type",
 		},
 	)

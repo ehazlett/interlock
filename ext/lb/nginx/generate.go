@@ -5,11 +5,12 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/docker/engine-api/types"
 	"github.com/ehazlett/interlock/ext/lb/utils"
-	"github.com/samalba/dockerclient"
+	"golang.org/x/net/context"
 )
 
-func (p *NginxLoadBalancer) GenerateProxyConfig(containers []dockerclient.Container) (interface{}, error) {
+func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (interface{}, error) {
 	var hosts []*Host
 	upstreamServers := map[string][]string{}
 	serverNames := map[string][]string{}
@@ -25,9 +26,9 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []dockerclient.Contai
 	networks := map[string]string{}
 
 	for _, c := range containers {
-		cntId := c.Id[:12]
+		cntId := c.ID[:12]
 		// load interlock data
-		cInfo, err := p.client.InspectContainer(c.Id)
+		cInfo, err := p.client.ContainerInspect(context.Background(), c.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -95,7 +96,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []dockerclient.Contai
 		if n, ok := utils.OverlayEnabled(cInfo.Config); ok {
 			log().Debugf("configuring docker network: name=%s", n)
 
-			network, err := p.client.InspectNetwork(n)
+			network, err := p.client.NetworkInspect(context.Background(), n)
 			if err != nil {
 				log().Error(err)
 				continue

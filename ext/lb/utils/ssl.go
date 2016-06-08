@@ -1,15 +1,15 @@
 package utils
 
 import (
+	ctypes "github.com/docker/engine-api/types/container"
 	"github.com/ehazlett/interlock/ext"
-	"github.com/samalba/dockerclient"
 )
 
 const (
 	DefaultSSLBackendTLSVerify = "none"
 )
 
-func SSLEnabled(config *dockerclient.ContainerConfig) bool {
+func SSLEnabled(config *ctypes.Config) bool {
 	if _, ok := config.Labels[ext.InterlockSSLLabel]; ok {
 		return true
 	}
@@ -17,7 +17,7 @@ func SSLEnabled(config *dockerclient.ContainerConfig) bool {
 	return false
 }
 
-func SSLOnly(config *dockerclient.ContainerConfig) bool {
+func SSLOnly(config *ctypes.Config) bool {
 	if _, ok := config.Labels[ext.InterlockSSLOnlyLabel]; ok {
 		return true
 	}
@@ -25,7 +25,7 @@ func SSLOnly(config *dockerclient.ContainerConfig) bool {
 	return false
 }
 
-func SSLBackend(config *dockerclient.ContainerConfig) bool {
+func SSLBackend(config *ctypes.Config) bool {
 	if _, ok := config.Labels[ext.InterlockSSLBackendLabel]; ok {
 		return true
 	}
@@ -33,7 +33,7 @@ func SSLBackend(config *dockerclient.ContainerConfig) bool {
 	return false
 }
 
-func SSLCertName(config *dockerclient.ContainerConfig) string {
+func SSLCertName(config *ctypes.Config) string {
 	if v, ok := config.Labels[ext.InterlockSSLCertLabel]; ok {
 		return v
 	}
@@ -41,7 +41,7 @@ func SSLCertName(config *dockerclient.ContainerConfig) string {
 	return ""
 }
 
-func SSLCertKey(config *dockerclient.ContainerConfig) string {
+func SSLCertKey(config *ctypes.Config) string {
 	if v, ok := config.Labels[ext.InterlockSSLCertKeyLabel]; ok {
 		return v
 	}
@@ -49,7 +49,7 @@ func SSLCertKey(config *dockerclient.ContainerConfig) string {
 	return ""
 }
 
-func SSLBackendTLSVerify(config *dockerclient.ContainerConfig) string {
+func SSLBackendTLSVerify(config *ctypes.Config) string {
 	verify := DefaultSSLBackendTLSVerify
 
 	if v, ok := config.Labels[ext.InterlockSSLBackendTLSVerifyLabel]; ok {
