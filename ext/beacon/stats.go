@@ -180,8 +180,6 @@ func (b *Beacon) sendContainerStats(id string, stats *types.StatsJSON, ec chan e
 func (b *Beacon) collectStats() {
 	wg := &sync.WaitGroup{}
 	for id, _ := range b.monitored {
-		log().Debugf("monitored: %v", b.monitored)
-		log().Debugf("id: %s", id)
 		wg.Add(1)
 		go func(cID string) {
 			defer wg.Done()

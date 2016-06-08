@@ -72,9 +72,12 @@ func NewBeacon(c *config.ExtensionConfig, cl *client.Client) (*Beacon, error) {
 			log().Debug("stats ticker")
 			ext.collectStats()
 
-			log().Debug("pushing to gateway")
-			if err := prometheus.Push("beacon", nodeID, "http://172.17.0.1:32771"); err != nil {
-				log().Errorf("error pushing to gateway: %s", err)
+			gw := c.StatPushGatewayURL
+			if gw != "" {
+				log().Debug("pushing to gateway")
+				if err := prometheus.Push("beacon", nodeID, gw); err != nil {
+					log().Errorf("error pushing to gateway: %s", err)
+				}
 			}
 		}
 	}()

@@ -41,6 +41,7 @@ type ExtensionConfig struct {
 	SSLCiphers             string           // nginx
 	SSLProtocols           string           // nginx
 	StatInterval           string           // beacon
+	StatPushGatewayURL     string           // beacon
 	Rules                  map[string]*Rule // beacon FIXME: this isn't loaded properly from toml; we set it as a hack now
 }
 
