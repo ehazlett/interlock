@@ -36,7 +36,7 @@ func (b *Beacon) sendContainerStats(id string, stats *types.StatsJSON, ec chan e
 	}
 
 	cName := cInfo.Name
-	image = cInfo.Image
+	image = cInfo.Config.Image
 
 	// strip /
 	if cName[0] == '/' {
