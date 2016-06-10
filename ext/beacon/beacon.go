@@ -113,6 +113,10 @@ func (b *Beacon) HandleEvent(event *etypes.Message) error {
 	case "kill", "die", "stop", "destroy":
 		log().Debugf("resetting stats: id=%s", event.ID)
 		delete(b.monitored, event.ID)
+
+		if err := b.resetStats(event.ID); err != nil {
+			return err
+		}
 	}
 
 	return nil
