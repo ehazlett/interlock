@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 package client // import "github.com/influxdata/influxdb/client/v2"
+=======
+package client
+>>>>>>> 71ddfc9... add support for influxdb backend for beacon
 
 import (
 	"bytes"
