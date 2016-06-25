@@ -119,7 +119,11 @@ func SetNginxConfigDefaults(c *ExtensionConfig) {
 }
 
 func SetBeaconConfigDefaults(c *ExtensionConfig) {
-	if c.StatInterval == "" {
-		c.StatInterval = "30s"
+	if c.StatsInterval == "" {
+		c.StatsInterval = "30s"
+	}
+
+	if c.StatsInfluxDBPrecision == "" {
+		c.StatsInfluxDBPrecision = "s"
 	}
 }

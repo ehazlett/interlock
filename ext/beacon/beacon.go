@@ -62,7 +62,7 @@ func NewBeacon(c *config.ExtensionConfig, cl *client.Client) (*Beacon, error) {
 	}
 
 	// ticker to push to gateway if configured
-	d, err := time.ParseDuration(c.StatInterval)
+	d, err := time.ParseDuration(c.StatsInterval)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse stat interval: %s", err)
 	}
@@ -72,7 +72,7 @@ func NewBeacon(c *config.ExtensionConfig, cl *client.Client) (*Beacon, error) {
 			log().Debug("stats ticker")
 			ext.collectStats()
 
-			gw := c.StatPushGatewayURL
+			gw := c.StatsPrometheusPushGatewayURL
 			if gw != "" {
 				log().Debug("pushing to gateway")
 				if err := prometheus.Push("beacon", nodeID, gw); err != nil {
