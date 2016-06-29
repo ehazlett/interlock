@@ -1,5 +1,5 @@
 hash: 90fc7553fa1658284c3cc774fdb984790b405250c9029dd885c78df300339e33
-updated: 2016-06-29T16:17:00.419673227-04:00
+updated: 2016-06-29T16:57:58.537130518-04:00
 imports:
 - name: github.com/beorn7/perks
   version: 3ac7bf7a47d159a033b107610db8a1b6575507a4
@@ -10,7 +10,7 @@ imports:
 - name: github.com/codegangsta/cli
   version: 1efa31f08b9333f1bd4882d61f9d668a70cd902e
 - name: github.com/coreos/etcd
-  version: 66d195ff7504c8b73815e4f8b9aff03b30c39fa8
+  version: b7d0497c478da5ce8968c17d627cbbac1680924c
   subpackages:
   - client
   - pkg/pathutil
@@ -21,7 +21,7 @@ imports:
   - reference
   - digest
 - name: github.com/docker/docker
-  version: 50a173e3d5ca8ed3b52c53fde6729188fc02e9e7
+  version: a1fff2ca5afa15ae092668a06b55ae2dc4e039d7
   subpackages:
   - pkg/tlsconfig
 - name: github.com/docker/engine-api
