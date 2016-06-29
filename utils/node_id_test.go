@@ -12,7 +12,7 @@ func TestGetNodeID(t *testing.T) {
 		}
 	}
 
-	id, err := getNodeID()
+	id, err := GetNodeID()
 	if err != nil {
 		t.Skipf("skipping GetNodeID; does not look like i am in a normal container")
 	}
