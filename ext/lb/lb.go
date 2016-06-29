@@ -441,6 +441,28 @@ func (l *LoadBalancer) HandleEvent(event *etypes.Message) error {
 			return fmt.Errorf("unable to detect container id for network event")
 		}
 
+		// there can be a delay in connecting containers
+		// in the engine.  we will attempt to wait until we
+		// confirm it is connected otherwise log and bail
+		net, ok := event.Actor.Attributes["name"]
+		if !ok {
+			return fmt.Errorf("unable to detect container network name for network event")
+		}
+
+		for i := 0; i < 5; i++ {
+			connected, err := l.isContainerConnected(id, net)
+			if err != nil {
+				return err
+			}
+
+			if connected {
+				break
+			}
+
+			log().Debugf("waiting for network connect for container: id=%s net=%s", id, net)
+			time.Sleep(time.Millisecond * 500)
+		}
+
 		reload = l.isExposedContainer(id)
 	}
 
@@ -521,4 +543,17 @@ func (l *LoadBalancer) isExposedContainer(id string) bool {
 
 	log().Debugf("container is monitored; triggering reload: id=%s", id)
 	return true
+}
+
+func (l *LoadBalancer) isContainerConnected(id string, net string) (bool, error) {
+	network, err := l.client.NetworkInspect(context.Background(), net)
+	if err != nil {
+		return false, err
+	}
+
+	if _, ok := network.Containers[id]; ok {
+		return true, nil
+	}
+
+	return false, nil
 }
