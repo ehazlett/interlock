@@ -1,6 +1,6 @@
 FROM golang:1.6-alpine
-RUN apk add -U git make
-RUN go get github.com/tools/godep
+RUN apk add -U git make curl
+RUN go get github.com/Masterminds/glide
 ENV DOCKER_VERSION 1.10.3
 ENV APP interlock
 ENV REPO ehazlett/$APP

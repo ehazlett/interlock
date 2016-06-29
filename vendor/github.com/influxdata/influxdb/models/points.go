@@ -1,4 +1,4 @@
-package models
+package models // import "github.com/influxdata/influxdb/models"
 
 import (
 	"bytes"
@@ -546,15 +546,6 @@ func less(buf []byte, indices []int, i, j int) bool {
 	_, a := scanTo(buf, indices[i], '=')
 	_, b := scanTo(buf, indices[j], '=')
 	return bytes.Compare(a, b) < 0
-}
-
-func isFieldEscapeChar(b byte) bool {
-	for c := range escape.Codes {
-		if c == b {
-			return true
-		}
-	}
-	return false
 }
 
 // scanFields scans buf, starting at i for the fields section of a point.  It returns
@@ -1588,23 +1579,4 @@ func (p Fields) MarshalBinary() []byte {
 		return b[0 : len(b)-1]
 	}
 	return b
-}
-
-type indexedSlice struct {
-	indices []int
-	b       []byte
-}
-
-func (s *indexedSlice) Less(i, j int) bool {
-	_, a := scanTo(s.b, s.indices[i], '=')
-	_, b := scanTo(s.b, s.indices[j], '=')
-	return bytes.Compare(a, b) < 0
-}
-
-func (s *indexedSlice) Swap(i, j int) {
-	s.indices[i], s.indices[j] = s.indices[j], s.indices[i]
-}
-
-func (s *indexedSlice) Len() int {
-	return len(s.indices)
 }

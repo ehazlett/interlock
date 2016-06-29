@@ -2,6 +2,7 @@ package haproxy
 
 import (
 	"io/ioutil"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/engine-api/client"
@@ -71,7 +72,8 @@ func (p *HAProxyLoadBalancer) Reload(proxyContainers []types.Container) error {
 	for _, cnt := range proxyContainers {
 		// restart
 		log().Debugf("restarting proxy container: id=%s", cnt.ID)
-		if err := p.client.ContainerRestart(context.Background(), cnt.ID, 1); err != nil {
+		d := time.Millisecond * 1000
+		if err := p.client.ContainerRestart(context.Background(), cnt.ID, &d); err != nil {
 			log().Errorf("error restarting container: id=%s err=%s", cnt.ID[:12], err)
 			continue
 		}

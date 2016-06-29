@@ -120,3 +120,84 @@ func IsErrUnauthorized(err error) bool {
 	_, ok := err.(unauthorizedError)
 	return ok
 }
+
+// nodeNotFoundError implements an error returned when a node is not found.
+type nodeNotFoundError struct {
+	nodeID string
+}
+
+// Error returns a string representation of a nodeNotFoundError
+func (e nodeNotFoundError) Error() string {
+	return fmt.Sprintf("Error: No such node: %s", e.nodeID)
+}
+
+// NoFound indicates that this error type is of NotFound
+func (e nodeNotFoundError) NotFound() bool {
+	return true
+}
+
+// IsErrNodeNotFound returns true if the error is caused
+// when a node is not found.
+func IsErrNodeNotFound(err error) bool {
+	_, ok := err.(nodeNotFoundError)
+	return ok
+}
+
+// serviceNotFoundError implements an error returned when a service is not found.
+type serviceNotFoundError struct {
+	serviceID string
+}
+
+// Error returns a string representation of a serviceNotFoundError
+func (e serviceNotFoundError) Error() string {
+	return fmt.Sprintf("Error: No such service: %s", e.serviceID)
+}
+
+// NoFound indicates that this error type is of NotFound
+func (e serviceNotFoundError) NotFound() bool {
+	return true
+}
+
+// IsErrServiceNotFound returns true if the error is caused
+// when a service is not found.
+func IsErrServiceNotFound(err error) bool {
+	_, ok := err.(serviceNotFoundError)
+	return ok
+}
+
+// taskNotFoundError implements an error returned when a task is not found.
+type taskNotFoundError struct {
+	taskID string
+}
+
+// Error returns a string representation of a taskNotFoundError
+func (e taskNotFoundError) Error() string {
+	return fmt.Sprintf("Error: No such task: %s", e.taskID)
+}
+
+// NoFound indicates that this error type is of NotFound
+func (e taskNotFoundError) NotFound() bool {
+	return true
+}
+
+// IsErrTaskNotFound returns true if the error is caused
+// when a task is not found.
+func IsErrTaskNotFound(err error) bool {
+	_, ok := err.(taskNotFoundError)
+	return ok
+}
+
+type pluginPermissionDenied struct {
+	name string
+}
+
+func (e pluginPermissionDenied) Error() string {
+	return "Permission denied while installing plugin " + e.name
+}
+
+// IsErrPluginPermissionDenied returns true if the error is caused
+// when a user denies a plugin's permissions
+func IsErrPluginPermissionDenied(err error) bool {
+	_, ok := err.(pluginPermissionDenied)
+	return ok
+}
