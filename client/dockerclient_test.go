@@ -1,7 +1,6 @@
 package client
 
 import (
-	"os"
 	"testing"
 )
 
@@ -91,33 +90,5 @@ func TestGetTLSConfig(t *testing.T) {
 
 	if len(cfg.Certificates) != 1 {
 		t.Fatal("expected certificate in TLS config")
-	}
-}
-
-func TestGetDockerClientCleanEnvironment(t *testing.T) {
-	c, err := GetDockerClient("", "", "", "", true)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if c.TLSConfig != nil {
-		t.Fatal("expected nil TLS config")
-	}
-}
-
-func TestGetDockerClientEnvironment(t *testing.T) {
-	testHost := "1.2.3.4:2375"
-	os.Setenv("DOCKER_HOST", "tcp://"+testHost)
-	c, err := GetDockerClient("", "", "", "", true)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if c.TLSConfig != nil {
-		t.Fatal("expected nil TLS config")
-	}
-
-	if c.URL.Host != testHost {
-		t.Fatalf("expected Docker Host: %s; received %s", testHost, c.URL.Host)
 	}
 }

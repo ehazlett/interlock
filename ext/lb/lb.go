@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"bytes"
 	"fmt"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -12,13 +13,17 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/docker/engine-api/client"
+	"github.com/docker/engine-api/types"
+	etypes "github.com/docker/engine-api/types/events"
+	ntypes "github.com/docker/engine-api/types/network"
 	"github.com/ehazlett/interlock/config"
 	"github.com/ehazlett/interlock/ext"
 	"github.com/ehazlett/interlock/ext/lb/haproxy"
 	"github.com/ehazlett/interlock/ext/lb/nginx"
+	"github.com/ehazlett/interlock/utils"
 	"github.com/ehazlett/ttlcache"
-	"github.com/samalba/dockerclient"
-	"os"
+	"golang.org/x/net/context"
 )
 
 const (
@@ -41,15 +46,15 @@ type proxyContainerNetworkConfig struct {
 type LoadBalancerBackend interface {
 	Name() string
 	ConfigPath() string
-	GenerateProxyConfig(c []dockerclient.Container) (interface{}, error)
+	GenerateProxyConfig(c []types.Container) (interface{}, error)
 	Template() string
-	Reload(proxyContainers []dockerclient.Container) error
+	Reload(proxyContainers []types.Container) error
 }
 
 type LoadBalancer struct {
 	nodeID  string
 	cfg     *config.ExtensionConfig
-	client  *dockerclient.DockerClient
+	client  *client.Client
 	cache   *ttlcache.TTLCache
 	lock    *sync.Mutex
 	backend LoadBalancerBackend
@@ -65,7 +70,7 @@ type eventArgs struct {
 	Image string
 }
 
-func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClient) (*LoadBalancer, error) {
+func NewLoadBalancer(c *config.ExtensionConfig, client *client.Client) (*LoadBalancer, error) {
 	if c.TemplatePath != "" {
 		if _, err := os.Stat(c.TemplatePath); os.IsNotExist(err) {
 			log().Errorf("Missing %s configuration template: file=%s", c.Name, c.TemplatePath)
@@ -104,7 +109,7 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 	})
 
 	// load nodeID
-	nodeID, err := getNodeID()
+	nodeID, err := utils.GetNodeID()
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +153,7 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 
 			for _, c := range nc {
 				cID := c.ContainerID
-				cnt, err := client.InspectContainer(cID)
+				cnt, err := client.ContainerInspect(context.Background(), cID)
 				if err != nil {
 					log().Errorf("error inspecting proxy container: id=%s err=%s", cID, err)
 					continue
@@ -166,7 +171,7 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 
 						retries := 5
 						for i := 0; i < retries; i++ {
-							err := client.DisconnectNetwork(net, cID, false)
+							err := client.NetworkDisconnect(context.Background(), net, cID, false)
 							if err == nil {
 								break
 							}
@@ -196,7 +201,10 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 
 			log().Debug("updating load balancers")
 
-			containers, err := client.ListContainers(true, false, "")
+			opts := types.ContainerListOptions{
+				All: true,
+			}
+			containers, err := client.ContainerList(context.Background(), opts)
 			if err != nil {
 				errChan <- err
 				continue
@@ -248,16 +256,16 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 
 			for _, cnt := range proxyContainers {
 				proxyContainerNetworkConfigs = append(proxyContainerNetworkConfigs, proxyContainerNetworkConfig{
-					ContainerID:   cnt.Id,
+					ContainerID:   cnt.ID,
 					ProxyNetworks: proxyNetworks,
 				})
 				for net, _ := range proxyNetworks {
 					if _, ok := cnt.NetworkSettings.Networks[net]; !ok {
-						log().Debugf("connecting proxy container %s to network %s", cnt.Id, net)
+						log().Debugf("connecting proxy container %s to network %s", cnt.ID, net)
 
 						// connect
-						if err := client.ConnectNetwork(net, cnt.Id); err != nil {
-							log().Warnf("unable to connect container %s to network %s: %s", cnt.Id, net, err)
+						if err := client.NetworkConnect(context.Background(), net, cnt.ID, &ntypes.EndpointSettings{}); err != nil {
+							log().Warnf("unable to connect container %s to network %s: %s", cnt.ID, net, err)
 							continue
 						}
 					}
@@ -265,16 +273,16 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClien
 			}
 
 			// get interlock nodes
-			interlockNodes := []dockerclient.Container{}
+			interlockNodes := []types.Container{}
 
 			for _, cnt := range containers {
 				// always include self container
-				if cnt.Id == nodeID {
+				if cnt.ID == nodeID {
 					interlockNodes = append(interlockNodes, cnt)
 					continue
 				}
 
-				cInfo, err := client.InspectContainer(cnt.Id)
+				cInfo, err := client.ContainerInspect(context.Background(), cnt.ID)
 				if err != nil {
 					log().Errorf("unable to inspect interlock container: %s", err)
 					continue
@@ -317,18 +325,21 @@ func (l *LoadBalancer) Name() string {
 	return pluginName
 }
 
-func (l *LoadBalancer) ProxyContainers(name string) ([]dockerclient.Container, error) {
-	containers, err := l.client.ListContainers(true, false, "")
+func (l *LoadBalancer) ProxyContainers(name string) ([]types.Container, error) {
+	opts := types.ContainerListOptions{
+		All: true,
+	}
+	containers, err := l.client.ContainerList(context.Background(), opts)
 	if err != nil {
 		return nil, err
 	}
 
-	proxyContainers := []dockerclient.Container{}
+	proxyContainers := []types.Container{}
 
 	// find interlock proxy containers
 	for _, cnt := range containers {
 		if v, ok := cnt.Labels[ext.InterlockExtNameLabel]; ok && v == l.backend.Name() {
-			log().Debugf("detected proxy container: id=%s backend=%v", cnt.Id, v)
+			log().Debugf("detected proxy container: id=%s backend=%v", cnt.ID, v)
 			proxyContainers = append(proxyContainers, cnt)
 		}
 	}
@@ -336,7 +347,7 @@ func (l *LoadBalancer) ProxyContainers(name string) ([]dockerclient.Container, e
 	return proxyContainers, nil
 }
 
-func (l *LoadBalancer) SaveConfig(configPath string, cfg interface{}, proxyContainers []dockerclient.Container) error {
+func (l *LoadBalancer) SaveConfig(configPath string, cfg interface{}, proxyContainers []types.Container) error {
 	t := template.New("lb")
 	confTmpl := l.backend.Template()
 
@@ -370,7 +381,7 @@ func (l *LoadBalancer) SaveConfig(configPath string, cfg interface{}, proxyConta
 
 	// copy to proxy nodes
 	for _, cnt := range proxyContainers {
-		log().Debugf("updating proxy config: id=%s", cnt.Id)
+		log().Debugf("updating proxy config: id=%s", cnt.ID)
 		// create tar stream to copy
 		buf := new(bytes.Buffer)
 		tw := tar.NewWriter(buf)
@@ -392,7 +403,10 @@ func (l *LoadBalancer) SaveConfig(configPath string, cfg interface{}, proxyConta
 			return fmt.Errorf("error closing tar writer: %s", err)
 		}
 
-		if err := l.client.CopyToContainer(cnt.Id, proxyConfigPath, buf); err != nil {
+		opts := types.CopyToContainerOptions{
+			AllowOverwriteDirWithFile: true,
+		}
+		if err := l.client.CopyToContainer(context.Background(), cnt.ID, proxyConfigPath, buf, opts); err != nil {
 			log().Errorf("error copying proxy config: %s", err)
 			continue
 		}
@@ -401,7 +415,7 @@ func (l *LoadBalancer) SaveConfig(configPath string, cfg interface{}, proxyConta
 	return nil
 }
 
-func (l *LoadBalancer) HandleEvent(event *dockerclient.Event) error {
+func (l *LoadBalancer) HandleEvent(event *etypes.Message) error {
 	reload := false
 
 	// container event
@@ -427,6 +441,28 @@ func (l *LoadBalancer) HandleEvent(event *dockerclient.Event) error {
 			return fmt.Errorf("unable to detect container id for network event")
 		}
 
+		// there can be a delay in connecting containers
+		// in the engine.  we will attempt to wait until we
+		// confirm it is connected otherwise log and bail
+		net, ok := event.Actor.Attributes["name"]
+		if !ok {
+			return fmt.Errorf("unable to detect container network name for network event")
+		}
+
+		for i := 0; i < 5; i++ {
+			connected, err := l.isContainerConnected(id, net)
+			if err != nil {
+				return err
+			}
+
+			if connected {
+				break
+			}
+
+			log().Debugf("waiting for network connect for container: id=%s net=%s", id, net)
+			time.Sleep(time.Millisecond * 500)
+		}
+
 		reload = l.isExposedContainer(id)
 	}
 
@@ -440,7 +476,7 @@ func (l *LoadBalancer) HandleEvent(event *dockerclient.Event) error {
 
 // proxyContainersToRestart returns a slice of proxy containers to restart
 // based upon this instance's hash
-func (l *LoadBalancer) proxyContainersToRestart(nodes []dockerclient.Container, proxyContainers []dockerclient.Container) []dockerclient.Container {
+func (l *LoadBalancer) proxyContainersToRestart(nodes []types.Container, proxyContainers []types.Container) []types.Container {
 	numNodes := len(nodes)
 	if numNodes == 0 {
 		log().Warn("unable to detect interlock node; to ensure optimal reloads make sure interlock is visible in the swarm cluster")
@@ -455,21 +491,21 @@ func (l *LoadBalancer) proxyContainersToRestart(nodes []dockerclient.Container, 
 
 	sub := len(proxyContainers) / numNodes
 
-	work := map[string][]dockerclient.Container{}
+	work := map[string][]types.Container{}
 
 	for i := 0; i < len(nodes)-1; i++ {
 		p, n := proxyContainers[:len(proxyContainers)-sub], proxyContainers[len(proxyContainers)-sub:]
 		proxyContainers = p
-		work[nodes[i].Id] = n
+		work[nodes[i].ID] = n
 	}
 
-	work[nodes[len(nodes)-1].Id] = proxyContainers
+	work[nodes[len(nodes)-1].ID] = proxyContainers
 
 	containersToRestart := work[l.nodeID]
 
 	ids := []string{}
 	for _, c := range containersToRestart {
-		ids = append(ids, c.Id[:8])
+		ids = append(ids, c.ID[:8])
 	}
 
 	log().Debugf("proxy containers to restart: num=%d containers=%s", len(containersToRestart), strings.Join(ids, ","))
@@ -479,7 +515,7 @@ func (l *LoadBalancer) proxyContainersToRestart(nodes []dockerclient.Container, 
 
 func (l *LoadBalancer) isExposedContainer(id string) bool {
 	log().Debugf("inspecting container: id=%s", id)
-	c, err := l.client.InspectContainer(id)
+	c, err := l.client.ContainerInspect(context.Background(), id)
 	if err != nil {
 		// ignore inspect errors
 		log().Errorf("error: id=%s err=%s", id, err)
@@ -507,4 +543,17 @@ func (l *LoadBalancer) isExposedContainer(id string) bool {
 
 	log().Debugf("container is monitored; triggering reload: id=%s", id)
 	return true
+}
+
+func (l *LoadBalancer) isContainerConnected(id string, net string) (bool, error) {
+	network, err := l.client.NetworkInspect(context.Background(), net)
+	if err != nil {
+		return false, err
+	}
+
+	if _, ok := network.Containers[id]; ok {
+		return true, nil
+	}
+
+	return false, nil
 }

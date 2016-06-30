@@ -3,15 +3,15 @@ package utils
 import (
 	"strconv"
 
+	ctypes "github.com/docker/engine-api/types/container"
 	"github.com/ehazlett/interlock/ext"
-	"github.com/samalba/dockerclient"
 )
 
 const (
 	DefaultHealthCheckInterval = 5000
 )
 
-func HealthCheck(config *dockerclient.ContainerConfig) string {
+func HealthCheck(config *ctypes.Config) string {
 	if v, ok := config.Labels[ext.InterlockHealthCheckLabel]; ok {
 		return v
 	}
@@ -19,7 +19,7 @@ func HealthCheck(config *dockerclient.ContainerConfig) string {
 	return ""
 }
 
-func HealthCheckInterval(config *dockerclient.ContainerConfig) (int, error) {
+func HealthCheckInterval(config *ctypes.Config) (int, error) {
 	checkInterval := DefaultHealthCheckInterval
 
 	if v, ok := config.Labels[ext.InterlockHealthCheckIntervalLabel]; ok && v != "" {

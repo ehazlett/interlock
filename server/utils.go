@@ -3,11 +3,11 @@ package server
 import (
 	"strings"
 
+	engineClient "github.com/docker/engine-api/client"
 	"github.com/ehazlett/interlock/client"
-	"github.com/samalba/dockerclient"
 )
 
-func (s *Server) getDockerClient() (*dockerclient.DockerClient, error) {
+func (s *Server) getDockerClient() (*engineClient.Client, error) {
 	return client.GetDockerClient(
 		s.cfg.DockerURL,
 		s.cfg.TLSCACert,
@@ -19,7 +19,7 @@ func (s *Server) getDockerClient() (*dockerclient.DockerClient, error) {
 
 // HACK: until we get a consumable endpoint from swarm we must parse the
 // node list from /info
-func parseSwarmNodes(driverStatus [][]string) ([]*Node, error) {
+func parseSwarmNodes(driverStatus [][2]string) ([]*Node, error) {
 	nodes := []*Node{}
 	var node *Node
 	nodeComplete := false
@@ -86,10 +86,3 @@ func parseSwarmNodes(driverStatus [][]string) ([]*Node, error) {
 
 	return nodes, nil
 }
-
-// custom sort for containers
-type ByContainerID []dockerclient.Container
-
-func (a ByContainerID) Len() int           { return len(a) }
-func (a ByContainerID) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a ByContainerID) Less(i, j int) bool { return a[i].Id < a[j].Id }

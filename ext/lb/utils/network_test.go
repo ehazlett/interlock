@@ -3,12 +3,15 @@ package utils
 import (
 	"testing"
 
+	"github.com/docker/engine-api/types"
+	ctypes "github.com/docker/engine-api/types/container"
+	ntypes "github.com/docker/engine-api/types/network"
+	"github.com/docker/go-connections/nat"
 	"github.com/ehazlett/interlock/ext"
-	"github.com/samalba/dockerclient"
 )
 
 func TestUseOverlay(t *testing.T) {
-	cfg := &dockerclient.ContainerConfig{
+	cfg := &ctypes.Config{
 		Labels: map[string]string{
 			ext.InterlockNetworkLabel: "foo",
 		},
@@ -20,7 +23,7 @@ func TestUseOverlay(t *testing.T) {
 }
 
 func TestUseOverlayNoLabel(t *testing.T) {
-	cfg := &dockerclient.ContainerConfig{
+	cfg := &ctypes.Config{
 		Labels: map[string]string{},
 	}
 
@@ -32,40 +35,45 @@ func TestUseOverlayNoLabel(t *testing.T) {
 func TestBackendOverlayAddress(t *testing.T) {
 	containerID := "a5bb3cae92fb660eba775831d7fec0227d980ce04c138b0b8e5d69885a82d75f"
 
-	network := &dockerclient.NetworkResource{
+	network := types.NetworkResource{
 		Name: "testNetwork",
 		ID:   "testNetwork",
-		Containers: map[string]dockerclient.EndpointResource{
-			containerID: dockerclient.EndpointResource{
+		Containers: map[string]types.EndpointResource{
+			containerID: types.EndpointResource{
 				IPv4Address: "1.2.3.4/32",
 			},
 		},
 	}
 
-	containerInfo := &dockerclient.ContainerInfo{
-		Id: containerID,
-		Config: &dockerclient.ContainerConfig{
-			Labels: map[string]string{},
-		},
-		NetworkSettings: struct {
-			IPAddress   string `json:"IpAddress"`
-			IPPrefixLen int    `json:"IpPrefixLen"`
-			Gateway     string
-			Bridge      string
-			Ports       map[string][]dockerclient.PortBinding
-			Networks    map[string]*dockerclient.EndpointSettings
-		}{
-			IPAddress:   "",
-			IPPrefixLen: 0,
-			Gateway:     "",
-			Bridge:      "",
-			Ports: map[string][]dockerclient.PortBinding{
-				"80/tcp": nil,
-			},
-			Networks: map[string]*dockerclient.EndpointSettings{
-				"": nil,
+	b := &types.ContainerJSONBase{
+		ID: containerID,
+	}
+	mounts := []types.MountPoint{}
+	cfg := &ctypes.Config{
+		Labels: map[string]string{},
+	}
+	netSettings := &types.NetworkSettings{}
+	netSettings.IPAddress = ""
+	netSettings.IPPrefixLen = 0
+	netSettings.Gateway = ""
+	netSettings.Bridge = ""
+	netSettings.Ports = nat.PortMap{
+		"80/tcp": []nat.PortBinding{
+			{
+				HostIP:   "",
+				HostPort: "80",
 			},
 		},
+	}
+	netSettings.Networks = map[string]*ntypes.EndpointSettings{
+		"": nil,
+	}
+
+	containerInfo := types.ContainerJSON{
+		b,
+		mounts,
+		cfg,
+		netSettings,
 	}
 
 	addr, err := BackendOverlayAddress(network, containerInfo)
@@ -80,34 +88,37 @@ func TestBackendOverlayAddress(t *testing.T) {
 }
 
 func TestBackendAddress(t *testing.T) {
-	containerInfo := &dockerclient.ContainerInfo{
-		Config: &dockerclient.ContainerConfig{
-			Labels: map[string]string{},
-		},
-		NetworkSettings: struct {
-			IPAddress   string `json:"IpAddress"`
-			IPPrefixLen int    `json:"IpPrefixLen"`
-			Gateway     string
-			Bridge      string
-			Ports       map[string][]dockerclient.PortBinding
-			Networks    map[string]*dockerclient.EndpointSettings
-		}{
-			IPAddress:   "",
-			IPPrefixLen: 0,
-			Gateway:     "",
-			Bridge:      "",
-			Ports: map[string][]dockerclient.PortBinding{
-				"80/tcp": {
-					dockerclient.PortBinding{
-						HostIp:   "0.0.0.0",
-						HostPort: "80",
-					},
-				},
-			},
-			Networks: map[string]*dockerclient.EndpointSettings{
-				"": nil,
+	containerID := "a5bb3cae92fb660eba775831d7fec0227d980ce04c138b0b8e5d69885a82d75f"
+
+	b := &types.ContainerJSONBase{
+		ID: containerID,
+	}
+	mounts := []types.MountPoint{}
+	cfg := &ctypes.Config{
+		Labels: map[string]string{},
+	}
+	netSettings := &types.NetworkSettings{}
+	netSettings.IPAddress = ""
+	netSettings.IPPrefixLen = 0
+	netSettings.Gateway = ""
+	netSettings.Bridge = ""
+	netSettings.Ports = nat.PortMap{
+		"80/tcp": []nat.PortBinding{
+			{
+				HostIP:   "0.0.0.0",
+				HostPort: "80",
 			},
 		},
+	}
+	netSettings.Networks = map[string]*ntypes.EndpointSettings{
+		"": nil,
+	}
+
+	containerInfo := types.ContainerJSON{
+		b,
+		mounts,
+		cfg,
+		netSettings,
 	}
 
 	addr, err := BackendAddress(containerInfo, "")
@@ -122,34 +133,37 @@ func TestBackendAddress(t *testing.T) {
 }
 
 func TestBackendAddressOverride(t *testing.T) {
-	containerInfo := &dockerclient.ContainerInfo{
-		Config: &dockerclient.ContainerConfig{
-			Labels: map[string]string{},
-		},
-		NetworkSettings: struct {
-			IPAddress   string `json:"IpAddress"`
-			IPPrefixLen int    `json:"IpPrefixLen"`
-			Gateway     string
-			Bridge      string
-			Ports       map[string][]dockerclient.PortBinding
-			Networks    map[string]*dockerclient.EndpointSettings
-		}{
-			IPAddress:   "",
-			IPPrefixLen: 0,
-			Gateway:     "",
-			Bridge:      "",
-			Ports: map[string][]dockerclient.PortBinding{
-				"80/tcp": {
-					dockerclient.PortBinding{
-						HostIp:   "0.0.0.0",
-						HostPort: "80",
-					},
-				},
-			},
-			Networks: map[string]*dockerclient.EndpointSettings{
-				"": nil,
+	containerID := "a5bb3cae92fb660eba775831d7fec0227d980ce04c138b0b8e5d69885a82d75f"
+
+	b := &types.ContainerJSONBase{
+		ID: containerID,
+	}
+	mounts := []types.MountPoint{}
+	cfg := &ctypes.Config{
+		Labels: map[string]string{},
+	}
+	netSettings := &types.NetworkSettings{}
+	netSettings.IPAddress = ""
+	netSettings.IPPrefixLen = 0
+	netSettings.Gateway = ""
+	netSettings.Bridge = ""
+	netSettings.Ports = nat.PortMap{
+		"80/tcp": []nat.PortBinding{
+			{
+				HostIP:   "0.0.0.0",
+				HostPort: "80",
 			},
 		},
+	}
+	netSettings.Networks = map[string]*ntypes.EndpointSettings{
+		"": nil,
+	}
+
+	containerInfo := types.ContainerJSON{
+		b,
+		mounts,
+		cfg,
+		netSettings,
 	}
 
 	addr, err := BackendAddress(containerInfo, "1.1.1.1")

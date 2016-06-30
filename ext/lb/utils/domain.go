@@ -1,11 +1,11 @@
 package utils
 
 import (
+	ctypes "github.com/docker/engine-api/types/container"
 	"github.com/ehazlett/interlock/ext"
-	"github.com/samalba/dockerclient"
 )
 
-func Domain(config *dockerclient.ContainerConfig) string {
+func Domain(config *ctypes.Config) string {
 	domain := config.Domainname
 
 	if v, ok := config.Labels[ext.InterlockDomainLabel]; ok {

@@ -1,10 +1,15 @@
 package haproxy
 
 import (
-	"github.com/Sirupsen/logrus"
-	"github.com/ehazlett/interlock/config"
-	"github.com/samalba/dockerclient"
 	"io/ioutil"
+	"time"
+
+	"github.com/Sirupsen/logrus"
+	"github.com/docker/engine-api/client"
+	"github.com/docker/engine-api/types"
+	etypes "github.com/docker/engine-api/types/events"
+	"github.com/ehazlett/interlock/config"
+	"golang.org/x/net/context"
 )
 
 const (
@@ -13,7 +18,7 @@ const (
 
 type HAProxyLoadBalancer struct {
 	cfg    *config.ExtensionConfig
-	client *dockerclient.DockerClient
+	client *client.Client
 }
 
 func log() *logrus.Entry {
@@ -22,10 +27,10 @@ func log() *logrus.Entry {
 	})
 }
 
-func NewHAProxyLoadBalancer(c *config.ExtensionConfig, client *dockerclient.DockerClient) (*HAProxyLoadBalancer, error) {
+func NewHAProxyLoadBalancer(c *config.ExtensionConfig, cl *client.Client) (*HAProxyLoadBalancer, error) {
 	lb := &HAProxyLoadBalancer{
 		cfg:    c,
-		client: client,
+		client: cl,
 	}
 
 	return lb, nil
@@ -35,7 +40,7 @@ func (p *HAProxyLoadBalancer) Name() string {
 	return pluginName
 }
 
-func (p *HAProxyLoadBalancer) HandleEvent(event *dockerclient.Event) error {
+func (p *HAProxyLoadBalancer) HandleEvent(event *etypes.Message) error {
 	return nil
 }
 
@@ -58,7 +63,7 @@ func (p *HAProxyLoadBalancer) Template() string {
 
 }
 
-func (p *HAProxyLoadBalancer) Reload(proxyContainers []dockerclient.Container) error {
+func (p *HAProxyLoadBalancer) Reload(proxyContainers []types.Container) error {
 	// drop SYN to allow for restarts
 	if err := p.dropSYN(); err != nil {
 		log().Warnf("error signaling clients to resend; you will notice dropped packets: %s", err)
@@ -66,13 +71,14 @@ func (p *HAProxyLoadBalancer) Reload(proxyContainers []dockerclient.Container) e
 
 	for _, cnt := range proxyContainers {
 		// restart
-		log().Debugf("restarting proxy container: id=%s", cnt.Id)
-		if err := p.client.RestartContainer(cnt.Id, 1); err != nil {
-			log().Errorf("error restarting container: id=%s err=%s", cnt.Id[:12], err)
+		log().Debugf("restarting proxy container: id=%s", cnt.ID)
+		d := time.Millisecond * 1000
+		if err := p.client.ContainerRestart(context.Background(), cnt.ID, &d); err != nil {
+			log().Errorf("error restarting container: id=%s err=%s", cnt.ID[:12], err)
 			continue
 		}
 
-		log().Infof("restarted proxy container: id=%s name=%s", cnt.Id[:12], cnt.Names[0])
+		log().Infof("restarted proxy container: id=%s name=%s", cnt.ID[:12], cnt.Names[0])
 	}
 
 	if err := p.resumeSYN(); err != nil {

@@ -3,13 +3,13 @@ package utils
 import (
 	"testing"
 
-	"github.com/samalba/dockerclient"
+	ctypes "github.com/docker/engine-api/types/container"
 )
 
 func TestDomain(t *testing.T) {
 	testDomain := "foo.local"
 
-	cfg := &dockerclient.ContainerConfig{
+	cfg := &ctypes.Config{
 		Domainname: testDomain,
 	}
 

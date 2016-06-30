@@ -3,10 +3,10 @@ package beacon
 import (
 	"regexp"
 
-	"github.com/samalba/dockerclient"
+	ctypes "github.com/docker/engine-api/types/container"
 )
 
-func (b *Beacon) ruleMatch(cfg *dockerclient.ContainerConfig) bool {
+func (b *Beacon) ruleMatch(cfg *ctypes.Config) bool {
 	// iterate through rules and check type / match
 	isMatch := false
 
@@ -41,17 +41,17 @@ func (b *Beacon) ruleMatch(cfg *dockerclient.ContainerConfig) bool {
 	return isMatch
 }
 
-func (b *Beacon) isLabelMatch(rule string, cfg *dockerclient.ContainerConfig) bool {
+func (b *Beacon) isLabelMatch(rule string, cfg *ctypes.Config) bool {
 	log().Warnf("isLabelMatch not implemented")
 	return false
 }
 
-func (b *Beacon) isNameMatch(rule string, cfg *dockerclient.ContainerConfig) bool {
+func (b *Beacon) isNameMatch(rule string, cfg *ctypes.Config) bool {
 	log().Warnf("isNameMatch not implemented")
 	return false
 }
 
-func (b *Beacon) isImageMatch(rule string, cfg *dockerclient.ContainerConfig) bool {
+func (b *Beacon) isImageMatch(rule string, cfg *ctypes.Config) bool {
 	image := cfg.Image
 
 	r := regexp.MustCompile(rule)

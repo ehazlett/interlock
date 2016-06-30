@@ -1,16 +1,16 @@
 package events
 
 import (
-	"github.com/samalba/dockerclient"
+	"github.com/docker/engine-api/types/events"
 )
 
 type (
 	EventHandler struct {
-		eventChan chan (*dockerclient.Event)
+		eventChan chan (*events.Message)
 	}
 )
 
-func NewEventHandler(eventChan chan (*dockerclient.Event)) (*EventHandler, error) {
+func NewEventHandler(eventChan chan (*events.Message)) (*EventHandler, error) {
 	h := &EventHandler{
 		eventChan: eventChan,
 	}
@@ -18,6 +18,6 @@ func NewEventHandler(eventChan chan (*dockerclient.Event)) (*EventHandler, error
 	return h, nil
 }
 
-func (h *EventHandler) Handle(e *dockerclient.Event, ec chan error, args ...interface{}) {
+func (h *EventHandler) Handle(e *events.Message, ec chan error, args ...interface{}) {
 	h.eventChan <- e
 }

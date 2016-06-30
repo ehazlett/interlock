@@ -1,11 +1,11 @@
 package utils
 
 import (
+	ctypes "github.com/docker/engine-api/types/container"
 	"github.com/ehazlett/interlock/ext"
-	"github.com/samalba/dockerclient"
 )
 
-func IPHash(config *dockerclient.ContainerConfig) bool {
+func IPHash(config *ctypes.Config) bool {
 	ipHash := false
 
 	if _, ok := config.Labels[ext.InterlockIPHashLabel]; ok {

@@ -8,14 +8,10 @@ REPO?=ehazlett/$(APP)
 TAG?=latest
 BUILD?=-dev
 
-export GO15VENDOREXPERIMENT=1
-export GOPATH:=$(PWD)/vendor:$(GOPATH)
-
 all: image
 
 deps:
-	@rm -rf Godeps vendor
-	@godep save ./...
+	@glide install
 
 build: build-static
 
@@ -29,12 +25,12 @@ build-static:
 
 build-image:
 	@echo "Building image with $$(./cmd/$(APP)/$(APP) -v)"
-	@docker build -t $(REPO):$(TAG) .
+	@docker build $(BUILD_ARGS) -t $(REPO):$(TAG) .
 	@echo "Image created: $(REPO):$(TAG)"
 
 build-container:
-	@docker build -t interlock-build -f Dockerfile.build .
-	@docker run -it -e BUILD -e TAG --name interlock-build -ti interlock-build make build
+	@docker build $(BUILD_ARGS) -t interlock-build -f Dockerfile.build .
+	@docker run -it -e BUILD -e TAG --name interlock-build -ti interlock-build make deps build
 	@docker cp interlock-build:/go/src/github.com/$(REPO)/cmd/$(APP)/$(APP) ./cmd/$(APP)/$(APP)
 	@docker rm -fv interlock-build
 

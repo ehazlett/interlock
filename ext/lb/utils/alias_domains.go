@@ -3,11 +3,11 @@ package utils
 import (
 	"strings"
 
+	ctypes "github.com/docker/engine-api/types/container"
 	"github.com/ehazlett/interlock/ext"
-	"github.com/samalba/dockerclient"
 )
 
-func AliasDomains(config *dockerclient.ContainerConfig) []string {
+func AliasDomains(config *ctypes.Config) []string {
 	aliasDomains := []string{}
 
 	for l, v := range config.Labels {

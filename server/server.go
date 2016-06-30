@@ -1,23 +1,28 @@
 package server
 
 import (
+	"bufio"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"sort"
 	"strings"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/docker/engine-api/client"
+	"github.com/docker/engine-api/types"
+	etypes "github.com/docker/engine-api/types/events"
 	"github.com/ehazlett/interlock/config"
 	"github.com/ehazlett/interlock/events"
 	"github.com/ehazlett/interlock/ext"
 	"github.com/ehazlett/interlock/ext/beacon"
 	"github.com/ehazlett/interlock/ext/lb"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/samalba/dockerclient"
+	"golang.org/x/net/context"
 )
 
 const (
@@ -26,7 +31,7 @@ const (
 
 type Server struct {
 	cfg           *config.Config
-	client        *dockerclient.DockerClient
+	client        *client.Client
 	extensions    []ext.Extension
 	metrics       *Metrics
 	containerHash string
@@ -34,7 +39,7 @@ type Server struct {
 
 var (
 	errChan      chan (error)
-	eventChan    (chan *dockerclient.Event)
+	eventChan    (chan *etypes.Message)
 	eventErrChan chan (error)
 	handler      *events.EventHandler
 	restartChan  chan (bool)
@@ -58,7 +63,7 @@ func NewServer(cfg *config.Config) (*Server, error) {
 	eventErrChan = make(chan error)
 	restartChan = make(chan bool)
 	recoverChan = make(chan bool)
-	eventChan = make(chan *dockerclient.Event)
+	eventChan = make(chan *etypes.Message)
 
 	s.client = client
 
@@ -104,7 +109,7 @@ func NewServer(cfg *config.Config) (*Server, error) {
 			h, err := events.NewEventHandler(eventChan)
 			if err != nil {
 				errChan <- err
-				return
+				continue
 			}
 
 			handler = h
@@ -113,10 +118,33 @@ func NewServer(cfg *config.Config) (*Server, error) {
 				log.Infof("using polling for container updates: interval=%s", s.cfg.PollInterval)
 			} else {
 				log.Info("using event stream")
-				s.client.StartMonitorEvents(handler.Handle, eventErrChan)
+				e, err := client.Events(context.Background(), types.EventsOptions{})
+				if err != nil {
+					errChan <- err
+					continue
+				}
+				defer e.Close()
+
+				go func(e io.ReadCloser) {
+					s := bufio.NewScanner(e)
+					for s.Scan() {
+						if err != nil {
+							errChan <- err
+							continue
+						}
+
+						var msg *etypes.Message
+						if err := json.Unmarshal([]byte(s.Text()), &msg); err != nil {
+							errChan <- err
+							continue
+						}
+
+						eventChan <- msg
+					}
+				}(e)
 
 				// trigger initial load
-				eventChan <- &dockerclient.Event{
+				eventChan <- &etypes.Message{
 					ID:     "0",
 					Status: "interlock-start",
 				}
@@ -168,8 +196,8 @@ func (s *Server) waitForSwarm() {
 	log.Info("waiting for event stream to become ready")
 
 	for {
-
-		if _, err := s.client.ListContainers(false, false, ""); err == nil {
+		options := types.ContainerListOptions{All: true}
+		if _, err := s.client.ContainerList(context.Background(), options); err == nil {
 			log.Info("event stream appears to have recovered; restarting handler")
 			return
 		}
@@ -180,7 +208,7 @@ func (s *Server) waitForSwarm() {
 	}
 }
 
-func (s *Server) loadExtensions(client *dockerclient.DockerClient) {
+func (s *Server) loadExtensions(client *client.Client) {
 	for _, x := range s.cfg.Extensions {
 		log.Debugf("loading extension: name=%s", x.Name)
 		switch strings.ToLower(x.Name) {
@@ -192,6 +220,10 @@ func (s *Server) loadExtensions(client *dockerclient.DockerClient) {
 			}
 			s.extensions = append(s.extensions, p)
 		case "beacon":
+			if !s.cfg.EnableMetrics {
+				log.Errorf("unable to load beacon: metrics are disabled")
+				continue
+			}
 			p, err := beacon.NewBeacon(x, client)
 			if err != nil {
 				log.Errorf("error loading beacon extension: %s", err)
@@ -208,7 +240,11 @@ func (s *Server) runPoller(d time.Duration) {
 	t := time.NewTicker(d)
 	go func() {
 		for range t.C {
-			containers, err := s.client.ListContainers(false, false, "")
+			opts := types.ContainerListOptions{
+				All:  false,
+				Size: false,
+			}
+			containers, err := s.client.ContainerList(context.Background(), opts)
 			if err != nil {
 				log.Warnf("unable to get containers: %s", err)
 				continue
@@ -218,7 +254,7 @@ func (s *Server) runPoller(d time.Duration) {
 			ports := []int{}
 
 			for _, c := range containers {
-				containerIDs = append(containerIDs, c.Id)
+				containerIDs = append(containerIDs, c.ID)
 				for _, p := range c.Ports {
 					ports = append(ports, p.PublicPort)
 				}
@@ -248,7 +284,7 @@ func (s *Server) runPoller(d time.Duration) {
 				log.Debug("detected new containers; triggering reload")
 				s.containerHash = sum
 				// trigger update
-				eventChan <- &dockerclient.Event{
+				eventChan <- &etypes.Message{
 					ID:     fmt.Sprintf("%d", time.Now().UnixNano()),
 					Status: "interlock-restart",
 				}
