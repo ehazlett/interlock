@@ -1,8 +1,12 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 package escape // import "github.com/influxdata/influxdb/pkg/escape"
 =======
 package escape
 >>>>>>> 71ddfc9... add support for influxdb backend for beacon
+=======
+package escape // import "github.com/influxdata/influxdb/pkg/escape"
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 import "bytes"
 

@@ -33,7 +33,11 @@ func runRemove(dockerCli *client.DockerCli, networks []string) error {
 			status = 1
 			continue
 		}
+<<<<<<< HEAD
 		fmt.Fprintf(dockerCli.Err(), "%s\n", name)
+=======
+		fmt.Fprintf(dockerCli.Out(), "%s\n", name)
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	if status != 0 {

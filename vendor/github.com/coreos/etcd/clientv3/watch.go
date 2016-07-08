@@ -137,8 +137,15 @@ type watchRequest struct {
 	key string
 	end string
 	rev int64
+<<<<<<< HEAD
 	// progressNotify is for progress updates.
 	progressNotify bool
+=======
+	// progressNotify is for progress updates
+	progressNotify bool
+	// get the previous key-value pair before the event happens
+	prevKV bool
+>>>>>>> 12a5469... start on swarm services; move to glade
 	// retc receives a chan WatchResponse once the watcher is established
 	retc chan chan WatchResponse
 }
@@ -209,6 +216,10 @@ func (w *watcher) Watch(ctx context.Context, key string, opts ...OpOption) Watch
 		end:            string(ow.end),
 		rev:            ow.rev,
 		progressNotify: ow.progressNotify,
+<<<<<<< HEAD
+=======
+		prevKV:         ow.prevKV,
+>>>>>>> 12a5469... start on swarm services; move to glade
 		retc:           retc,
 	}
 
@@ -682,6 +693,10 @@ func (wr *watchRequest) toPB() *pb.WatchRequest {
 		Key:            []byte(wr.key),
 		RangeEnd:       []byte(wr.end),
 		ProgressNotify: wr.progressNotify,
+<<<<<<< HEAD
+=======
+		PrevKv:         wr.prevKV,
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 	cr := &pb.WatchRequest_CreateRequest{CreateRequest: req}
 	return &pb.WatchRequest{RequestUnion: cr}

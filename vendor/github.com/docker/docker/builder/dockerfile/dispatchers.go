@@ -407,6 +407,11 @@ func cmd(b *Builder, args []string, attributes map[string]bool, original string)
 	}
 
 	b.runConfig.Cmd = strslice.StrSlice(cmdSlice)
+<<<<<<< HEAD
+=======
+	// set config as already being escaped, this prevents double escaping on windows
+	b.runConfig.ArgsEscaped = true
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 	if err := b.commit("", b.runConfig.Cmd, fmt.Sprintf("CMD %q", cmdSlice)); err != nil {
 		return err

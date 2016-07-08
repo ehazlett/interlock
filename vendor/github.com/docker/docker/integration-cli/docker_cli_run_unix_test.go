@@ -955,6 +955,17 @@ func (s *DockerSuite) TestRunSeccompProfileDenyChmod(c *check.C) {
 		{
 			"name": "chmod",
 			"action": "SCMP_ACT_ERRNO"
+<<<<<<< HEAD
+=======
+		},
+		{
+			"name":"fchmod",
+			"action": "SCMP_ACT_ERRNO"
+		},
+		{
+			"name": "fchmodat",
+			"action":"SCMP_ACT_ERRNO"
+>>>>>>> 12a5469... start on swarm services; move to glade
 		}
 	]
 }`

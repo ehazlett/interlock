@@ -35,6 +35,10 @@ func loadBundlefile(stderr io.Writer, namespace string, path string) (*bundlefil
 	if err != nil {
 		return nil, err
 	}
+<<<<<<< HEAD
+=======
+	defer reader.Close()
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 	bundle, err := bundlefile.LoadFile(reader)
 	if err != nil {

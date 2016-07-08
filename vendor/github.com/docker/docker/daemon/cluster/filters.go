@@ -61,18 +61,34 @@ func newListServicesFilters(filter filters.Args) (*swarmapi.ListServicesRequest_
 	}, nil
 }
 
+<<<<<<< HEAD
 func newListTasksFilters(filter filters.Args) (*swarmapi.ListTasksRequest_Filters, error) {
+=======
+func newListTasksFilters(filter filters.Args, transformFunc func(filters.Args) error) (*swarmapi.ListTasksRequest_Filters, error) {
+>>>>>>> 12a5469... start on swarm services; move to glade
 	accepted := map[string]bool{
 		"name":          true,
 		"id":            true,
 		"label":         true,
 		"service":       true,
 		"node":          true,
+<<<<<<< HEAD
 		"desired_state": true,
+=======
+		"desired-state": true,
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 	if err := filter.Validate(accepted); err != nil {
 		return nil, err
 	}
+<<<<<<< HEAD
+=======
+	if transformFunc != nil {
+		if err := transformFunc(filter); err != nil {
+			return nil, err
+		}
+	}
+>>>>>>> 12a5469... start on swarm services; move to glade
 	f := &swarmapi.ListTasksRequest_Filters{
 		Names:      filter.Get("name"),
 		IDPrefixes: filter.Get("id"),
@@ -81,11 +97,19 @@ func newListTasksFilters(filter filters.Args) (*swarmapi.ListTasksRequest_Filter
 		NodeIDs:    filter.Get("node"),
 	}
 
+<<<<<<< HEAD
 	for _, s := range filter.Get("desired_state") {
 		if state, ok := swarmapi.TaskState_value[strings.ToUpper(s)]; ok {
 			f.DesiredStates = append(f.DesiredStates, swarmapi.TaskState(state))
 		} else if s != "" {
 			return nil, fmt.Errorf("Invalid desired_state filter: '%s'", s)
+=======
+	for _, s := range filter.Get("desired-state") {
+		if state, ok := swarmapi.TaskState_value[strings.ToUpper(s)]; ok {
+			f.DesiredStates = append(f.DesiredStates, swarmapi.TaskState(state))
+		} else if s != "" {
+			return nil, fmt.Errorf("Invalid desired-state filter: '%s'", s)
+>>>>>>> 12a5469... start on swarm services; move to glade
 		}
 	}
 

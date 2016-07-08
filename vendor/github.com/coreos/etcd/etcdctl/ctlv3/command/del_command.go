@@ -23,17 +23,30 @@ import (
 
 var (
 	delPrefix bool
+<<<<<<< HEAD
+=======
+	delPrevKV bool
+>>>>>>> 12a5469... start on swarm services; move to glade
 )
 
 // NewDelCommand returns the cobra command for "del".
 func NewDelCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "del [options] <key> [range_end]",
+<<<<<<< HEAD
 		Short: "Removes the specified key or range of keys [key, range_end).",
+=======
+		Short: "Removes the specified key or range of keys [key, range_end)",
+>>>>>>> 12a5469... start on swarm services; move to glade
 		Run:   delCommandFunc,
 	}
 
 	cmd.Flags().BoolVar(&delPrefix, "prefix", false, "delete keys with matching prefix")
+<<<<<<< HEAD
+=======
+	cmd.Flags().BoolVar(&delPrevKV, "prev-kv", false, "return deleted key-value pairs")
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 	return cmd
 }
 
@@ -65,6 +78,12 @@ func getDelOp(cmd *cobra.Command, args []string) (string, []clientv3.OpOption) {
 	if delPrefix {
 		opts = append(opts, clientv3.WithPrefix())
 	}
+<<<<<<< HEAD
+=======
+	if delPrevKV {
+		opts = append(opts, clientv3.WithPrevKV())
+	}
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 	return key, opts
 }

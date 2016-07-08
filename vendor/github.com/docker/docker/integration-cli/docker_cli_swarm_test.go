@@ -5,6 +5,10 @@ package main
 import (
 	"encoding/json"
 	"io/ioutil"
+<<<<<<< HEAD
+=======
+	"strings"
+>>>>>>> 12a5469... start on swarm services; move to glade
 	"time"
 
 	"github.com/docker/docker/pkg/integration/checker"
@@ -105,7 +109,11 @@ func (s *DockerSwarmSuite) TestSwarmInit(c *check.C) {
 
 	c.Assert(d.Leave(true), checker.IsNil)
 
+<<<<<<< HEAD
 	out, err = d.Cmd("swarm", "init", "--auto-accept", "none")
+=======
+	out, err = d.Cmd("swarm", "init", "--auto-accept", "none", "--secret", "")
+>>>>>>> 12a5469... start on swarm services; move to glade
 	c.Assert(err, checker.IsNil, check.Commentf("out: %v", out))
 
 	spec = getSpec()
@@ -158,3 +166,16 @@ func (s *DockerSwarmSuite) TestSwarmIncompatibleDaemon(c *check.C) {
 	// restart for teardown
 	c.Assert(d.Start(), checker.IsNil)
 }
+<<<<<<< HEAD
+=======
+
+// Test case for #24090
+func (s *DockerSwarmSuite) TestSwarmNodeListHostname(c *check.C) {
+	d := s.AddDaemon(c, true, true)
+
+	// The first line should contain "HOSTNAME"
+	out, err := d.Cmd("node", "ls")
+	c.Assert(err, checker.IsNil)
+	c.Assert(strings.Split(out, "\n")[0], checker.Contains, "HOSTNAME")
+}
+>>>>>>> 12a5469... start on swarm services; move to glade

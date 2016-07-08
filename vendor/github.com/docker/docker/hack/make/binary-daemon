@@ -9,5 +9,11 @@ set -e
 	export BINARY_SHORT_NAME="$DOCKER_DAEMON_BINARY_NAME"
 	export SOURCE_PATH='./cmd/dockerd'
 	source "${MAKEDIR}/.binary"
+<<<<<<< HEAD
+=======
+	export BINARY_SHORT_NAME="$DOCKER_PROXY_BINARY_NAME"
+	export SOURCE_PATH='./vendor/src/github.com/docker/libnetwork/cmd/proxy'
+	source "${MAKEDIR}/.binary"
+>>>>>>> 12a5469... start on swarm services; move to glade
 	copy_containerd "$DEST" 'hash'
 )

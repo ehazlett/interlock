@@ -10,6 +10,7 @@ parent = "smn_cli"
 
 # import
 
+<<<<<<< HEAD
     Usage: docker import file|URL|- [REPOSITORY[:TAG]]
 
     Create an empty filesystem image and import the contents of the
@@ -19,6 +20,18 @@ parent = "smn_cli"
       -c, --change=[]     Apply specified Dockerfile instructions while importing the image
       --help              Print usage
       -m, --message=      Set commit message for imported image
+=======
+```markdown
+Usage:  docker import [OPTIONS] file|URL|- [REPOSITORY[:TAG]]
+
+Import the contents from a tarball to create a filesystem image
+
+Options:
+  -c, --change value     Apply Dockerfile instruction to the created image (default [])
+      --help             Print usage
+  -m, --message string   Set commit message for imported image
+```
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 You can specify a `URL` or `-` (dash) to take data directly from `STDIN`. The
 `URL` can point to an archive (.tar, .tar.gz, .tgz, .bzip, .tar.xz, or .txz)

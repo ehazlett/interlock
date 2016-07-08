@@ -78,7 +78,12 @@ func (e *Expr) Match(whats ...string) bool {
 
 	// full string match
 	for _, what := range whats {
+<<<<<<< HEAD
 		if e.exp == what {
+=======
+		// case insensitive compare
+		if strings.EqualFold(e.exp, what) {
+>>>>>>> 12a5469... start on swarm services; move to glade
 			match = true
 			break
 		}

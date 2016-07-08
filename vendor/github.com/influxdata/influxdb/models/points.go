@@ -1,8 +1,12 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 package models // import "github.com/influxdata/influxdb/models"
 =======
 package models
 >>>>>>> 71ddfc9... add support for influxdb backend for beacon
+=======
+package models // import "github.com/influxdata/influxdb/models"
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 import (
 	"bytes"
@@ -553,6 +557,7 @@ func less(buf []byte, indices []int, i, j int) bool {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 func isFieldEscapeChar(b byte) bool {
 	for c := range escape.Codes {
@@ -564,6 +569,8 @@ func isFieldEscapeChar(b byte) bool {
 }
 
 >>>>>>> 71ddfc9... add support for influxdb backend for beacon
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 // scanFields scans buf, starting at i for the fields section of a point.  It returns
 // the ending position and the byte slice of the fields within buf
 func scanFields(buf []byte, i int) (int, []byte, error) {
@@ -1406,6 +1413,20 @@ func (p *point) UnixNano() int64 {
 // values.
 type Tags map[string]string
 
+// Merge merges the tags combining the two. If both define a tag with the
+// same key, the merged value overwrites the old value.
+// A new map is returned.
+func (t Tags) Merge(other map[string]string) Tags {
+	merged := make(map[string]string, len(t)+len(other))
+	for k, v := range t {
+		merged[k] = v
+	}
+	for k, v := range other {
+		merged[k] = v
+	}
+	return Tags(merged)
+}
+
 // HashKey hashes all of a tag's keys.
 func (t Tags) HashKey() []byte {
 	// Empty maps marshal to empty bytes.
@@ -1597,6 +1618,7 @@ func (p Fields) MarshalBinary() []byte {
 	return b
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 type indexedSlice struct {
@@ -1618,3 +1640,5 @@ func (s *indexedSlice) Len() int {
 	return len(s.indices)
 }
 >>>>>>> 71ddfc9... add support for influxdb backend for beacon
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade

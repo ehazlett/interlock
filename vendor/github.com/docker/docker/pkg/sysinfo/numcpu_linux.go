@@ -6,8 +6,11 @@ import (
 	"runtime"
 	"syscall"
 	"unsafe"
+<<<<<<< HEAD
 
 	"golang.org/x/sys/unix"
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 )
 
 // numCPU queries the system for the count of threads available
@@ -17,10 +20,17 @@ import (
 // Returns 0 on errors. Use |runtime.NumCPU| in that case.
 func numCPU() int {
 	// Gets the affinity mask for a process: The very one invoking this function.
+<<<<<<< HEAD
 	pid, _, _ := syscall.RawSyscall(unix.SYS_GETPID, 0, 0, 0)
 
 	var mask [1024 / 64]uintptr
 	_, _, err := syscall.RawSyscall(unix.SYS_SCHED_GETAFFINITY, pid, uintptr(len(mask)*8), uintptr(unsafe.Pointer(&mask[0])))
+=======
+	pid, _, _ := syscall.RawSyscall(syscall.SYS_GETPID, 0, 0, 0)
+
+	var mask [1024 / 64]uintptr
+	_, _, err := syscall.RawSyscall(syscall.SYS_SCHED_GETAFFINITY, pid, uintptr(len(mask)*8), uintptr(unsafe.Pointer(&mask[0])))
+>>>>>>> 12a5469... start on swarm services; move to glade
 	if err != 0 {
 		return 0
 	}

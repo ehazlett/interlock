@@ -10,6 +10,7 @@ parent = "smn_cli"
 
 # ps
 
+<<<<<<< HEAD
     Usage: docker ps [OPTIONS]
 
     List containers
@@ -32,6 +33,33 @@ parent = "smn_cli"
       --no-trunc            Don't truncate output
       -q, --quiet           Only display numeric IDs
       -s, --size            Display total file sizes
+=======
+```markdown
+Usage: docker ps [OPTIONS]
+
+List containers
+
+Options:
+  -a, --all             Show all containers (default shows just running)
+  -f, --filter value    Filter output based on conditions provided (default [])
+                        - exited=<int> an exit code of <int>
+                        - label=<key> or label=<key>=<value>
+                        - status=(created|restarting|running|paused|exited)
+                        - name=<string> a container's name
+                        - id=<ID> a container's ID
+                        - before=(<container-name>|<container-id>)
+                        - since=(<container-name>|<container-id>)
+                        - ancestor=(<image-name>[:tag]|<image-id>|<image@digest>)
+                          containers created from an image or a descendant.
+      --format string   Pretty-print containers using a Go template
+      --help            Print usage
+  -n, --last int        Show n last created containers (includes all states) (default -1)
+  -l, --latest          Show the latest created container (includes all states)
+      --no-trunc        Don't truncate output
+  -q, --quiet           Only display numeric IDs
+  -s, --size            Display total file sizes
+```
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 Running `docker ps --no-trunc` showing 2 linked containers.
 

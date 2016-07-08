@@ -104,7 +104,13 @@ func isDigit(r rune) bool {
 	return r >= '0' && r <= '9'
 }
 
+<<<<<<< HEAD
 func isLetter(ch rune) bool { return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') }
+=======
+func isLetter(ch rune) bool {
+	return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch == '@')
+}
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 // Scanner scans over the file and converts the raw text into tokens
 type Scanner struct {

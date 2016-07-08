@@ -37,11 +37,16 @@ var (
 func NewGetCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get [options] <key> [range_end]",
+<<<<<<< HEAD
 		Short: "Get gets the key or a range of keys.",
+=======
+		Short: "Gets the key or a range of keys",
+>>>>>>> 12a5469... start on swarm services; move to glade
 		Run:   getCommandFunc,
 	}
 
 	cmd.Flags().StringVar(&getConsistency, "consistency", "l", "Linearizable(l) or Serializable(s)")
+<<<<<<< HEAD
 	cmd.Flags().StringVar(&getSortOrder, "order", "", "order of results; ASCEND or DESCEND")
 	cmd.Flags().StringVar(&getSortTarget, "sort-by", "", "sort target; CREATE, KEY, MODIFY, VALUE, or VERSION")
 	cmd.Flags().Int64Var(&getLimit, "limit", 0, "maximum number of results")
@@ -49,6 +54,15 @@ func NewGetCommand() *cobra.Command {
 	cmd.Flags().BoolVar(&getFromKey, "from-key", false, "get keys that are greater than or equal to the given key")
 	cmd.Flags().Int64Var(&getRev, "rev", 0, "specify the kv revision")
 	cmd.Flags().BoolVar(&getKeysOnly, "keys-only", false, "get only the keys")
+=======
+	cmd.Flags().StringVar(&getSortOrder, "order", "", "Order of results; ASCEND or DESCEND")
+	cmd.Flags().StringVar(&getSortTarget, "sort-by", "", "Sort target; CREATE, KEY, MODIFY, VALUE, or VERSION")
+	cmd.Flags().Int64Var(&getLimit, "limit", 0, "Maximum number of results")
+	cmd.Flags().BoolVar(&getPrefix, "prefix", false, "Get keys with matching prefix")
+	cmd.Flags().BoolVar(&getFromKey, "from-key", false, "Get keys that are greater than or equal to the given key")
+	cmd.Flags().Int64Var(&getRev, "rev", 0, "Specify the kv revision")
+	cmd.Flags().BoolVar(&getKeysOnly, "keys-only", false, "Get only the keys")
+>>>>>>> 12a5469... start on swarm services; move to glade
 	return cmd
 }
 

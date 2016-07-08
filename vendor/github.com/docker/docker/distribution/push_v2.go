@@ -200,6 +200,14 @@ func (p *v2Pusher) pushV2Tag(ctx context.Context, ref reference.NamedTagged, ima
 
 	manifestDigest := digest.FromBytes(canonicalManifest)
 	progress.Messagef(p.config.ProgressOutput, "", "%s: digest: %s size: %d", ref.Tag(), manifestDigest, len(canonicalManifest))
+<<<<<<< HEAD
+=======
+
+	if err := addDigestReference(p.config.ReferenceStore, ref, manifestDigest, imageID); err != nil {
+		return err
+	}
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 	// Signal digest to the trust client so it can sign the
 	// push, if appropriate.
 	progress.Aux(p.config.ProgressOutput, PushResult{Tag: ref.Tag(), Digest: manifestDigest, Size: len(canonicalManifest)})

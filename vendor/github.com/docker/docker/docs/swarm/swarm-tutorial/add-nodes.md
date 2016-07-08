@@ -23,16 +23,29 @@ This tutorial uses the name `worker1`.
 the existing swarm:
 
     ```
+<<<<<<< HEAD
     docker swarm join <MANAGER-IP>:<PORT>
     ```
 
     Replace `<MANAGER-IP>` with the address of the manager node and `<PORT>`
     with the port where the manager listens.
+=======
+    docker swarm join --secret <SECRET> <MANAGER-IP>:<PORT>
+    ```
+
+    Replace `<SECRET>` with the secret that was printed by `docker swarm init` in the
+    previous step. Replace `<MANAGER-IP>` with the address of the manager node
+    and `<PORT>` with the port where the manager listens.
+>>>>>>> 12a5469... start on swarm services; move to glade
 
     In the tutorial, the following command joins `worker1` to the swarm on `manager1`:
 
     ```
+<<<<<<< HEAD
     $ docker swarm join 192.168.99.100:2377
+=======
+    $ docker swarm join --secret 4ao565v9jsuogtq5t8s379ulb 192.168.99.100:2377
+>>>>>>> 12a5469... start on swarm services; move to glade
 
     This node joined a Swarm as a worker.
     ```
@@ -40,17 +53,30 @@ the existing swarm:
 3. Open a terminal and ssh into the machine where you want to run a second
 worker node. This tutorial uses the name `worker2`.
 
+<<<<<<< HEAD
 4. Run `docker swarm join <MANAGER-IP>:<PORT>` to create a worker node joined to
 the existing Swarm.
 
     Replace `<MANAGER-IP>` with the address of the manager node and `<PORT>`
     with the port where the manager listens.
+=======
+4. Run `docker swarm join --secret <SECRET> <MANAGER-IP>:<PORT>` to create a worker node joined to
+the existing Swarm.
+
+    Replace `<SECRET>` with the secret that was printed by `docker swarm init` in the
+    previous step. Replace `<MANAGER-IP>` with the address of the manager node
+    and `<PORT>` with the port where the manager listens.
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 5. Open a terminal and ssh into the machine where the manager node runs and run
 the `docker node ls` command to see the worker nodes:
 
     ```bash
+<<<<<<< HEAD
     ID                           NAME      MEMBERSHIP  STATUS  AVAILABILITY  MANAGER STATUS  LEADER
+=======
+    ID                           HOSTNAME  MEMBERSHIP  STATUS  AVAILABILITY  MANAGER STATUS  LEADER
+>>>>>>> 12a5469... start on swarm services; move to glade
     03g1y59jwfg7cf99w4lt0f662    worker2   Accepted    Ready   Active
     9j68exjopxe7wfl6yuxml7a7j    worker1   Accepted    Ready   Active
     dxn1zf6l61qsb1josjja83ngz *  manager1  Accepted    Ready   Active        Reachable       Yes

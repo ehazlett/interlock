@@ -33,7 +33,11 @@ var (
 func NewElectCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "elect <election-name> [proposal]",
+<<<<<<< HEAD
 		Short: "elect observes and participates in leader election",
+=======
+		Short: "Observes and participates in leader election",
+>>>>>>> 12a5469... start on swarm services; move to glade
 		Run:   electCommandFunc,
 	}
 	cmd.Flags().BoolVarP(&electListen, "listen", "l", false, "observation mode")

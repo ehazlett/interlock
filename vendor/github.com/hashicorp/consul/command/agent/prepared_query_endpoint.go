@@ -96,6 +96,13 @@ func parseLimit(req *http.Request, limit *int) error {
 func (s *HTTPServer) preparedQueryExecute(id string, resp http.ResponseWriter, req *http.Request) (interface{}, error) {
 	args := structs.PreparedQueryExecuteRequest{
 		QueryIDOrName: id,
+<<<<<<< HEAD
+=======
+		Agent: structs.QuerySource{
+			Node:       s.agent.config.NodeName,
+			Datacenter: s.agent.config.Datacenter,
+		},
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 	s.parseSource(req, &args.Source)
 	if done := s.parse(resp, req, &args.Datacenter, &args.QueryOptions); done {
@@ -131,6 +138,13 @@ func (s *HTTPServer) preparedQueryExecute(id string, resp http.ResponseWriter, r
 func (s *HTTPServer) preparedQueryExplain(id string, resp http.ResponseWriter, req *http.Request) (interface{}, error) {
 	args := structs.PreparedQueryExecuteRequest{
 		QueryIDOrName: id,
+<<<<<<< HEAD
+=======
+		Agent: structs.QuerySource{
+			Node:       s.agent.config.NodeName,
+			Datacenter: s.agent.config.Datacenter,
+		},
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 	s.parseSource(req, &args.Source)
 	if done := s.parse(resp, req, &args.Datacenter, &args.QueryOptions); done {

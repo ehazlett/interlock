@@ -1,14 +1,26 @@
 package api
 
 import (
+<<<<<<< HEAD
 	"fmt"
 	"mime"
+=======
+	"encoding/json"
+	"encoding/pem"
+	"fmt"
+	"mime"
+	"os"
+>>>>>>> 12a5469... start on swarm services; move to glade
 	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
 
 	"github.com/Sirupsen/logrus"
+<<<<<<< HEAD
+=======
+	"github.com/docker/docker/pkg/ioutils"
+>>>>>>> 12a5469... start on swarm services; move to glade
 	"github.com/docker/docker/pkg/system"
 	"github.com/docker/engine-api/types"
 	"github.com/docker/libtrust"
@@ -135,7 +147,15 @@ func LoadOrCreateTrustKey(trustKeyPath string) (libtrust.PrivateKey, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Error generating key: %s", err)
 		}
+<<<<<<< HEAD
 		if err := libtrust.SaveKey(trustKeyPath, trustKey); err != nil {
+=======
+		encodedKey, err := serializePrivateKey(trustKey, filepath.Ext(trustKeyPath))
+		if err != nil {
+			return nil, fmt.Errorf("Error serializing key: %s", err)
+		}
+		if err := ioutils.AtomicWriteFile(trustKeyPath, encodedKey, os.FileMode(0600)); err != nil {
+>>>>>>> 12a5469... start on swarm services; move to glade
 			return nil, fmt.Errorf("Error saving key file: %s", err)
 		}
 	} else if err != nil {
@@ -143,3 +163,22 @@ func LoadOrCreateTrustKey(trustKeyPath string) (libtrust.PrivateKey, error) {
 	}
 	return trustKey, nil
 }
+<<<<<<< HEAD
+=======
+
+func serializePrivateKey(key libtrust.PrivateKey, ext string) (encoded []byte, err error) {
+	if ext == ".json" || ext == ".jwk" {
+		encoded, err = json.Marshal(key)
+		if err != nil {
+			return nil, fmt.Errorf("unable to encode private key JWK: %s", err)
+		}
+	} else {
+		pemBlock, err := key.PEMBlock()
+		if err != nil {
+			return nil, fmt.Errorf("unable to encode private key PEM: %s", err)
+		}
+		encoded = pem.EncodeToMemory(pemBlock)
+	}
+	return
+}
+>>>>>>> 12a5469... start on swarm services; move to glade

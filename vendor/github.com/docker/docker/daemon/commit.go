@@ -74,6 +74,10 @@ func merge(userConf, imageConf *containertypes.Config) error {
 	if len(userConf.Entrypoint) == 0 {
 		if len(userConf.Cmd) == 0 {
 			userConf.Cmd = imageConf.Cmd
+<<<<<<< HEAD
+=======
+			userConf.ArgsEscaped = imageConf.ArgsEscaped
+>>>>>>> 12a5469... start on swarm services; move to glade
 		}
 
 		if userConf.Entrypoint == nil {

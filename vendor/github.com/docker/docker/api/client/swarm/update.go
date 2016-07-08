@@ -47,7 +47,12 @@ func runUpdate(dockerCli *client.DockerCli, flags *pflag.FlagSet, opts swarmOpti
 		return err
 	}
 
+<<<<<<< HEAD
 	fmt.Println("Swarm updated.")
+=======
+	fmt.Fprintln(dockerCli.Out(), "Swarm updated.")
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 	return nil
 }
 
@@ -85,5 +90,13 @@ func mergeSwarm(swarm *swarm.Swarm, flags *pflag.FlagSet) error {
 		}
 	}
 
+<<<<<<< HEAD
+=======
+	if flags.Changed(flagExternalCA) {
+		value := flags.Lookup(flagExternalCA).Value.(*ExternalCAOption)
+		spec.CAConfig.ExternalCAs = value.Value()
+	}
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 	return nil
 }

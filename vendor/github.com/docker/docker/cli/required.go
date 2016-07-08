@@ -7,7 +7,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+<<<<<<< HEAD
 // NoArgs validate args and returns an error if there are any args
+=======
+// NoArgs validates args and returns an error if there are any args
+>>>>>>> 12a5469... start on swarm services; move to glade
 func NoArgs(cmd *cobra.Command, args []string) error {
 	if len(args) == 0 {
 		return nil

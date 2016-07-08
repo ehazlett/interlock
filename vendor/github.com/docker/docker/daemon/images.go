@@ -167,7 +167,11 @@ func (daemon *Daemon) Images(filterArgs, filter string, all bool) ([]*types.Imag
 			} else {
 				continue
 			}
+<<<<<<< HEAD
 		} else if danglingOnly {
+=======
+		} else if danglingOnly && len(newImage.RepoTags) > 0 {
+>>>>>>> 12a5469... start on swarm services; move to glade
 			continue
 		}
 

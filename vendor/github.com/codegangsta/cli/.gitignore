@@ -1,5 +1,9 @@
 *.coverprofile
 <<<<<<< HEAD
+<<<<<<< HEAD
 node_modules/
 =======
 >>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
+=======
+node_modules/
+>>>>>>> 12a5469... start on swarm services; move to glade

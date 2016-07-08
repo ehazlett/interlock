@@ -10,6 +10,7 @@ parent = "smn_cli"
 
 # events
 
+<<<<<<< HEAD
     Usage: docker events [OPTIONS]
 
     Get real time events from the server
@@ -18,6 +19,19 @@ parent = "smn_cli"
       --help             Print usage
       --since=""         Show all events created since timestamp
       --until=""         Stream events until this timestamp
+=======
+```markdown
+Usage:  docker events [OPTIONS]
+
+Get real time events from the server
+
+Options:
+  -f, --filter value   Filter output based on conditions provided (default [])
+      --help           Print usage
+      --since string   Show all events created since timestamp
+      --until string   Stream events until this timestamp
+```
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 Docker containers report the following events:
 

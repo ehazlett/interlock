@@ -11,12 +11,23 @@ parent = "smn_cli"
 
 # plugin inspect (experimental)
 
+<<<<<<< HEAD
     Usage: docker plugin inspect PLUGIN
 
     Return low-level information about a plugin
 
       --help              Print usage
 
+=======
+```markdown
+Usage:  docker plugin inspect PLUGIN
+
+Inspect a plugin
+
+Options:
+      --help   Print usage
+```
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 Returns information about a plugin. By default, this command renders all results
 in a JSON array.

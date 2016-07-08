@@ -10,6 +10,7 @@ parent = "smn_cli"
 
 # pull
 
+<<<<<<< HEAD
     Usage: docker pull [OPTIONS] NAME[:TAG] | [REGISTRY_HOST[:REGISTRY_PORT]/]NAME[:TAG]
 
     Pull an image or a repository from the registry
@@ -17,6 +18,18 @@ parent = "smn_cli"
       -a, --all-tags                Download all tagged images in the repository
       --disable-content-trust=true  Skip image verification
       --help                        Print usage
+=======
+```markdown
+Usage:  docker pull [OPTIONS] NAME[:TAG|@DIGEST]
+
+Pull an image or a repository from a registry
+
+Options:
+  -a, --all-tags                Download all tagged images in the repository
+      --disable-content-trust   Skip image verification (default true)
+      --help                    Print usage
+```
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 Most of your images will be created on top of a base image from the
 [Docker Hub](https://hub.docker.com) registry.

@@ -10,9 +10,20 @@ parent = "smn_cli"
 
 # node promote
 
+<<<<<<< HEAD
     Usage:  docker node promote NODE [NODE...]
 
     Promote a node as manager in the swarm
+=======
+```markdown
+Usage:  docker node promote NODE [NODE...]
+
+Promote a node to a manager in the swarm
+
+Options:
+      --help   Print usage
+```
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 Promotes a node that is pending a promotion to manager. This command targets a docker engine that is a manager in the swarm cluster.
 

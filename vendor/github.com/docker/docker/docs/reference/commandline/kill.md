@@ -10,12 +10,24 @@ parent = "smn_cli"
 
 # kill
 
+<<<<<<< HEAD
     Usage: docker kill [OPTIONS] CONTAINER [CONTAINER...]
 
     Kill a running container using SIGKILL or a specified signal
 
       --help                 Print usage
       -s, --signal="KILL"    Signal to send to the container
+=======
+```markdown
+Usage:  docker kill [OPTIONS] CONTAINER [CONTAINER...]
+
+Kill one or more running container
+
+Options:
+      --help            Print usage
+  -s, --signal string   Signal to send to the container (default "KILL")
+```
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 The main process inside the container will be sent `SIGKILL`, or any
 signal specified with option `--signal`.

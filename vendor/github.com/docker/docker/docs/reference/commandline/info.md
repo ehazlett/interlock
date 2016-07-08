@@ -10,6 +10,7 @@ parent = "smn_cli"
 
 # info
 
+<<<<<<< HEAD
 
     Usage: docker info [OPTIONS]
 
@@ -17,6 +18,16 @@ parent = "smn_cli"
 
       --help              Print usage
 
+=======
+```markdown
+Usage:  docker info
+
+Display system-wide information
+
+Options:
+      --help   Print usage
+```
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 This command displays system wide information regarding the Docker installation.
 Information displayed includes the kernel version, number of containers and images.

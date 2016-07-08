@@ -10,12 +10,24 @@ parent = "smn_cli"
 
 # export
 
+<<<<<<< HEAD
     Usage: docker export [OPTIONS] CONTAINER
 
     Export the contents of a container's filesystem as a tar archive
 
       --help             Print usage
       -o, --output=""    Write to a file, instead of STDOUT
+=======
+```markdown
+Usage:  docker export [OPTIONS] CONTAINER
+
+Export a container's filesystem as a tar archive
+
+Options:
+      --help            Print usage
+  -o, --output string   Write to a file, instead of STDOUT
+```
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 The `docker export` command does not export the contents of volumes associated
 with the container. If a volume is mounted on top of an existing directory in

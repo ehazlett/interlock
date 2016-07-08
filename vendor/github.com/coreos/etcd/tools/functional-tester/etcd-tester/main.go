@@ -58,6 +58,17 @@ func main() {
 		newFailureSlowNetworkAll(),
 	}
 
+<<<<<<< HEAD
+=======
+	// ensure cluster is fully booted to know failpoints are available
+	c.WaitHealth()
+	fpFailures, fperr := failpointFailures(c)
+	if len(fpFailures) == 0 {
+		plog.Infof("no failpoints found (%v)", fperr)
+	}
+	failures = append(failures, fpFailures...)
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 	schedule := failures
 	if schedCases != nil && *schedCases != "" {
 		cases := strings.Split(*schedCases, " ")

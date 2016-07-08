@@ -15,7 +15,11 @@ type ServiceSpec struct {
 	Annotations
 
 	// TaskTemplate defines how the service should construct new tasks when
+<<<<<<< HEAD
 	// ochestrating this service.
+=======
+	// orchestrating this service.
+>>>>>>> 12a5469... start on swarm services; move to glade
 	TaskTemplate TaskSpec                  `json:",omitempty"`
 	Mode         ServiceMode               `json:",omitempty"`
 	UpdateConfig *UpdateConfig             `json:",omitempty"`

@@ -231,11 +231,27 @@ func (s *DockerRegistrySuite) TestCrossRepositoryLayerPush(c *check.C) {
 	c.Assert(len(digest2), checker.GreaterThan, 0, check.Commentf("no digest found for pushed manifest"))
 	c.Assert(digest1, check.Equals, digest2)
 
+<<<<<<< HEAD
 	// ensure that we can pull and run the cross-repo-pushed repository
 	dockerCmd(c, "rmi", destRepoName)
 	dockerCmd(c, "pull", destRepoName)
 	out3, _ := dockerCmd(c, "run", destRepoName, "echo", "-n", "hello world")
 	c.Assert(out3, check.Equals, "hello world")
+=======
+	// ensure that pushing again produces the same digest
+	out3, _, err := dockerCmdWithError("push", destRepoName)
+	c.Assert(err, check.IsNil, check.Commentf("pushing the image to the private registry has failed: %s", out2))
+
+	digest3 := reference.DigestRegexp.FindString(out3)
+	c.Assert(len(digest2), checker.GreaterThan, 0, check.Commentf("no digest found for pushed manifest"))
+	c.Assert(digest3, check.Equals, digest2)
+
+	// ensure that we can pull and run the cross-repo-pushed repository
+	dockerCmd(c, "rmi", destRepoName)
+	dockerCmd(c, "pull", destRepoName)
+	out4, _ := dockerCmd(c, "run", destRepoName, "echo", "-n", "hello world")
+	c.Assert(out4, check.Equals, "hello world")
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 func (s *DockerSchema1RegistrySuite) TestCrossRepositoryLayerPushNotSupported(c *check.C) {
@@ -287,7 +303,11 @@ func (s *DockerTrustSuite) TestTrustedPush(c *check.C) {
 	s.trustedCmd(pullCmd)
 	out, _, err = runCommandWithOutput(pullCmd)
 	c.Assert(err, check.IsNil, check.Commentf(out))
+<<<<<<< HEAD
 	c.Assert(string(out), checker.Contains, "Status: Downloaded", check.Commentf(out))
+=======
+	c.Assert(string(out), checker.Contains, "Status: Image is up to date", check.Commentf(out))
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 	// Assert that we rotated the snapshot key to the server by checking our local keystore
 	contents, err := ioutil.ReadDir(filepath.Join(cliconfig.ConfigDir(), "trust/private/tuf_keys", privateRegistryURL, "dockerclitrusted/pushtest"))
@@ -312,7 +332,11 @@ func (s *DockerTrustSuite) TestTrustedPushWithEnvPasswords(c *check.C) {
 	s.trustedCmd(pullCmd)
 	out, _, err = runCommandWithOutput(pullCmd)
 	c.Assert(err, check.IsNil, check.Commentf(out))
+<<<<<<< HEAD
 	c.Assert(string(out), checker.Contains, "Status: Downloaded", check.Commentf(out))
+=======
+	c.Assert(string(out), checker.Contains, "Status: Image is up to date", check.Commentf(out))
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 func (s *DockerTrustSuite) TestTrustedPushWithFailingServer(c *check.C) {
@@ -358,7 +382,11 @@ func (s *DockerTrustSuite) TestTrustedPushWithExistingTag(c *check.C) {
 	s.trustedCmd(pullCmd)
 	out, _, err = runCommandWithOutput(pullCmd)
 	c.Assert(err, check.IsNil, check.Commentf(out))
+<<<<<<< HEAD
 	c.Assert(string(out), checker.Contains, "Status: Downloaded", check.Commentf(out))
+=======
+	c.Assert(string(out), checker.Contains, "Status: Image is up to date", check.Commentf(out))
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 func (s *DockerTrustSuite) TestTrustedPushWithExistingSignedTag(c *check.C) {
@@ -492,7 +520,11 @@ func (s *DockerTrustSuite) TestTrustedPushWithReleasesDelegationOnly(c *check.C)
 	s.trustedCmd(pullCmd)
 	out, _, err = runCommandWithOutput(pullCmd)
 	c.Assert(err, check.IsNil, check.Commentf(out))
+<<<<<<< HEAD
 	c.Assert(string(out), checker.Contains, "Status: Downloaded", check.Commentf(out))
+=======
+	c.Assert(string(out), checker.Contains, "Status: Image is up to date", check.Commentf(out))
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 func (s *DockerTrustSuite) TestTrustedPushSignsAllFirstLevelRolesWeHaveKeysFor(c *check.C) {

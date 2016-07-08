@@ -551,4 +551,8 @@ func (s *EtcdServer) processInternalRaftRequest(ctx context.Context, r pb.Intern
 }
 
 // Watchable returns a watchable interface attached to the etcdserver.
+<<<<<<< HEAD
 func (s *EtcdServer) Watchable() mvcc.Watchable { return s.KV() }
+=======
+func (s *EtcdServer) Watchable() mvcc.WatchableKV { return s.KV() }
+>>>>>>> 12a5469... start on swarm services; move to glade

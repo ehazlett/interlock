@@ -389,7 +389,11 @@ func (l *lessor) sendKeepAliveLoop(stream pb.Lease_LeaseKeepAliveClient) {
 			return
 		}
 
+<<<<<<< HEAD
 		tosend := make([]LeaseID, 0)
+=======
+		var tosend []LeaseID
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 		now := time.Now()
 		l.mu.Lock()

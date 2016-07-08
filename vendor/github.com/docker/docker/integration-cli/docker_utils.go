@@ -1260,7 +1260,11 @@ func daemonTime(c *check.C) time.Time {
 	return dt
 }
 
+<<<<<<< HEAD
 // daemonUnixTime returns the current time on the daemon host with nanoseconds precission.
+=======
+// daemonUnixTime returns the current time on the daemon host with nanoseconds precision.
+>>>>>>> 12a5469... start on swarm services; move to glade
 // It return the time formatted how the client sends timestamps to the server.
 func daemonUnixTime(c *check.C) string {
 	return parseEventTime(daemonTime(c))

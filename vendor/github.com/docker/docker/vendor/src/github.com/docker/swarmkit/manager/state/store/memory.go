@@ -23,7 +23,10 @@ const (
 	indexID           = "id"
 	indexName         = "name"
 	indexServiceID    = "serviceid"
+<<<<<<< HEAD
 	indexServiceMode  = "servicemode"
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 	indexNodeID       = "nodeid"
 	indexSlot         = "slot"
 	indexCN           = "cn"

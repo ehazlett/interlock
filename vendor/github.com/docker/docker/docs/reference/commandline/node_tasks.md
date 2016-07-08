@@ -11,6 +11,7 @@ parent = "smn_cli"
 
 # node tasks
 
+<<<<<<< HEAD
     Usage:  docker node tasks [OPTIONS] NODE
 
     List tasks running on a node
@@ -20,6 +21,19 @@ parent = "smn_cli"
       -f, --filter value   Filter output based on conditions provided
       --help           Print usage
       -n, --no-resolve     Do not map IDs to Names
+=======
+```markdown
+Usage:  docker node tasks [OPTIONS] self|NODE
+
+List tasks running on a node
+
+Options:
+  -a, --all            Display all instances
+  -f, --filter value   Filter output based on conditions provided
+      --help           Print usage
+  -n, --no-resolve     Do not map IDs to Names
+```
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 Lists all the tasks on a Node that Docker knows about. You can filter using the `-f` or `--filter` flag. Refer to the [filtering](#filtering) section for more information about available filter options.
 
@@ -44,7 +58,11 @@ The currently supported filters are:
 * [name](#name)
 * [id](#id)
 * [label](#label)
+<<<<<<< HEAD
 * [desired_state](#desired_state)
+=======
+* [desired-state](#desired-state)
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 #### name
 
@@ -85,9 +103,15 @@ bg8c07zzg87di2mufeq51a2qp  redis.7  redis    redis:3.0.6  Running 9 minutes   Ru
 ```
 
 
+<<<<<<< HEAD
 #### desired_state
 
 The `desired_state` filter can take the values `running` and `accepted`.
+=======
+#### desired-state
+
+The `desired-state` filter can take the values `running` and `accepted`.
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 
 ## Related information

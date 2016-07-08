@@ -10,11 +10,25 @@ parent = "smn_cli"
 
 # node demote
 
+<<<<<<< HEAD
     Usage:  docker node demote NODE [NODE...]
 
     Demote a node as manager in the swarm
 
 Demotes an existing Manager so that it is no longer a manager. This command targets a docker engine that is a manager in the swarm cluster.
+=======
+```markdown
+Usage:  docker node demote NODE [NODE...]
+
+Demote a node from manager in the swarm
+
+Options:
+      --help   Print usage
+
+```
+
+Demotes an existing manager so that it is no longer a manager. This command targets a docker engine that is a manager in the swarm cluster.
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 
 ```bash

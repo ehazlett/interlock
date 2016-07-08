@@ -16,7 +16,7 @@ func TestBalanceAlgorithm(t *testing.T) {
 		},
 	}
 
-	algo := BalanceAlgorithm(cfg)
+	algo := BalanceAlgorithm(cfg.Labels)
 
 	if algo != testAlgo {
 		t.Fatalf("expected %s; received %s", testAlgo, algo)
@@ -28,7 +28,7 @@ func TestBalanceAlgorithmDefault(t *testing.T) {
 		Labels: map[string]string{},
 	}
 
-	algo := BalanceAlgorithm(cfg)
+	algo := BalanceAlgorithm(cfg.Labels)
 
 	if algo != DefaultBalanceAlgorithm {
 		t.Fatalf("expected %s; received %s", DefaultBalanceAlgorithm, algo)

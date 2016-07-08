@@ -9,7 +9,11 @@ DOCKERFILE := $(shell bash -c 'source hack/make/.detect-daemon-osarch && echo $$
 
 # env vars passed through directly to Docker's build scripts
 # to allow things like `make KEEPBUNDLE=1 binary` easily
+<<<<<<< HEAD
 # `docs/sources/contributing/devenvironment.md ` and `project/PACKAGERS.md` have some limited documentation of some of these
+=======
+# `project/PACKAGERS.md` have some limited documentation of some of these
+>>>>>>> 12a5469... start on swarm services; move to glade
 DOCKER_ENVS := \
 	-e BUILDFLAGS \
 	-e KEEPBUNDLE \

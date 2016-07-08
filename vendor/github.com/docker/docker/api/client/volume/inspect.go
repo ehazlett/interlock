@@ -19,7 +19,11 @@ func newInspectCommand(dockerCli *client.DockerCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "inspect [OPTIONS] VOLUME [VOLUME...]",
+<<<<<<< HEAD
 		Short: "Return low-level information on a volume",
+=======
+		Short: "Display detailed information on one or more volumes",
+>>>>>>> 12a5469... start on swarm services; move to glade
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.names = args

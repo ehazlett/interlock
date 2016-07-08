@@ -11,11 +11,22 @@ parent = "smn_cli"
 
 # plugin disable (experimental)
 
+<<<<<<< HEAD
     Usage: docker plugin disable PLUGIN
 
     Disable a plugin
 
       --help             Print usage
+=======
+```markdown
+Usage:  docker plugin disable PLUGIN
+
+Disable a plugin
+
+Options:
+      --help   Print usage
+```
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 Disables a plugin. The plugin must be installed before it can be disabled,
 see [`docker plugin install`](plugin_install.md).

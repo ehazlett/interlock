@@ -10,11 +10,22 @@ parent = "smn_cli"
 
 # pause
 
+<<<<<<< HEAD
     Usage: docker pause [OPTIONS] CONTAINER [CONTAINER...]
 
     Pause all processes within a container
 
       --help          Print usage
+=======
+```markdown
+Usage:  docker pause CONTAINER [CONTAINER...]
+
+Pause all processes within one or more containers
+
+Options:
+      --help   Print usage
+```
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 The `docker pause` command uses the cgroups freezer to suspend all processes in
 a container. Traditionally, when suspending a process the `SIGSTOP` signal is

@@ -86,7 +86,11 @@ Requires: device-mapper >= 1.02.90-2
 # RE: rhbz#1195804 - ensure min NVR for selinux-policy
 %if 0%{?with_selinux}
 Requires: selinux-policy >= %{selinux_policyver}
+<<<<<<< HEAD
 Requires(pre): %{name}-selinux >= %{epoch}:%{version}-%{release}
+=======
+Requires(pre): %{name}-selinux >= %{version}-%{release}
+>>>>>>> 12a5469... start on swarm services; move to glade
 %endif # with_selinux
 
 # conflicting packages
@@ -126,6 +130,10 @@ export DOCKER_GITCOMMIT=%{_gitcommit}
 install -d $RPM_BUILD_ROOT/%{_bindir}
 install -p -m 755 bundles/%{_origversion}/dynbinary-client/docker-%{_origversion} $RPM_BUILD_ROOT/%{_bindir}/docker
 install -p -m 755 bundles/%{_origversion}/dynbinary-daemon/dockerd-%{_origversion} $RPM_BUILD_ROOT/%{_bindir}/dockerd
+<<<<<<< HEAD
+=======
+install -p -m 755 bundles/%{_origversion}/dynbinary-daemon/docker-proxy-%{_origversion} $RPM_BUILD_ROOT/%{_bindir}/docker-proxy
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 # install containerd
 install -p -m 755 /usr/local/bin/containerd $RPM_BUILD_ROOT/%{_bindir}/docker-containerd

@@ -93,7 +93,11 @@ func TestSnapshotAndRestartMember(t *testing.T) {
 	resps := make([]*client.Response, 120)
 	var err error
 	for i := 0; i < 120; i++ {
+<<<<<<< HEAD
 		cc := mustNewHTTPClient(t, []string{m.URL()}, nil)
+=======
+		cc := MustNewHTTPClient(t, []string{m.URL()}, nil)
+>>>>>>> 12a5469... start on swarm services; move to glade
 		kapi := client.NewKeysAPI(cc)
 		ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
 		key := fmt.Sprintf("foo%d", i)
@@ -108,7 +112,11 @@ func TestSnapshotAndRestartMember(t *testing.T) {
 
 	m.WaitOK(t)
 	for i := 0; i < 120; i++ {
+<<<<<<< HEAD
 		cc := mustNewHTTPClient(t, []string{m.URL()}, nil)
+=======
+		cc := MustNewHTTPClient(t, []string{m.URL()}, nil)
+>>>>>>> 12a5469... start on swarm services; move to glade
 		kapi := client.NewKeysAPI(cc)
 		ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
 		key := fmt.Sprintf("foo%d", i)

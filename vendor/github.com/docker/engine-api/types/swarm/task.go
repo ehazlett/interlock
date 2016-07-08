@@ -54,6 +54,14 @@ type TaskSpec struct {
 	Resources     *ResourceRequirements `json:",omitempty"`
 	RestartPolicy *RestartPolicy        `json:",omitempty"`
 	Placement     *Placement            `json:",omitempty"`
+<<<<<<< HEAD
+=======
+
+	// LogDriver specifies the LogDriver to use for tasks created from this
+	// spec. If not present, the one on cluster default on swarm.Spec will be
+	// used, finally falling back to the engine default if not specified.
+	LogDriver *Driver `json:",omitempty"`
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // Resources represents resources (CPU/Memory).
@@ -88,7 +96,11 @@ const (
 	// RestartPolicyConditionNone NONE
 	RestartPolicyConditionNone RestartPolicyCondition = "none"
 	// RestartPolicyConditionOnFailure ON_FAILURE
+<<<<<<< HEAD
 	RestartPolicyConditionOnFailure RestartPolicyCondition = "on_failure"
+=======
+	RestartPolicyConditionOnFailure RestartPolicyCondition = "on-failure"
+>>>>>>> 12a5469... start on swarm services; move to glade
 	// RestartPolicyConditionAny ANY
 	RestartPolicyConditionAny RestartPolicyCondition = "any"
 )

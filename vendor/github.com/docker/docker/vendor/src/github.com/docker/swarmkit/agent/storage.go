@@ -1,8 +1,11 @@
 package agent
 
 import (
+<<<<<<< HEAD
 	"bytes"
 
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 	"github.com/boltdb/bolt"
 	"github.com/docker/swarmkit/api"
 	"github.com/gogo/protobuf/proto"
@@ -22,12 +25,15 @@ var (
 	bucketKeyStatus         = []byte("status")
 )
 
+<<<<<<< HEAD
 type bucketKeyPath [][]byte
 
 func (bk bucketKeyPath) String() string {
 	return string(bytes.Join([][]byte(bk), []byte("/")))
 }
 
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 // InitDB prepares a database for writing task data.
 //
 // Proper buckets will be created if they don't already exist.

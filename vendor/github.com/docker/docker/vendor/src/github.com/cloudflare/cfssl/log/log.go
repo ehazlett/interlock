@@ -45,12 +45,21 @@ var Level = LevelInfo
 //
 // SyslogWriter is satisfied by *syslog.Writer.
 type SyslogWriter interface {
+<<<<<<< HEAD
 	Debug(string) error
 	Info(string) error
 	Warning(string) error
 	Err(string) error
 	Crit(string) error
 	Emerg(string) error
+=======
+	Debug(string)
+	Info(string)
+	Warning(string)
+	Err(string)
+	Crit(string)
+	Emerg(string)
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // syslogWriter stores the SetLogger() parameter.
@@ -73,6 +82,7 @@ func init() {
 func print(l int, msg string) {
 	if l >= Level {
 		if syslogWriter != nil {
+<<<<<<< HEAD
 			var err error
 			switch l {
 			case LevelDebug:
@@ -90,6 +100,21 @@ func print(l int, msg string) {
 			}
 			if err != nil {
 				log.Printf("Unable to write syslog: %v for msg: %s\n", err, msg)
+=======
+			switch l {
+			case LevelDebug:
+				syslogWriter.Debug(msg)
+			case LevelInfo:
+				syslogWriter.Info(msg)
+			case LevelWarning:
+				syslogWriter.Warning(msg)
+			case LevelError:
+				syslogWriter.Err(msg)
+			case LevelCritical:
+				syslogWriter.Crit(msg)
+			case LevelFatal:
+				syslogWriter.Emerg(msg)
+>>>>>>> 12a5469... start on swarm services; move to glade
 			}
 		} else {
 			log.Printf("[%s] %s", levelPrefix[l], msg)

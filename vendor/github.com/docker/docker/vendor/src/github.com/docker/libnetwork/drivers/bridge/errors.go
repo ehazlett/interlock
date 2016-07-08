@@ -183,7 +183,11 @@ func (ieie InvalidEndpointIDError) BadRequest() {}
 type InvalidSandboxIDError string
 
 func (isie InvalidSandboxIDError) Error() string {
+<<<<<<< HEAD
 	return fmt.Sprintf("invalid sanbox id: %s", string(isie))
+=======
+	return fmt.Sprintf("invalid sandbox id: %s", string(isie))
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // BadRequest denotes the type of this error

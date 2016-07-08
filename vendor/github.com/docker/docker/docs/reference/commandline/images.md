@@ -10,6 +10,7 @@ parent = "smn_cli"
 
 # images
 
+<<<<<<< HEAD
     Usage: docker images [OPTIONS] [REPOSITORY[:TAG]]
 
     List images
@@ -24,6 +25,26 @@ parent = "smn_cli"
       --help               Print usage
       --no-trunc           Don't truncate output
       -q, --quiet          Only show numeric IDs
+=======
+```markdown
+Usage:  docker images [OPTIONS] [REPOSITORY[:TAG]]
+
+List images
+
+Options:
+  -a, --all             Show all images (default hides intermediate images)
+      --digests         Show digests
+  -f, --filter value    Filter output based on conditions provided (default [])
+                        - dangling=(true|false)
+                        - label=<key> or label=<key>=<value>
+                        - before=(<image-name>[:tag]|<image-id>|<image@digest>)
+                        - since=(<image-name>[:tag]|<image-id>|<image@digest>)
+      --format string   Pretty-print images using a Go template
+      --help            Print usage
+      --no-trunc        Don't truncate output
+  -q, --quiet           Only show numeric IDs
+```
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 The default `docker images` will show all top level
 images, their repository and tags, and their size.

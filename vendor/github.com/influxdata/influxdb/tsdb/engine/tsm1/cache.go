@@ -1,7 +1,10 @@
 package tsm1
 
 import (
+<<<<<<< HEAD
 	"expvar"
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 	"fmt"
 	"io"
 	"log"
@@ -9,10 +12,17 @@ import (
 	"os"
 	"sort"
 	"sync"
+<<<<<<< HEAD
 	"time"
 
 	"github.com/influxdata/influxdb"
 	"github.com/influxdata/influxdb/tsdb"
+=======
+	"sync/atomic"
+	"time"
+
+	"github.com/influxdata/influxdb/models"
+>>>>>>> 12a5469... start on swarm services; move to glade
 )
 
 var (
@@ -137,13 +147,18 @@ type Cache struct {
 	// This number is the number of pending or failed WriteSnaphot attempts since the last successful one.
 	snapshotAttempts int
 
+<<<<<<< HEAD
 	statMap      *expvar.Map // nil for snapshots.
+=======
+	stats        *CacheStatistics
+>>>>>>> 12a5469... start on swarm services; move to glade
 	lastSnapshot time.Time
 }
 
 // NewCache returns an instance of a cache which will use a maximum of maxSize bytes of memory.
 // Only used for engine caches, never for snapshots
 func NewCache(maxSize uint64, path string) *Cache {
+<<<<<<< HEAD
 	db, rp := tsdb.DecodeStorePath(path)
 	c := &Cache{
 		maxSize: maxSize,
@@ -153,6 +168,12 @@ func NewCache(maxSize uint64, path string) *Cache {
 			"tsm1_cache",
 			map[string]string{"path": path, "database": db, "retentionPolicy": rp},
 		),
+=======
+	c := &Cache{
+		maxSize:      maxSize,
+		store:        make(map[string]*entry),
+		stats:        &CacheStatistics{},
+>>>>>>> 12a5469... start on swarm services; move to glade
 		lastSnapshot: time.Now(),
 	}
 	c.UpdateAge()
@@ -163,6 +184,35 @@ func NewCache(maxSize uint64, path string) *Cache {
 	return c
 }
 
+<<<<<<< HEAD
+=======
+// CacheStatistics hold statistics related to the cache.
+type CacheStatistics struct {
+	MemSizeBytes        int64
+	DiskSizeBytes       int64
+	SnapshotCount       int64
+	CacheAgeMs          int64
+	CachedBytes         int64
+	WALCompactionTimeMs int64
+}
+
+// Statistics returns statistics for periodic monitoring.
+func (c *Cache) Statistics(tags map[string]string) []models.Statistic {
+	return []models.Statistic{{
+		Name: "tsm1_cache",
+		Tags: tags,
+		Values: map[string]interface{}{
+			statCacheMemoryBytes:    atomic.LoadInt64(&c.stats.MemSizeBytes),
+			statCacheDiskBytes:      atomic.LoadInt64(&c.stats.DiskSizeBytes),
+			statSnapshots:           atomic.LoadInt64(&c.stats.SnapshotCount),
+			statCacheAgeMs:          atomic.LoadInt64(&c.stats.CacheAgeMs),
+			statCachedBytes:         atomic.LoadInt64(&c.stats.CachedBytes),
+			statWALCompactionTimeMs: atomic.LoadInt64(&c.stats.WALCompactionTimeMs),
+		},
+	}}
+}
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 // Write writes the set of values for the key to the cache. This function is goroutine-safe.
 // It returns an error if the cache has exceeded its max size.
 func (c *Cache) Write(key string, values []Value) error {
@@ -419,6 +469,10 @@ func (c *Cache) merged(key string) Values {
 		n += copy(values[n:], e.values)
 		e.mu.RUnlock()
 	}
+<<<<<<< HEAD
+=======
+	values = values[:n]
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 	if needSort {
 		values = values.Deduplicate()
@@ -567,29 +621,47 @@ func (cl *CacheLoader) SetLogOutput(w io.Writer) {
 func (c *Cache) UpdateAge() {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
+<<<<<<< HEAD
 	ageStat := new(expvar.Int)
 	ageStat.Set(int64(time.Now().Sub(c.lastSnapshot) / time.Millisecond))
 	c.statMap.Set(statCacheAgeMs, ageStat)
+=======
+	ageStat := int64(time.Now().Sub(c.lastSnapshot) / time.Millisecond)
+	atomic.StoreInt64(&c.stats.CacheAgeMs, ageStat)
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // Updates WAL compaction time statistic
 func (c *Cache) UpdateCompactTime(d time.Duration) {
+<<<<<<< HEAD
 	c.statMap.Add(statWALCompactionTimeMs, int64(d/time.Millisecond))
+=======
+	atomic.AddInt64(&c.stats.WALCompactionTimeMs, int64(d/time.Millisecond))
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // Update the cachedBytes counter
 func (c *Cache) updateCachedBytes(b uint64) {
+<<<<<<< HEAD
 	c.statMap.Add(statCachedBytes, int64(b))
+=======
+	atomic.AddInt64(&c.stats.CachedBytes, int64(b))
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // Update the memSize level
 func (c *Cache) updateMemSize(b int64) {
+<<<<<<< HEAD
 	c.statMap.Add(statCacheMemoryBytes, b)
+=======
+	atomic.AddInt64(&c.stats.MemSizeBytes, b)
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // Update the snapshotsCount and the diskSize levels
 func (c *Cache) updateSnapshots() {
 	// Update disk stats
+<<<<<<< HEAD
 	diskSizeStat := new(expvar.Int)
 	diskSizeStat.Set(int64(c.snapshotSize))
 	c.statMap.Set(statCacheDiskBytes, diskSizeStat)
@@ -597,4 +669,8 @@ func (c *Cache) updateSnapshots() {
 	snapshotsStat := new(expvar.Int)
 	snapshotsStat.Set(int64(c.snapshotAttempts))
 	c.statMap.Set(statSnapshots, snapshotsStat)
+=======
+	atomic.StoreInt64(&c.stats.DiskSizeBytes, int64(c.snapshotSize))
+	atomic.StoreInt64(&c.stats.SnapshotCount, int64(c.snapshotAttempts))
+>>>>>>> 12a5469... start on swarm services; move to glade
 }

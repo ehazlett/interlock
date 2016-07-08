@@ -39,6 +39,7 @@ A new module named `monitor` supports all basic statistics and diagnostic functi
 
 ## Registering statistics and diagnostics
 
+<<<<<<< HEAD
 To export statistical information with the `monitor` system, code simply calls `influxdb.NewStatistics()` and receives an `expvar.Map` instance in response. This object can then be used to store statistics.
 
 For example, if you have a component called `Service`, you can statistics like so:
@@ -71,3 +72,10 @@ To register diagnostic information, `monitor.RegisterDiagnosticsClient` is calle
 Statistical information is gathered by each package using [expvar](https://golang.org/pkg/expvar). Each package registers a map using its package name.
 
 Due to the nature of `expvar`, statistical information is reset to its initial state when a server is restarted.
+=======
+To export statistical information with the `monitor` system, a service should implement the `monitor.Reporter` interface. Services added to the Server will be automatically added to the list of statistics returned. Any service that is not added to the `Services` slice will need to modify the `Server`'s `Statistics(map[string]string)` method to aggregate the call to the service's `Statistics(map[string]string)` method so they are combined into a single response. The `Statistics(map[string]string)` method should return a statistics slice with the passed in tags included. The statistics should be kept inside of an internal structure and should be accessed in a thread-safe way. It is common to create a struct for holding the statistics and using `sync/atomic` instead of locking. If using `sync/atomic`, be sure to align the values in the struct so it works properly on `i386`.
+
+To register diagnostic information, `monitor.RegisterDiagnosticsClient` is called, passing a `influxdb.monitor.DiagsClient` object to `monitor`. Implementing the `influxdb.monitor.DiagsClient` interface requires that your component have function returning diagnostic information in specific form, so that it can be displayed by the `monitor` system.
+
+Statistical information is reset to its initial state when a server is restarted.
+>>>>>>> 12a5469... start on swarm services; move to glade

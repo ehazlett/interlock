@@ -16,9 +16,14 @@ var (
 // parameters for random identifier generation. We can tweak this when there is
 // time for further analysis.
 const (
+<<<<<<< HEAD
 	randomIDEntropyBytes     = 16
 	randomNodeIDEntropyBytes = 8
 	randomIDBase             = 36
+=======
+	randomIDEntropyBytes = 16
+	randomIDBase         = 36
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 	// To ensure that all identifiers are fixed length, we make sure they
 	// get padded out to 25 characters, which is the maximum for the base36
@@ -28,8 +33,12 @@ const (
 	// was calculated from floor(log(2^128-1, 36)) + 1.
 	//
 	// See http://mathworld.wolfram.com/NumberLength.html for more information.
+<<<<<<< HEAD
 	maxRandomIDLength     = 25
 	maxRandomNodeIDLength = 13
+=======
+	maxRandomIDLength = 25
+>>>>>>> 12a5469... start on swarm services; move to glade
 )
 
 // NewID generates a new identifier for use where random identifiers with low

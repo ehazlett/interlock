@@ -15,7 +15,7 @@ func TestAliasDomains(t *testing.T) {
 		},
 	}
 
-	ep := AliasDomains(cfg)
+	ep := AliasDomains(cfg.Labels)
 
 	if len(ep) != 2 {
 		t.Fatalf("expected %d alias domains; received %d", len(cfg.Labels), len(ep))
@@ -27,7 +27,7 @@ func TestAliasDomainsNoLabels(t *testing.T) {
 		Labels: map[string]string{},
 	}
 
-	ep := AliasDomains(cfg)
+	ep := AliasDomains(cfg.Labels)
 
 	if len(ep) != 0 {
 		t.Fatalf("expected no alias domains; received %s", ep)

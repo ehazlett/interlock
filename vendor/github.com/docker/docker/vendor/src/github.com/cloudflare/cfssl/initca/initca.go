@@ -5,6 +5,7 @@ package initca
 import (
 	"crypto"
 	"crypto/ecdsa"
+<<<<<<< HEAD
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
@@ -13,6 +14,12 @@ import (
 	"errors"
 	"io/ioutil"
 	"net"
+=======
+	"crypto/rsa"
+	"crypto/x509"
+	"errors"
+	"io/ioutil"
+>>>>>>> 12a5469... start on swarm services; move to glade
 	"time"
 
 	"github.com/cloudflare/cfssl/config"
@@ -47,6 +54,7 @@ func validator(req *csr.CertificateRequest) error {
 
 // New creates a new root certificate from the certificate request.
 func New(req *csr.CertificateRequest) (cert, csrPEM, key []byte, err error) {
+<<<<<<< HEAD
 	if req.CA != nil {
 		if req.CA.Expiry != "" {
 			CAPolicy.Default.ExpiryString = req.CA.Expiry
@@ -55,6 +63,20 @@ func New(req *csr.CertificateRequest) (cert, csrPEM, key []byte, err error) {
 
 		if req.CA.PathLength != 0 {
 			signer.MaxPathLen = req.CA.PathLength
+=======
+	policy := CAPolicy()
+	if req.CA != nil {
+		if req.CA.Expiry != "" {
+			policy.Default.ExpiryString = req.CA.Expiry
+			policy.Default.Expiry, err = time.ParseDuration(req.CA.Expiry)
+		}
+
+		signer.MaxPathLen = req.CA.PathLength
+		if req.CA.PathLength != 0 && req.CA.PathLenZero == true {
+			log.Infof("ignore invalid 'pathlenzero' value")
+		} else {
+			signer.MaxPathLenZero = req.CA.PathLenZero
+>>>>>>> 12a5469... start on swarm services; move to glade
 		}
 	}
 
@@ -77,7 +99,11 @@ func New(req *csr.CertificateRequest) (cert, csrPEM, key []byte, err error) {
 		log.Errorf("failed to create signer: %v", err)
 		return
 	}
+<<<<<<< HEAD
 	s.SetPolicy(CAPolicy)
+=======
+	s.SetPolicy(policy)
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 	signReq := signer.SignRequest{Hosts: req.Hosts, Request: string(csrPEM)}
 	cert, err = s.Sign(signReq)
@@ -133,15 +159,24 @@ func RenewFromPEM(caFile, keyFile string) ([]byte, error) {
 
 // NewFromSigner creates a new root certificate from a crypto.Signer.
 func NewFromSigner(req *csr.CertificateRequest, priv crypto.Signer) (cert, csrPEM []byte, err error) {
+<<<<<<< HEAD
 	if req.CA != nil {
 		if req.CA.Expiry != "" {
 			CAPolicy.Default.ExpiryString = req.CA.Expiry
 			CAPolicy.Default.Expiry, err = time.ParseDuration(req.CA.Expiry)
+=======
+	policy := CAPolicy()
+	if req.CA != nil {
+		if req.CA.Expiry != "" {
+			policy.Default.ExpiryString = req.CA.Expiry
+			policy.Default.Expiry, err = time.ParseDuration(req.CA.Expiry)
+>>>>>>> 12a5469... start on swarm services; move to glade
 			if err != nil {
 				return nil, nil, err
 			}
 		}
 
+<<<<<<< HEAD
 		if req.CA.PathLength != 0 {
 			signer.MaxPathLen = req.CA.PathLength
 		}
@@ -212,13 +247,31 @@ func signWithCSR(tpl *x509.CertificateRequest, priv crypto.Signer) (cert, csrPEM
 		Bytes: csrPEM,
 	}
 	csrPEM = pem.EncodeToMemory(p)
+=======
+		signer.MaxPathLen = req.CA.PathLength
+		if req.CA.PathLength != 0 && req.CA.PathLenZero == true {
+			log.Infof("ignore invalid 'pathlenzero' value")
+		} else {
+			signer.MaxPathLenZero = req.CA.PathLenZero
+		}
+	}
+
+	csrPEM, err = csr.Generate(priv, req)
+	if err != nil {
+		return nil, nil, err
+	}
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 	s, err := local.NewSigner(priv, nil, signer.DefaultSigAlgo(priv), nil)
 	if err != nil {
 		log.Errorf("failed to create signer: %v", err)
 		return
 	}
+<<<<<<< HEAD
 	s.SetPolicy(CAPolicy)
+=======
+	s.SetPolicy(policy)
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 	signReq := signer.SignRequest{Request: string(csrPEM)}
 	cert, err = s.Sign(signReq)
@@ -268,6 +321,7 @@ func RenewFromSigner(ca *x509.Certificate, priv crypto.Signer) ([]byte, error) {
 }
 
 // CAPolicy contains the CA issuing policy as default policy.
+<<<<<<< HEAD
 var CAPolicy = &config.Signing{
 	Default: &config.SigningProfile{
 		Usage:        []string{"cert sign", "crl sign"},
@@ -275,4 +329,15 @@ var CAPolicy = &config.Signing{
 		Expiry:       5 * helpers.OneYear,
 		CA:           true,
 	},
+=======
+var CAPolicy = func() *config.Signing {
+	return &config.Signing{
+		Default: &config.SigningProfile{
+			Usage:        []string{"cert sign", "crl sign"},
+			ExpiryString: "43800h",
+			Expiry:       5 * helpers.OneYear,
+			CA:           true,
+		},
+	}
+>>>>>>> 12a5469... start on swarm services; move to glade
 }

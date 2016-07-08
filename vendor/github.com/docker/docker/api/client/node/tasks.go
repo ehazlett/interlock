@@ -44,21 +44,35 @@ func runTasks(dockerCli *client.DockerCli, opts tasksOptions) error {
 	client := dockerCli.Client()
 	ctx := context.Background()
 
+<<<<<<< HEAD
 	nodeRef, err := nodeReference(client, ctx, opts.nodeID)
 	if err != nil {
 		return nil
 	}
 	node, err := client.NodeInspect(ctx, nodeRef)
+=======
+	nodeRef, err := Reference(client, ctx, opts.nodeID)
+	if err != nil {
+		return nil
+	}
+	node, _, err := client.NodeInspectWithRaw(ctx, nodeRef)
+>>>>>>> 12a5469... start on swarm services; move to glade
 	if err != nil {
 		return err
 	}
 
 	filter := opts.filter.Value()
 	filter.Add("node", node.ID)
+<<<<<<< HEAD
 	if !opts.all {
 		filter.Add("desired_state", string(swarm.TaskStateRunning))
 		filter.Add("desired_state", string(swarm.TaskStateAccepted))
 
+=======
+	if !opts.all && !filter.Include("desired-state") {
+		filter.Add("desired-state", string(swarm.TaskStateRunning))
+		filter.Add("desired-state", string(swarm.TaskStateAccepted))
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	tasks, err := client.TaskList(

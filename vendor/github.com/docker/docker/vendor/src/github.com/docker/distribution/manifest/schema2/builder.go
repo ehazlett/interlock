@@ -46,6 +46,12 @@ func (mb *builder) Build(ctx context.Context) (distribution.Manifest, error) {
 	m.Config, err = mb.bs.Stat(ctx, configDigest)
 	switch err {
 	case nil:
+<<<<<<< HEAD
+=======
+		// Override MediaType, since Put always replaces the specified media
+		// type with application/octet-stream in the descriptor it returns.
+		m.Config.MediaType = MediaTypeConfig
+>>>>>>> 12a5469... start on swarm services; move to glade
 		return FromStruct(m)
 	case distribution.ErrBlobUnknown:
 		// nop

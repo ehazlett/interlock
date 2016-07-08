@@ -2,10 +2,19 @@ package scheduler
 
 import (
 	"container/heap"
+<<<<<<< HEAD
+=======
+	"errors"
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 	"github.com/docker/swarmkit/api"
 )
 
+<<<<<<< HEAD
+=======
+var errNodeNotFound = errors.New("node not found in scheduler heap")
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 // A nodeHeap implements heap.Interface for nodes. It also includes an index
 // by node id.
 type nodeHeap struct {
@@ -48,6 +57,7 @@ func (nh *nodeHeap) alloc(n int) {
 	nh.index = make(map[string]int, n)
 }
 
+<<<<<<< HEAD
 func (nh *nodeHeap) peek() *NodeInfo {
 	if len(nh.heap) == 0 {
 		return nil
@@ -62,14 +72,26 @@ func (nh *nodeHeap) nodeInfo(nodeID string) NodeInfo {
 		return nh.heap[index]
 	}
 	return NodeInfo{}
+=======
+// nodeInfo returns the NodeInfo struct for a given node identified by its ID.
+func (nh *nodeHeap) nodeInfo(nodeID string) (NodeInfo, error) {
+	index, ok := nh.index[nodeID]
+	if ok {
+		return nh.heap[index], nil
+	}
+	return NodeInfo{}, errNodeNotFound
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // addOrUpdateNode sets the number of tasks for a given node. It adds the node
 // to the heap if it wasn't already tracked.
 func (nh *nodeHeap) addOrUpdateNode(n NodeInfo) {
+<<<<<<< HEAD
 	if n.Node == nil {
 		return
 	}
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 	index, ok := nh.index[n.ID]
 	if ok {
 		nh.heap[index] = n
@@ -82,9 +104,12 @@ func (nh *nodeHeap) addOrUpdateNode(n NodeInfo) {
 // updateNode sets the number of tasks for a given node. It ignores the update
 // if the node isn't already tracked in the heap.
 func (nh *nodeHeap) updateNode(n NodeInfo) {
+<<<<<<< HEAD
 	if n.Node == nil {
 		return
 	}
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 	index, ok := nh.index[n.ID]
 	if ok {
 		nh.heap[index] = n
@@ -95,9 +120,13 @@ func (nh *nodeHeap) updateNode(n NodeInfo) {
 func (nh *nodeHeap) remove(nodeID string) {
 	index, ok := nh.index[nodeID]
 	if ok {
+<<<<<<< HEAD
 		nh.heap[index].Tasks = nil
 		heap.Fix(nh, index)
 		heap.Pop(nh)
+=======
+		heap.Remove(nh, index)
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 }
 

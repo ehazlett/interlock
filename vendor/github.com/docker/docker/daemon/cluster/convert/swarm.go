@@ -35,6 +35,17 @@ func SwarmFromGRPC(c swarmapi.Cluster) types.Swarm {
 
 	swarm.Spec.CAConfig.NodeCertExpiry, _ = ptypes.Duration(c.Spec.CAConfig.NodeCertExpiry)
 
+<<<<<<< HEAD
+=======
+	for _, ca := range c.Spec.CAConfig.ExternalCAs {
+		swarm.Spec.CAConfig.ExternalCAs = append(swarm.Spec.CAConfig.ExternalCAs, &types.ExternalCA{
+			Protocol: types.ExternalCAProtocol(strings.ToLower(ca.Protocol.String())),
+			URL:      ca.URL,
+			Options:  ca.Options,
+		})
+	}
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 	// Meta
 	swarm.Version.Index = c.Meta.Version.Index
 	swarm.CreatedAt, _ = ptypes.Timestamp(c.Meta.CreatedAt)
@@ -84,6 +95,21 @@ func SwarmSpecToGRPCandMerge(s types.Spec, existingSpec *swarmapi.ClusterSpec) (
 		},
 	}
 
+<<<<<<< HEAD
+=======
+	for _, ca := range s.CAConfig.ExternalCAs {
+		protocol, ok := swarmapi.ExternalCA_CAProtocol_value[strings.ToUpper(string(ca.Protocol))]
+		if !ok {
+			return swarmapi.ClusterSpec{}, fmt.Errorf("invalid protocol: %q", ca.Protocol)
+		}
+		spec.CAConfig.ExternalCAs = append(spec.CAConfig.ExternalCAs, &swarmapi.ExternalCA{
+			Protocol: swarmapi.ExternalCA_CAProtocol(protocol),
+			URL:      ca.URL,
+			Options:  ca.Options,
+		})
+	}
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 	if err := SwarmSpecUpdateAcceptancePolicy(&spec, s.AcceptancePolicy, existingSpec); err != nil {
 		return swarmapi.ClusterSpec{}, err
 	}
@@ -116,13 +142,21 @@ func SwarmSpecUpdateAcceptancePolicy(spec *swarmapi.ClusterSpec, acceptancePolic
 					hashPwd, _ = bcrypt.GenerateFromPassword([]byte(*p.Secret), 0)
 					hashs[*p.Secret] = hashPwd
 				}
+<<<<<<< HEAD
 				policy.Secret = &swarmapi.AcceptancePolicy_RoleAdmissionPolicy_HashedSecret{
+=======
+				policy.Secret = &swarmapi.AcceptancePolicy_RoleAdmissionPolicy_Secret{
+>>>>>>> 12a5469... start on swarm services; move to glade
 					Data: hashPwd,
 					Alg:  "bcrypt",
 				}
 			}
 		} else if oldSecret := getOldSecret(oldSpec, policy.Role); oldSecret != nil { // else use the old one.
+<<<<<<< HEAD
 			policy.Secret = &swarmapi.AcceptancePolicy_RoleAdmissionPolicy_HashedSecret{
+=======
+			policy.Secret = &swarmapi.AcceptancePolicy_RoleAdmissionPolicy_Secret{
+>>>>>>> 12a5469... start on swarm services; move to glade
 				Data: oldSecret.Data,
 				Alg:  oldSecret.Alg,
 			}
@@ -133,7 +167,11 @@ func SwarmSpecUpdateAcceptancePolicy(spec *swarmapi.ClusterSpec, acceptancePolic
 	return nil
 }
 
+<<<<<<< HEAD
 func getOldSecret(oldSpec *swarmapi.ClusterSpec, role swarmapi.NodeRole) *swarmapi.AcceptancePolicy_RoleAdmissionPolicy_HashedSecret {
+=======
+func getOldSecret(oldSpec *swarmapi.ClusterSpec, role swarmapi.NodeRole) *swarmapi.AcceptancePolicy_RoleAdmissionPolicy_Secret {
+>>>>>>> 12a5469... start on swarm services; move to glade
 	if oldSpec == nil {
 		return nil
 	}

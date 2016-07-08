@@ -30,17 +30,27 @@ matrix:
 before_script:
 - go get github.com/urfave/gfmxr/...
 <<<<<<< HEAD
+<<<<<<< HEAD
 - if [ ! -f node_modules/.bin/markdown-toc ] ; then
     npm install markdown-toc ;
   fi
 =======
 >>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
+=======
+- if [ ! -f node_modules/.bin/markdown-toc ] ; then
+    npm install markdown-toc ;
+  fi
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 script:
 - ./runtests vet
 - ./runtests test
 - ./runtests gfmxr
 <<<<<<< HEAD
+<<<<<<< HEAD
 - ./runtests toc
 =======
 >>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
+=======
+- ./runtests toc
+>>>>>>> 12a5469... start on swarm services; move to glade

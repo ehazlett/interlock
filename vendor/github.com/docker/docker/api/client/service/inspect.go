@@ -28,7 +28,11 @@ func newInspectCommand(dockerCli *client.DockerCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "inspect [OPTIONS] SERVICE [SERVICE...]",
+<<<<<<< HEAD
 		Short: "Inspect a service",
+=======
+		Short: "Display detailed information on one or more services",
+>>>>>>> 12a5469... start on swarm services; move to glade
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.refs = args
@@ -169,7 +173,11 @@ func printContainerSpec(out io.Writer, containerSpec swarm.ContainerSpec) {
 		for _, v := range containerSpec.Mounts {
 			fmt.Fprintf(out, "  Target = %s\n", v.Target)
 			fmt.Fprintf(out, "  Source = %s\n", v.Source)
+<<<<<<< HEAD
 			fmt.Fprintf(out, "  Writable = %v\n", v.Writable)
+=======
+			fmt.Fprintf(out, "  ReadOnly = %v\n", v.ReadOnly)
+>>>>>>> 12a5469... start on swarm services; move to glade
 			fmt.Fprintf(out, "  Type = %v\n", v.Type)
 		}
 	}

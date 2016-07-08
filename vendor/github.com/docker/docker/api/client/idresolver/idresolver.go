@@ -28,7 +28,11 @@ func New(client client.APIClient, noResolve bool) *IDResolver {
 func (r *IDResolver) get(ctx context.Context, t interface{}, id string) (string, error) {
 	switch t.(type) {
 	case swarm.Node:
+<<<<<<< HEAD
 		node, err := r.client.NodeInspect(ctx, id)
+=======
+		node, _, err := r.client.NodeInspectWithRaw(ctx, id)
+>>>>>>> 12a5469... start on swarm services; move to glade
 		if err != nil {
 			return id, nil
 		}

@@ -29,6 +29,10 @@ type saveSession struct {
 	outDir      string
 	images      map[image.ID]*imageDescriptor
 	savedLayers map[string]struct{}
+<<<<<<< HEAD
+=======
+	diffIDPaths map[layer.DiffID]string // cache every diffID blob to avoid duplicates
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 func (l *tarexporter) Save(names []string, outStream io.Writer) error {
@@ -117,6 +121,10 @@ func (l *tarexporter) parseNames(names []string) (map[image.ID]*imageDescriptor,
 
 func (s *saveSession) save(outStream io.Writer) error {
 	s.savedLayers = make(map[string]struct{})
+<<<<<<< HEAD
+=======
+	s.diffIDPaths = make(map[layer.DiffID]string)
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 	// get image json
 	tempDir, err := ioutil.TempDir("", "docker-export-")
@@ -297,18 +305,23 @@ func (s *saveSession) saveLayer(id layer.ChainID, legacyImg image.V1Image, creat
 	}
 
 	// serialize filesystem
+<<<<<<< HEAD
 	tarFile, err := os.Create(filepath.Join(outDir, legacyLayerFileName))
 	if err != nil {
 		return distribution.Descriptor{}, err
 	}
 	defer tarFile.Close()
 
+=======
+	layerPath := filepath.Join(outDir, legacyLayerFileName)
+>>>>>>> 12a5469... start on swarm services; move to glade
 	l, err := s.ls.Get(id)
 	if err != nil {
 		return distribution.Descriptor{}, err
 	}
 	defer layer.ReleaseAndLog(s.ls, l)
 
+<<<<<<< HEAD
 	arch, err := l.TarStream()
 	if err != nil {
 		return distribution.Descriptor{}, err
@@ -326,6 +339,41 @@ func (s *saveSession) saveLayer(id layer.ChainID, legacyImg image.V1Image, creat
 		}
 	}
 
+=======
+	if oldPath, exists := s.diffIDPaths[l.DiffID()]; exists {
+		relPath, err := filepath.Rel(layerPath, oldPath)
+		if err != nil {
+			return distribution.Descriptor{}, err
+		}
+		os.Symlink(relPath, layerPath)
+	} else {
+
+		tarFile, err := os.Create(layerPath)
+		if err != nil {
+			return distribution.Descriptor{}, err
+		}
+		defer tarFile.Close()
+
+		arch, err := l.TarStream()
+		if err != nil {
+			return distribution.Descriptor{}, err
+		}
+		defer arch.Close()
+
+		if _, err := io.Copy(tarFile, arch); err != nil {
+			return distribution.Descriptor{}, err
+		}
+
+		for _, fname := range []string{"", legacyVersionFileName, legacyConfigFileName, legacyLayerFileName} {
+			// todo: maybe save layer created timestamp?
+			if err := system.Chtimes(filepath.Join(outDir, fname), createdTime, createdTime); err != nil {
+				return distribution.Descriptor{}, err
+			}
+		}
+
+		s.diffIDPaths[l.DiffID()] = layerPath
+	}
+>>>>>>> 12a5469... start on swarm services; move to glade
 	s.savedLayers[legacyImg.ID] = struct{}{}
 
 	var src distribution.Descriptor

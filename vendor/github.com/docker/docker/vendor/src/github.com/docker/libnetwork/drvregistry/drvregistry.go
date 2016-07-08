@@ -8,10 +8,13 @@ import (
 	"github.com/docker/libnetwork/driverapi"
 	"github.com/docker/libnetwork/ipamapi"
 	"github.com/docker/libnetwork/types"
+<<<<<<< HEAD
 
 	builtinIpam "github.com/docker/libnetwork/ipams/builtin"
 	nullIpam "github.com/docker/libnetwork/ipams/null"
 	remoteIpam "github.com/docker/libnetwork/ipams/remote"
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 )
 
 type driverData struct {
@@ -64,10 +67,13 @@ func New(lDs, gDs interface{}, dfn DriverNotifyFunc, ifn IPAMNotifyFunc) (*DrvRe
 		ifn:         ifn,
 	}
 
+<<<<<<< HEAD
 	if err := r.initIPAMs(lDs, gDs); err != nil {
 		return nil, err
 	}
 
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 	return r, nil
 }
 
@@ -157,6 +163,7 @@ func (r *DrvRegistry) IPAMDefaultAddressSpaces(name string) (string, string, err
 	return i.defaultLocalAddressSpace, i.defaultGlobalAddressSpace, nil
 }
 
+<<<<<<< HEAD
 func (r *DrvRegistry) initIPAMs(lDs, gDs interface{}) error {
 	for _, fn := range [](func(ipamapi.Callback, interface{}, interface{}) error){
 		builtinIpam.Init,
@@ -171,6 +178,8 @@ func (r *DrvRegistry) initIPAMs(lDs, gDs interface{}) error {
 	return nil
 }
 
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 // RegisterDriver registers the network driver when it gets discovered.
 func (r *DrvRegistry) RegisterDriver(ntype string, driver driverapi.Driver, capability driverapi.Capability) error {
 	if strings.TrimSpace(ntype) == "" {

@@ -10,6 +10,10 @@ import (
 
 	"golang.org/x/net/context"
 
+<<<<<<< HEAD
+=======
+	"github.com/docker/engine-api/types"
+>>>>>>> 12a5469... start on swarm services; move to glade
 	"github.com/docker/engine-api/types/swarm"
 )
 
@@ -18,7 +22,11 @@ func TestServiceUpdateError(t *testing.T) {
 		transport: newMockClient(nil, errorMock(http.StatusInternalServerError, "Server error")),
 	}
 
+<<<<<<< HEAD
 	err := client.ServiceUpdate(context.Background(), "service_id", swarm.Version{}, swarm.ServiceSpec{}, nil)
+=======
+	err := client.ServiceUpdate(context.Background(), "service_id", swarm.Version{}, swarm.ServiceSpec{}, types.ServiceUpdateOptions{})
+>>>>>>> 12a5469... start on swarm services; move to glade
 	if err == nil || err.Error() != "Error response from daemon: Server error" {
 		t.Fatalf("expected a Server Error, got %v", err)
 	}
@@ -68,7 +76,11 @@ func TestServiceUpdate(t *testing.T) {
 			}),
 		}
 
+<<<<<<< HEAD
 		err := client.ServiceUpdate(context.Background(), "service_id", updateCase.swarmVersion, swarm.ServiceSpec{}, nil)
+=======
+		err := client.ServiceUpdate(context.Background(), "service_id", updateCase.swarmVersion, swarm.ServiceSpec{}, types.ServiceUpdateOptions{})
+>>>>>>> 12a5469... start on swarm services; move to glade
 		if err != nil {
 			t.Fatal(err)
 		}

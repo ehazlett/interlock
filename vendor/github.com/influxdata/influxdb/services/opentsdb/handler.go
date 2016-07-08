@@ -5,11 +5,18 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"errors"
+<<<<<<< HEAD
 	"expvar"
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 	"io"
 	"log"
 	"net"
 	"net/http"
+<<<<<<< HEAD
+=======
+	"sync/atomic"
+>>>>>>> 12a5469... start on swarm services; move to glade
 	"time"
 
 	"github.com/influxdata/influxdb"
@@ -27,7 +34,11 @@ type Handler struct {
 
 	Logger *log.Logger
 
+<<<<<<< HEAD
 	statMap *expvar.Map
+=======
+	stats *Statistics
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -114,7 +125,13 @@ func (h *Handler) servePut(w http.ResponseWriter, r *http.Request) {
 		pt, err := models.NewPoint(p.Metric, p.Tags, map[string]interface{}{"value": p.Value}, ts)
 		if err != nil {
 			h.Logger.Printf("Dropping point %v: %v", p.Metric, err)
+<<<<<<< HEAD
 			h.statMap.Add(statDroppedPointsInvalid, 1)
+=======
+			if h.stats != nil {
+				atomic.AddInt64(&h.stats.InvalidDroppedPoints, 1)
+			}
+>>>>>>> 12a5469... start on swarm services; move to glade
 			continue
 		}
 		points = append(points, pt)

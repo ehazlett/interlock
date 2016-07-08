@@ -51,7 +51,11 @@ func Push(name string, rs registry.Service, metaHeader http.Header, authConfig *
 			return "", err
 		}
 		if !confirmedV2 {
+<<<<<<< HEAD
 			return "", ErrUnSupportedRegistry
+=======
+			return "", ErrUnsupportedRegistry
+>>>>>>> 12a5469... start on swarm services; move to glade
 		}
 		logrus.Debugf("Trying to push %s to %s %s", repoInfo.Name(), endpoint.URL, endpoint.Version)
 		// This means that we found an endpoint. and we are ready to push

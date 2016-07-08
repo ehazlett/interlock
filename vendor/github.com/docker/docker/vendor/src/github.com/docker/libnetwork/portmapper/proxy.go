@@ -1,6 +1,7 @@
 package portmapper
 
 import (
+<<<<<<< HEAD
 	"flag"
 	"fmt"
 	"io"
@@ -16,14 +17,28 @@ import (
 
 	"github.com/docker/docker/pkg/proxy"
 	"github.com/docker/docker/pkg/reexec"
+=======
+	"fmt"
+	"io"
+	"io/ioutil"
+	"net"
+	"os"
+	"os/exec"
+	"strconv"
+	"syscall"
+	"time"
+>>>>>>> 12a5469... start on swarm services; move to glade
 )
 
 const userlandProxyCommandName = "docker-proxy"
 
+<<<<<<< HEAD
 func init() {
 	reexec.Register(userlandProxyCommandName, execProxy)
 }
 
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 type userlandProxy interface {
 	Start() error
 	Stop() error
@@ -35,6 +50,7 @@ type proxyCommand struct {
 	cmd *exec.Cmd
 }
 
+<<<<<<< HEAD
 // execProxy is the reexec function that is registered to start the userland proxies
 func execProxy() {
 	f := os.NewFile(3, "signal-parent")
@@ -95,6 +111,17 @@ func handleStopSignals(p proxy.Proxy) {
 func newProxyCommand(proto string, hostIP net.IP, hostPort int, containerIP net.IP, containerPort int) userlandProxy {
 	args := []string{
 		userlandProxyCommandName,
+=======
+func newProxyCommand(proto string, hostIP net.IP, hostPort int, containerIP net.IP, containerPort int) (userlandProxy, error) {
+	cmd, err := exec.LookPath(userlandProxyCommandName)
+
+	if err != nil {
+		return nil, err
+	}
+
+	args := []string{
+		cmd,
+>>>>>>> 12a5469... start on swarm services; move to glade
 		"-proto", proto,
 		"-host-ip", hostIP.String(),
 		"-host-port", strconv.Itoa(hostPort),
@@ -104,13 +131,21 @@ func newProxyCommand(proto string, hostIP net.IP, hostPort int, containerIP net.
 
 	return &proxyCommand{
 		cmd: &exec.Cmd{
+<<<<<<< HEAD
 			Path: reexec.Self(),
+=======
+			Path: cmd,
+>>>>>>> 12a5469... start on swarm services; move to glade
 			Args: args,
 			SysProcAttr: &syscall.SysProcAttr{
 				Pdeathsig: syscall.SIGTERM, // send a sigterm to the proxy if the daemon process dies
 			},
 		},
+<<<<<<< HEAD
 	}
+=======
+	}, nil
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 func (p *proxyCommand) Start() error {

@@ -11,8 +11,15 @@ Type=notify
 # for containers run by docker
 ExecStart=/usr/bin/dockerd -H fd://
 ExecReload=/bin/kill -s HUP $MAINPID
+<<<<<<< HEAD
 LimitNOFILE=1048576
 LimitNPROC=1048576
+=======
+# Having non-zero Limit*s causes performance problems due to accounting overhead
+# in the kernel. We recommend using cgroups to do container-local accounting.
+LimitNOFILE=infinity
+LimitNPROC=infinity
+>>>>>>> 12a5469... start on swarm services; move to glade
 LimitCORE=infinity
 # Uncomment TasksMax if your systemd version supports it.
 # Only systemd 226 and above support this version.

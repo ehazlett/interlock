@@ -2,15 +2,19 @@ package nginx
 
 import (
 	"fmt"
+	"net"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/docker/engine-api/types"
+	swarmtypes "github.com/docker/engine-api/types/swarm"
+	"github.com/ehazlett/interlock/ext"
 	"github.com/ehazlett/interlock/ext/lb/utils"
 	"golang.org/x/net/context"
 )
 
-func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (interface{}, error) {
+func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container, services []swarmtypes.Service) (interface{}, error) {
 	var hosts []*Host
 	upstreamServers := map[string][]string{}
 	serverNames := map[string][]string{}
@@ -25,19 +29,140 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 	hostIPHash := map[string]bool{}
 	networks := map[string]string{}
 
-	for _, c := range containers {
-		cntId := c.ID[:12]
-		// load interlock data
-		cInfo, err := p.client.ContainerInspect(context.Background(), c.ID)
-		if err != nil {
-			return nil, err
+	var backends []interface{}
+
+	for _, i := range containers {
+		backends = append(backends, i)
+	}
+
+	for _, i := range services {
+		backends = append(backends, i)
+	}
+
+	for _, c := range backends {
+		var labels map[string]string
+
+		addr := ""
+		hostname := ""
+		domain := ""
+		id := ""
+
+		switch t := c.(type) {
+		case types.Container:
+			labels = t.Labels
+			cntID := t.ID[:12]
+			// load interlock data
+			cInfo, err := p.client.ContainerInspect(context.Background(), t.ID)
+			if err != nil {
+				return nil, err
+			}
+
+			id = cntID
+
+			hostname = cInfo.Config.Hostname
+			domain = cInfo.Config.Domainname
+
+			if n, ok := utils.OverlayEnabled(labels); ok {
+				log().Debugf("configuring docker network: name=%s", n)
+
+				network, err := p.client.NetworkInspect(context.Background(), n)
+				if err != nil {
+					log().Error(err)
+					continue
+				}
+
+				addr, err = utils.BackendOverlayAddress(network, cInfo)
+				if err != nil {
+					log().Error(err)
+					continue
+				}
+
+				networks[n] = ""
+			} else {
+				portsExposed := false
+				for _, portBindings := range cInfo.NetworkSettings.Ports {
+					if len(portBindings) != 0 {
+						portsExposed = true
+						break
+					}
+				}
+				if !portsExposed {
+					log().Warnf("%s: no ports exposed", cntID)
+					continue
+				}
+
+				addr, err = utils.BackendAddress(cInfo, p.cfg.BackendOverrideAddress)
+				if err != nil {
+					log().Error(err)
+					continue
+				}
+			}
+		case swarmtypes.Service:
+			labels = t.Spec.Labels
+			id = t.ID
+			publishedPort := uint32(0)
+
+			// get service address
+			if len(t.Endpoint.Spec.Ports) == 0 {
+				log().Debugf("service has no published ports: id=%s", t.ID)
+				continue
+			}
+
+			if v, ok := t.Spec.Labels[ext.InterlockPortLabel]; ok {
+				port, err := strconv.Atoi(v)
+				if err != nil {
+					log().Error(err)
+					continue
+				}
+				for _, p := range t.Endpoint.Ports {
+					if p.TargetPort == uint32(port) {
+						publishedPort = p.PublishedPort
+						break
+					}
+				}
+			} else {
+				publishedPort = t.Endpoint.Spec.Ports[0].PublishedPort
+			}
+
+			// get the node IP
+			ip := ""
+
+			// HACK?: get the local node gateway addr to use as the ip to resolve for the interlock container to access the published port
+			network, err := p.client.NetworkInspect(context.Background(), "docker_gwbridge")
+			if err != nil {
+				log().Error(err)
+				continue
+			}
+
+			// TODO: what do we do if the IPAM has more than a single definition?
+			ipAddr, _, err := net.ParseCIDR(network.IPAM.Config[0].Gateway)
+			if err != nil {
+				log().Error(err)
+				continue
+			}
+
+			ip = ipAddr.String()
+
+			// check for override backend address
+			if v := p.cfg.BackendOverrideAddress; v != "" {
+				ip = v
+			}
+
+			addr = fmt.Sprintf("%s:%d", ip, publishedPort)
+		default:
+			log().Warnf("unknown type detected: %v", t)
+			continue
 		}
 
-		hostname := utils.Hostname(cInfo.Config)
-		domain := utils.Domain(cInfo.Config)
+		if v := utils.Hostname(labels); v != "" {
+			hostname = v
+		}
+		if v := utils.Domain(labels); v != "" {
+			domain = v
+		}
 
 		// context root
-		contextRoot := utils.ContextRoot(cInfo.Config)
+		contextRoot := utils.ContextRoot(labels)
 		contextRootName := strings.Replace(contextRoot, "/", "_", -1)
 
 		if domain == "" && contextRoot == "" {
@@ -58,7 +183,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 			Name: contextRootName,
 			Path: contextRoot,
 		}
-		hostContextRootRewrites[domain] = utils.ContextRootRewrite(cInfo.Config)
+		hostContextRootRewrites[domain] = utils.ContextRootRewrite(labels)
 
 		// check if the first server name is there; if not, add
 		// this happens if there are multiple backend containers
@@ -66,16 +191,16 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 			serverNames[domain] = []string{domain}
 		}
 
-		hostSSL[domain] = utils.SSLEnabled(cInfo.Config)
-		hostSSLOnly[domain] = utils.SSLOnly(cInfo.Config)
-		hostIPHash[domain] = utils.IPHash(cInfo.Config)
+		hostSSL[domain] = utils.SSLEnabled(labels)
+		hostSSLOnly[domain] = utils.SSLOnly(labels)
+		hostIPHash[domain] = utils.IPHash(labels)
 		// check ssl backend
-		hostSSLBackend[domain] = utils.SSLBackend(cInfo.Config)
+		hostSSLBackend[domain] = utils.SSLBackend(labels)
 
 		// set cert paths
 		baseCertPath := p.cfg.SSLCertPath
 
-		certName := utils.SSLCertName(cInfo.Config)
+		certName := utils.SSLCertName(labels)
 
 		if certName != "" {
 			certPath := filepath.Join(baseCertPath, certName)
@@ -83,54 +208,15 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 			hostSSLCert[domain] = certPath
 		}
 
-		certKeyName := utils.SSLCertKey(cInfo.Config)
+		certKeyName := utils.SSLCertKey(labels)
 		if certKeyName != "" {
 			keyPath := filepath.Join(baseCertPath, certKeyName)
 			log().Infof("ssl key for %s: %s", domain, keyPath)
 			hostSSLCertKey[domain] = keyPath
 		}
 
-		addr := ""
-
-		// check for networking
-		if n, ok := utils.OverlayEnabled(cInfo.Config); ok {
-			log().Debugf("configuring docker network: name=%s", n)
-
-			network, err := p.client.NetworkInspect(context.Background(), n)
-			if err != nil {
-				log().Error(err)
-				continue
-			}
-
-			addr, err = utils.BackendOverlayAddress(network, cInfo)
-			if err != nil {
-				log().Error(err)
-				continue
-			}
-
-			networks[n] = ""
-		} else {
-			portsExposed := false
-			for _, portBindings := range cInfo.NetworkSettings.Ports {
-				if len(portBindings) != 0 {
-					portsExposed = true
-					break
-				}
-			}
-			if !portsExposed {
-				log().Warnf("%s: no ports exposed", cntId)
-				continue
-			}
-
-			addr, err = utils.BackendAddress(cInfo, p.cfg.BackendOverrideAddress)
-			if err != nil {
-				log().Error(err)
-				continue
-			}
-		}
-
 		// "parse" multiple labels for websocket endpoints
-		websocketEndpoints := utils.WebsocketEndpoints(cInfo.Config)
+		websocketEndpoints := utils.WebsocketEndpoints(labels)
 
 		log().Debugf("websocket endpoints: %v", websocketEndpoints)
 
@@ -140,12 +226,12 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 		}
 
 		// "parse" multiple labels for alias domains
-		aliasDomains := utils.AliasDomains(cInfo.Config)
+		aliasDomains := utils.AliasDomains(labels)
 
 		log().Debugf("alias domains: %v", aliasDomains)
 
 		for _, alias := range aliasDomains {
-			log().Debugf("adding alias %s for %s", alias, cntId)
+			log().Debugf("adding alias %s for %s", alias, id)
 			serverNames[domain] = append(serverNames[domain], alias)
 		}
 

@@ -29,8 +29,13 @@ type ReplicatedOrchestrator struct {
 	restarts *RestartSupervisor
 }
 
+<<<<<<< HEAD
 // New creates a new ReplicatedOrchestrator.
 func New(store *store.MemoryStore) *ReplicatedOrchestrator {
+=======
+// NewReplicatedOrchestrator creates a new ReplicatedOrchestrator.
+func NewReplicatedOrchestrator(store *store.MemoryStore) *ReplicatedOrchestrator {
+>>>>>>> 12a5469... start on swarm services; move to glade
 	restartSupervisor := NewRestartSupervisor(store)
 	updater := NewUpdateSupervisor(store, restartSupervisor)
 	return &ReplicatedOrchestrator{
@@ -114,6 +119,12 @@ func newTask(service *api.Service, instance uint64) *api.Task {
 			Timestamp: ptypes.MustTimestampProto(time.Now()),
 			Message:   "created",
 		},
+<<<<<<< HEAD
+=======
+		Endpoint: &api.Endpoint{
+			Spec: service.Spec.Endpoint.Copy(),
+		},
+>>>>>>> 12a5469... start on swarm services; move to glade
 		DesiredState: api.TaskStateRunning,
 	}
 }

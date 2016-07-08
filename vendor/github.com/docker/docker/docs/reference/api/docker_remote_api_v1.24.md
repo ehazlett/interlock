@@ -361,7 +361,11 @@ Create a container
 **JSON parameters**:
 
 -   **Hostname** - A string value containing the hostname to use for the
+<<<<<<< HEAD
       container.
+=======
+      container. This must be a valid RFC 1123 hostname.
+>>>>>>> 12a5469... start on swarm services; move to glade
 -   **Domainname** - A string value containing the domain name to use
       for the container.
 -   **User** - A string value specifying the user inside the container.
@@ -548,7 +552,10 @@ Return low-level information on the container `id`
 		},
 		"Created": "2015-01-06T15:47:31.485331387Z",
 		"Driver": "devicemapper",
+<<<<<<< HEAD
 		"ExecDriver": "native-0.2",
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 		"ExecIDs": null,
 		"HostConfig": {
 			"Binds": null,
@@ -3460,7 +3467,11 @@ Return low-level information on the node `id`
 
 **Example request**:
 
+<<<<<<< HEAD
       GET /node/24ifsmvkjbyhk HTTP/1.1
+=======
+      GET /nodes/24ifsmvkjbyhk HTTP/1.1
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 **Example response**:
 
@@ -3644,8 +3655,20 @@ JSON Parameters:
           election.
     - **Dispatcher** – Configuration settings for the task dispatcher.
         - **HeartbeatPeriod** – The delay for an agent to send a heartbeat to the dispatcher.
+<<<<<<< HEAD
     - **CAConfig** – CA configuration.
         - **NodeCertExpiry** – Automatic expiry for nodes certificates.
+=======
+    - **CAConfig** – Certificate authority configuration.
+        - **NodeCertExpiry** – Automatic expiry for nodes certificates.
+        - **ExternalCA** - Configuration for forwarding signing requests to an external
+          certificate authority.
+            - **Protocol** - Protocol for communication with the external CA
+              (currently only "cfssl" is supported).
+            - **URL** - URL where certificate signing requests should be sent.
+            - **Options** - An object with key/value pairs that are interpreted
+              as protocol-specific options for the external CA driver.
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 ### Join an existing Swarm
 
@@ -3792,6 +3815,16 @@ JSON Parameters:
     - **HeartbeatPeriod** – The delay for an agent to send a heartbeat to the dispatcher.
 - **CAConfig** – CA configuration.
     - **NodeCertExpiry** – Automatic expiry for nodes certificates.
+<<<<<<< HEAD
+=======
+    - **ExternalCA** - Configuration for forwarding signing requests to an external
+      certificate authority.
+        - **Protocol** - Protocol for communication with the external CA
+          (currently only "cfssl" is supported).
+        - **URL** - URL where certificate signing requests should be sent.
+        - **Options** - An object with key/value pairs that are interpreted
+          as protocol-specific options for the external CA driver.
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 ## 3.8 Services
 
@@ -3903,7 +3936,11 @@ Create a service
 
 **Example request**:
 
+<<<<<<< HEAD
     POST /service/create HTTP/1.1
+=======
+    POST /services/create HTTP/1.1
+>>>>>>> 12a5469... start on swarm services; move to glade
     Content-Type: application/json
 
     {
@@ -3972,11 +4009,19 @@ JSON Parameters:
             - **Target** – Container path.
             - **Source** – Mount source (e.g. a volume name, a host path).
             - **Type** – The mount type (`bind`, or `volume`).
+<<<<<<< HEAD
             - **Writable** – A boolean indicating whether the mount should be writable.
             - **BindOptions** - Optional configuration for the `bind` type.
               - **Propagation** – A propagation mode with the value `[r]private`, `[r]shared`, or `[r]slave`.
             - **VolumeOptions** – Optional configuration for the `volume` type.
                 - **Populate** – A boolean indicating if volume should be
+=======
+            - **ReadOnly** – A boolean indicating whether the mount should be read-only.
+            - **BindOptions** - Optional configuration for the `bind` type.
+              - **Propagation** – A propagation mode with the value `[r]private`, `[r]shared`, or `[r]slave`.
+            - **VolumeOptions** – Optional configuration for the `volume` type.
+                - **NoCopy** – A boolean indicating if volume should be
+>>>>>>> 12a5469... start on swarm services; move to glade
                   populated with the data from the target. (Default false)
                 - **Labels** – User-defined name and labels for the volume.
                 - **DriverConfig** – Map of driver-specific options.
@@ -3994,7 +4039,11 @@ JSON Parameters:
             - **Memory** – Memory reservation
     - **RestartPolicy** – Specification for the restart policy which applies to containers created
       as part of this service.
+<<<<<<< HEAD
         - **Condition** – Condition for restart (`none`, `on_failure`, or `any`).
+=======
+        - **Condition** – Condition for restart (`none`, `on-failure`, or `any`).
+>>>>>>> 12a5469... start on swarm services; move to glade
         - **Delay** – Delay between restart attempts.
         - **Attempts** – Maximum attempts to restart a given container before giving up (default value
           is 0, which is ignored).
@@ -4020,13 +4069,21 @@ JSON Parameters:
 **Warning**: this endpoint is part of the Swarm management feature introduced in Docker 1.12, and
 might be subject to non backward-compatible changes.
 
+<<<<<<< HEAD
 `DELETE /service/(id or name)`
+=======
+`DELETE /services/(id or name)`
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 Stop and remove the service `id`
 
 **Example request**:
 
+<<<<<<< HEAD
     DELETE /service/16253994b7c4 HTTP/1.1
+=======
+    DELETE /services/16253994b7c4 HTTP/1.1
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 **Example response**:
 
@@ -4038,18 +4095,30 @@ Stop and remove the service `id`
 -   **404** – no such service
 -   **500** – server error
 
+<<<<<<< HEAD
 ### Inspect a service
+=======
+### Inspect one or more services
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 **Warning**: this endpoint is part of the Swarm management feature introduced in Docker 1.12, and
 might be subject to non backward-compatible changes.
 
+<<<<<<< HEAD
 `GET /service/(id or name)`
+=======
+`GET /services/(id or name)`
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 Return information on the service `id`.
 
 **Example request**:
 
+<<<<<<< HEAD
     GET /service/1cb4dnqcyx6m66g2t538x3rxha HTTP/1.1
+=======
+    GET /services/1cb4dnqcyx6m66g2t538x3rxha HTTP/1.1
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 **Example response**:
 
@@ -4123,13 +4192,21 @@ Return information on the service `id`.
 **Warning**: this endpoint is part of the Swarm management feature introduced in Docker 1.12, and
 might be subject to non backward-compatible changes.
 
+<<<<<<< HEAD
 `POST /service/(id or name)/update`
+=======
+`POST /services/(id or name)/update`
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 Update the service `id`.
 
 **Example request**:
 
+<<<<<<< HEAD
     POST /service/1cb4dnqcyx6m66g2t538x3rxha/update HTTP/1.1
+=======
+    POST /services/1cb4dnqcyx6m66g2t538x3rxha/update HTTP/1.1
+>>>>>>> 12a5469... start on swarm services; move to glade
 
     {
       "Name": "top",
@@ -4190,11 +4267,20 @@ Update the service `id`.
             - **Target** – Container path.
             - **Source** – Mount source (e.g. a volume name, a host path).
             - **Type** – The mount type (`bind`, or `volume`).
+<<<<<<< HEAD
             - **Writable** – A boolean indicating whether the mount should be writable.
             - **BindOptions** - Optional configuration for the `bind` type
               - **Propagation** – A propagation mode with the value `[r]private`, `[r]shared`, or `[r]slave`.
             - **VolumeOptions** – Optional configuration for the `volume` type.
                 - **Populate** – A boolean indicating if volume should be populated with the data from the target. (Default false)
+=======
+            - **ReadOnly** – A boolean indicating whether the mount should be read-only.
+            - **BindOptions** - Optional configuration for the `bind` type
+              - **Propagation** – A propagation mode with the value `[r]private`, `[r]shared`, or `[r]slave`.
+            - **VolumeOptions** – Optional configuration for the `volume` type.
+                - **NoCopy** – A boolean indicating if volume should be
+                  populated with the data from the target. (Default false)
+>>>>>>> 12a5469... start on swarm services; move to glade
                 - **Labels** – User-defined name and labels for the volume.
                 - **DriverConfig** – Map of driver-specific options.
                   - **Name** - Name of the driver to use to create the volume
@@ -4211,7 +4297,11 @@ Update the service `id`.
             - **Memory** – Memory reservation
     - **RestartPolicy** – Specification for the restart policy which applies to containers created
       as part of this service.
+<<<<<<< HEAD
         - **Condition** – Condition for restart (`none`, `on_failure`, or `any`).
+=======
+        - **Condition** – Condition for restart (`none`, `on-failure`, or `any`).
+>>>>>>> 12a5469... start on swarm services; move to glade
         - **Delay** – Delay between restart attempts.
         - **Attempts** – Maximum attempts to restart a given container before giving up (default value
           is 0, which is ignored).

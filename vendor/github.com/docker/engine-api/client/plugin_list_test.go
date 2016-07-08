@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+// +build experimental
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 package client
 
 import (

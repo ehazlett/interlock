@@ -10,3 +10,7 @@
 /hack/insta-discovery/.env
 *.test
 tools/functional-tester/docker/bin
+<<<<<<< HEAD
+=======
+hack/tls-setup/certs
+>>>>>>> 12a5469... start on swarm services; move to glade

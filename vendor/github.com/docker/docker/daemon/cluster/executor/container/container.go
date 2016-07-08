@@ -91,6 +91,7 @@ func (c *containerConfig) image() string {
 func (c *containerConfig) volumes() map[string]struct{} {
 	r := make(map[string]struct{})
 
+<<<<<<< HEAD
 	for _, mount := range c.spec().Mounts {
 		// pick off all the volume mounts.
 		if mount.Type != api.MountTypeVolume {
@@ -98,6 +99,14 @@ func (c *containerConfig) volumes() map[string]struct{} {
 		}
 
 		r[fmt.Sprintf("%s:%s", mount.Target, getMountMask(&mount))] = struct{}{}
+=======
+	for _, m := range c.spec().Mounts {
+		// pick off all the volume mounts.
+		if m.Type != api.MountTypeVolume || m.Source != "" {
+			continue
+		}
+		r[m.Target] = struct{}{}
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	return r
@@ -117,8 +126,13 @@ func (c *containerConfig) config() *enginecontainer.Config {
 		// If Command is provided, we replace the whole invocation with Command
 		// by replacing Entrypoint and specifying Cmd. Args is ignored in this
 		// case.
+<<<<<<< HEAD
 		config.Entrypoint = append(config.Entrypoint, c.spec().Command[0])
 		config.Cmd = append(config.Cmd, c.spec().Command[1:]...)
+=======
+		config.Entrypoint = append(config.Entrypoint, c.spec().Command...)
+		config.Cmd = append(config.Cmd, c.spec().Args...)
+>>>>>>> 12a5469... start on swarm services; move to glade
 	} else if len(c.spec().Args) > 0 {
 		// In this case, we assume the image has an Entrypoint and Args
 		// specifies the arguments for that entrypoint.
@@ -164,9 +178,19 @@ func (c *containerConfig) bindMounts() []string {
 	var r []string
 
 	for _, val := range c.spec().Mounts {
+<<<<<<< HEAD
 		mask := getMountMask(&val)
 		if val.Type == api.MountTypeBind {
 			r = append(r, fmt.Sprintf("%s:%s:%s", val.Source, val.Target, mask))
+=======
+		if val.Type == api.MountTypeBind || (val.Type == api.MountTypeVolume && val.Source != "") {
+			mask := getMountMask(&val)
+			spec := fmt.Sprintf("%s:%s", val.Source, val.Target)
+			if mask != "" {
+				spec = fmt.Sprintf("%s:%s", spec, mask)
+			}
+			r = append(r, spec)
+>>>>>>> 12a5469... start on swarm services; move to glade
 		}
 	}
 
@@ -174,9 +198,15 @@ func (c *containerConfig) bindMounts() []string {
 }
 
 func getMountMask(m *api.Mount) string {
+<<<<<<< HEAD
 	maskOpts := []string{"ro"}
 	if m.Writable {
 		maskOpts[0] = "rw"
+=======
+	var maskOpts []string
+	if m.ReadOnly {
+		maskOpts = append(maskOpts, "ro")
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	if m.BindOptions != nil {
@@ -197,7 +227,11 @@ func getMountMask(m *api.Mount) string {
 	}
 
 	if m.VolumeOptions != nil {
+<<<<<<< HEAD
 		if !m.VolumeOptions.Populate {
+=======
+		if m.VolumeOptions.NoCopy {
+>>>>>>> 12a5469... start on swarm services; move to glade
 			maskOpts = append(maskOpts, "nocopy")
 		}
 	}
@@ -404,6 +438,12 @@ func (c *containerConfig) networkCreateRequest(name string) (clustertypes.Networ
 			Driver: na.Network.IPAM.Driver.Name,
 		},
 		Options:        na.Network.DriverState.Options,
+<<<<<<< HEAD
+=======
+		Labels:         na.Network.Spec.Annotations.Labels,
+		Internal:       na.Network.Spec.Internal,
+		EnableIPv6:     na.Network.Spec.Ipv6Enabled,
+>>>>>>> 12a5469... start on swarm services; move to glade
 		CheckDuplicate: true,
 	}
 

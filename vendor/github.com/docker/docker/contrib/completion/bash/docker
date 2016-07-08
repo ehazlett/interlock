@@ -1701,7 +1701,11 @@ _docker_service_update() {
 			return
 			;;
 		--restart-condition)
+<<<<<<< HEAD
 			COMPREPLY=( $( compgen -W "any none on_failure" -- "$cur" ) )
+=======
+			COMPREPLY=( $( compgen -W "any none on-failure" -- "$cur" ) )
+>>>>>>> 12a5469... start on swarm services; move to glade
 			return
 			;;
 		--user|-u)
@@ -2036,14 +2040,22 @@ _docker_ps() {
 			__docker_nospace
 			return
 			;;
+<<<<<<< HEAD
 		--format|-n)
+=======
+		--format|--last|-n)
+>>>>>>> 12a5469... start on swarm services; move to glade
 			return
 			;;
 	esac
 
 	case "$cur" in
 		-*)
+<<<<<<< HEAD
 			COMPREPLY=( $( compgen -W "--all -a --filter -f --format --help --latest -l -n --no-trunc --quiet -q --size -s" -- "$cur" ) )
+=======
+			COMPREPLY=( $( compgen -W "--all -a --filter -f --format --help --last -n --latest -l --no-trunc --quiet -q --size -s" -- "$cur" ) )
+>>>>>>> 12a5469... start on swarm services; move to glade
 			;;
 	esac
 }

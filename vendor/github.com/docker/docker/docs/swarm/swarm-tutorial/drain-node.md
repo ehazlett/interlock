@@ -31,7 +31,11 @@ run your manager node. For example, the tutorial uses a machine named
     ```bash
     $ docker node ls
 
+<<<<<<< HEAD
     ID                           NAME      MEMBERSHIP  STATUS  AVAILABILITY     MANAGER STATUS  LEADER
+=======
+    ID                           HOSTNAME  MEMBERSHIP  STATUS  AVAILABILITY     MANAGER STATUS  LEADER
+>>>>>>> 12a5469... start on swarm services; move to glade
     1bcef6utixb0l0ca7gxuivsj0    worker2   Accepted    Ready   Active
     38ciaotwjuritcdtn9npbnkuz    worker1   Accepted    Ready   Active
     e216jshn25ckzbvmwlnh5jr3g *  manager1  Accepted    Ready   Active        Reachable       Yes

@@ -16,7 +16,11 @@ resource "aws_instance" "server" {
     }
 
     provisioner "file" {
+<<<<<<< HEAD
         source = "${path.module}/scripts/${lookup(var.service_conf, var.platform)}"
+=======
+        source = "${path.module}/../shared/scripts/${lookup(var.service_conf, var.platform)}"
+>>>>>>> 12a5469... start on swarm services; move to glade
         destination = "/tmp/${lookup(var.service_conf_dest, var.platform)}"
     }
 
@@ -30,9 +34,15 @@ resource "aws_instance" "server" {
 
     provisioner "remote-exec" {
         scripts = [
+<<<<<<< HEAD
             "${path.module}/scripts/install.sh",
             "${path.module}/scripts/service.sh",
             "${path.module}/scripts/ip_tables.sh",
+=======
+            "${path.module}/../shared/scripts/install.sh",
+            "${path.module}/../shared/scripts/service.sh",
+            "${path.module}/../shared/scripts/ip_tables.sh",
+>>>>>>> 12a5469... start on swarm services; move to glade
         ]
     }
 }

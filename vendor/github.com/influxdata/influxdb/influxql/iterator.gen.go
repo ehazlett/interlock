@@ -556,7 +556,11 @@ func (itr *floatLimitIterator) Next() (*FloatPoint, error) {
 
 type floatFillIterator struct {
 	input     *bufFloatIterator
+<<<<<<< HEAD
 	prev      *FloatPoint
+=======
+	prev      FloatPoint
+>>>>>>> 12a5469... start on swarm services; move to glade
 	startTime int64
 	endTime   int64
 	auxFields []interface{}
@@ -594,6 +598,10 @@ func newFloatFillIterator(input FloatIterator, expr Expr, opt IteratorOptions) *
 
 	return &floatFillIterator{
 		input:     newBufFloatIterator(input),
+<<<<<<< HEAD
+=======
+		prev:      FloatPoint{Nil: true},
+>>>>>>> 12a5469... start on swarm services; move to glade
 		startTime: startTime,
 		endTime:   endTime,
 		auxFields: auxFields,
@@ -647,7 +655,11 @@ func (itr *floatFillIterator) Next() (*FloatPoint, error) {
 		// Set the new interval.
 		itr.window.name, itr.window.tags = p.Name, p.Tags
 		itr.window.time = itr.startTime
+<<<<<<< HEAD
 		itr.prev = nil
+=======
+		itr.prev = FloatPoint{Nil: true}
+>>>>>>> 12a5469... start on swarm services; move to glade
 		break
 	}
 
@@ -670,7 +682,11 @@ func (itr *floatFillIterator) Next() (*FloatPoint, error) {
 		case NumberFill:
 			p.Value = castToFloat(itr.opt.FillValue)
 		case PreviousFill:
+<<<<<<< HEAD
 			if itr.prev != nil {
+=======
+			if !itr.prev.Nil {
+>>>>>>> 12a5469... start on swarm services; move to glade
 				p.Value = itr.prev.Value
 				p.Nil = itr.prev.Nil
 			} else {
@@ -678,7 +694,11 @@ func (itr *floatFillIterator) Next() (*FloatPoint, error) {
 			}
 		}
 	} else {
+<<<<<<< HEAD
 		itr.prev = p
+=======
+		itr.prev = *p
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	// Advance the expected time. Do not advance to a new window here
@@ -2612,7 +2632,11 @@ func (itr *integerLimitIterator) Next() (*IntegerPoint, error) {
 
 type integerFillIterator struct {
 	input     *bufIntegerIterator
+<<<<<<< HEAD
 	prev      *IntegerPoint
+=======
+	prev      IntegerPoint
+>>>>>>> 12a5469... start on swarm services; move to glade
 	startTime int64
 	endTime   int64
 	auxFields []interface{}
@@ -2650,6 +2674,10 @@ func newIntegerFillIterator(input IntegerIterator, expr Expr, opt IteratorOption
 
 	return &integerFillIterator{
 		input:     newBufIntegerIterator(input),
+<<<<<<< HEAD
+=======
+		prev:      IntegerPoint{Nil: true},
+>>>>>>> 12a5469... start on swarm services; move to glade
 		startTime: startTime,
 		endTime:   endTime,
 		auxFields: auxFields,
@@ -2703,7 +2731,11 @@ func (itr *integerFillIterator) Next() (*IntegerPoint, error) {
 		// Set the new interval.
 		itr.window.name, itr.window.tags = p.Name, p.Tags
 		itr.window.time = itr.startTime
+<<<<<<< HEAD
 		itr.prev = nil
+=======
+		itr.prev = IntegerPoint{Nil: true}
+>>>>>>> 12a5469... start on swarm services; move to glade
 		break
 	}
 
@@ -2726,7 +2758,11 @@ func (itr *integerFillIterator) Next() (*IntegerPoint, error) {
 		case NumberFill:
 			p.Value = castToInteger(itr.opt.FillValue)
 		case PreviousFill:
+<<<<<<< HEAD
 			if itr.prev != nil {
+=======
+			if !itr.prev.Nil {
+>>>>>>> 12a5469... start on swarm services; move to glade
 				p.Value = itr.prev.Value
 				p.Nil = itr.prev.Nil
 			} else {
@@ -2734,7 +2770,11 @@ func (itr *integerFillIterator) Next() (*IntegerPoint, error) {
 			}
 		}
 	} else {
+<<<<<<< HEAD
 		itr.prev = p
+=======
+		itr.prev = *p
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	// Advance the expected time. Do not advance to a new window here
@@ -4665,7 +4705,11 @@ func (itr *stringLimitIterator) Next() (*StringPoint, error) {
 
 type stringFillIterator struct {
 	input     *bufStringIterator
+<<<<<<< HEAD
 	prev      *StringPoint
+=======
+	prev      StringPoint
+>>>>>>> 12a5469... start on swarm services; move to glade
 	startTime int64
 	endTime   int64
 	auxFields []interface{}
@@ -4703,6 +4747,10 @@ func newStringFillIterator(input StringIterator, expr Expr, opt IteratorOptions)
 
 	return &stringFillIterator{
 		input:     newBufStringIterator(input),
+<<<<<<< HEAD
+=======
+		prev:      StringPoint{Nil: true},
+>>>>>>> 12a5469... start on swarm services; move to glade
 		startTime: startTime,
 		endTime:   endTime,
 		auxFields: auxFields,
@@ -4756,7 +4804,11 @@ func (itr *stringFillIterator) Next() (*StringPoint, error) {
 		// Set the new interval.
 		itr.window.name, itr.window.tags = p.Name, p.Tags
 		itr.window.time = itr.startTime
+<<<<<<< HEAD
 		itr.prev = nil
+=======
+		itr.prev = StringPoint{Nil: true}
+>>>>>>> 12a5469... start on swarm services; move to glade
 		break
 	}
 
@@ -4779,7 +4831,11 @@ func (itr *stringFillIterator) Next() (*StringPoint, error) {
 		case NumberFill:
 			p.Value = castToString(itr.opt.FillValue)
 		case PreviousFill:
+<<<<<<< HEAD
 			if itr.prev != nil {
+=======
+			if !itr.prev.Nil {
+>>>>>>> 12a5469... start on swarm services; move to glade
 				p.Value = itr.prev.Value
 				p.Nil = itr.prev.Nil
 			} else {
@@ -4787,7 +4843,11 @@ func (itr *stringFillIterator) Next() (*StringPoint, error) {
 			}
 		}
 	} else {
+<<<<<<< HEAD
 		itr.prev = p
+=======
+		itr.prev = *p
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	// Advance the expected time. Do not advance to a new window here
@@ -6718,7 +6778,11 @@ func (itr *booleanLimitIterator) Next() (*BooleanPoint, error) {
 
 type booleanFillIterator struct {
 	input     *bufBooleanIterator
+<<<<<<< HEAD
 	prev      *BooleanPoint
+=======
+	prev      BooleanPoint
+>>>>>>> 12a5469... start on swarm services; move to glade
 	startTime int64
 	endTime   int64
 	auxFields []interface{}
@@ -6756,6 +6820,10 @@ func newBooleanFillIterator(input BooleanIterator, expr Expr, opt IteratorOption
 
 	return &booleanFillIterator{
 		input:     newBufBooleanIterator(input),
+<<<<<<< HEAD
+=======
+		prev:      BooleanPoint{Nil: true},
+>>>>>>> 12a5469... start on swarm services; move to glade
 		startTime: startTime,
 		endTime:   endTime,
 		auxFields: auxFields,
@@ -6809,7 +6877,11 @@ func (itr *booleanFillIterator) Next() (*BooleanPoint, error) {
 		// Set the new interval.
 		itr.window.name, itr.window.tags = p.Name, p.Tags
 		itr.window.time = itr.startTime
+<<<<<<< HEAD
 		itr.prev = nil
+=======
+		itr.prev = BooleanPoint{Nil: true}
+>>>>>>> 12a5469... start on swarm services; move to glade
 		break
 	}
 
@@ -6832,7 +6904,11 @@ func (itr *booleanFillIterator) Next() (*BooleanPoint, error) {
 		case NumberFill:
 			p.Value = castToBoolean(itr.opt.FillValue)
 		case PreviousFill:
+<<<<<<< HEAD
 			if itr.prev != nil {
+=======
+			if !itr.prev.Nil {
+>>>>>>> 12a5469... start on swarm services; move to glade
 				p.Value = itr.prev.Value
 				p.Nil = itr.prev.Nil
 			} else {
@@ -6840,7 +6916,11 @@ func (itr *booleanFillIterator) Next() (*BooleanPoint, error) {
 			}
 		}
 	} else {
+<<<<<<< HEAD
 		itr.prev = p
+=======
+		itr.prev = *p
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	// Advance the expected time. Do not advance to a new window here

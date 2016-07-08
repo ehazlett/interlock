@@ -20,6 +20,7 @@ import (
 )
 
 // CreateManagedContainer creates a container that is managed by a Service
+<<<<<<< HEAD
 func (daemon *Daemon) CreateManagedContainer(params types.ContainerCreateConfig) (types.ContainerCreateResponse, error) {
 	return daemon.containerCreate(params, true)
 }
@@ -30,11 +31,27 @@ func (daemon *Daemon) ContainerCreate(params types.ContainerCreateConfig) (types
 }
 
 func (daemon *Daemon) containerCreate(params types.ContainerCreateConfig, managed bool) (types.ContainerCreateResponse, error) {
+=======
+func (daemon *Daemon) CreateManagedContainer(params types.ContainerCreateConfig, validateHostname bool) (types.ContainerCreateResponse, error) {
+	return daemon.containerCreate(params, true, validateHostname)
+}
+
+// ContainerCreate creates a regular container
+func (daemon *Daemon) ContainerCreate(params types.ContainerCreateConfig, validateHostname bool) (types.ContainerCreateResponse, error) {
+	return daemon.containerCreate(params, false, validateHostname)
+}
+
+func (daemon *Daemon) containerCreate(params types.ContainerCreateConfig, managed bool, validateHostname bool) (types.ContainerCreateResponse, error) {
+>>>>>>> 12a5469... start on swarm services; move to glade
 	if params.Config == nil {
 		return types.ContainerCreateResponse{}, fmt.Errorf("Config cannot be empty in order to create a container")
 	}
 
+<<<<<<< HEAD
 	warnings, err := daemon.verifyContainerSettings(params.HostConfig, params.Config, false)
+=======
+	warnings, err := daemon.verifyContainerSettings(params.HostConfig, params.Config, false, validateHostname)
+>>>>>>> 12a5469... start on swarm services; move to glade
 	if err != nil {
 		return types.ContainerCreateResponse{Warnings: warnings}, err
 	}

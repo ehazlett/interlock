@@ -182,7 +182,11 @@ func TestCheckCluster(t *testing.T) {
 	}
 
 	for i, tt := range tests {
+<<<<<<< HEAD
 		rs := make([]*client.Response, 0)
+=======
+		var rs []*client.Response
+>>>>>>> 12a5469... start on swarm services; move to glade
 		if len(tt.nodes) > 0 {
 			rs = append(rs, &client.Response{Node: tt.nodes[0], Index: tt.index})
 			rs = append(rs, &client.Response{
@@ -267,7 +271,11 @@ func TestWaitNodes(t *testing.T) {
 		dBase := &discovery{cluster: "1000", c: c}
 
 		// Retry case
+<<<<<<< HEAD
 		retryScanResp := make([]*client.Response, 0)
+=======
+		var retryScanResp []*client.Response
+>>>>>>> 12a5469... start on swarm services; move to glade
 		if len(tt.nodes) > 0 {
 			retryScanResp = append(retryScanResp, &client.Response{
 				Node: &client.Node{
@@ -406,7 +414,11 @@ func TestSortableNodes(t *testing.T) {
 	}
 	sns := sortableNodes{ns}
 	sort.Sort(sns)
+<<<<<<< HEAD
 	cis := make([]int, 0)
+=======
+	var cis []int
+>>>>>>> 12a5469... start on swarm services; move to glade
 	for _, n := range sns.Nodes {
 		cis = append(cis, int(n.CreatedIndex))
 	}

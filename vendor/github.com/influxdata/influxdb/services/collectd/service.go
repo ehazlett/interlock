@@ -1,6 +1,7 @@
 package collectd // import "github.com/influxdata/influxdb/services/collectd"
 
 import (
+<<<<<<< HEAD
 	"expvar"
 	"fmt"
 	"io"
@@ -12,6 +13,19 @@ import (
 	"time"
 
 	"github.com/influxdata/influxdb"
+=======
+	"fmt"
+	"io"
+	"io/ioutil"
+	"log"
+	"net"
+	"os"
+	"path/filepath"
+	"sync"
+	"sync/atomic"
+	"time"
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 	"github.com/influxdata/influxdb/models"
 	"github.com/influxdata/influxdb/services/meta"
 	"github.com/influxdata/influxdb/tsdb"
@@ -24,7 +38,11 @@ const (
 	statBytesReceived        = "bytesRx"
 	statPointsParseFail      = "pointsParseFail"
 	statReadFail             = "readFail"
+<<<<<<< HEAD
 	statBatchesTrasmitted    = "batchesTx"
+=======
+	statBatchesTransmitted   = "batchesTx"
+>>>>>>> 12a5469... start on swarm services; move to glade
 	statPointsTransmitted    = "pointsTx"
 	statBatchesTransmitFail  = "batchesTxFail"
 	statDroppedPointsInvalid = "droppedPointsInvalid"
@@ -57,7 +75,12 @@ type Service struct {
 	addr    net.Addr
 
 	// expvar-based stats.
+<<<<<<< HEAD
 	statMap *expvar.Map
+=======
+	stats    *Statistics
+	statTags models.Tags
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // NewService returns a new instance of the collectd service.
@@ -66,8 +89,15 @@ func NewService(c Config) *Service {
 		// Use defaults where necessary.
 		Config: c.WithDefaults(),
 
+<<<<<<< HEAD
 		Logger: log.New(os.Stderr, "[collectd] ", log.LstdFlags),
 		err:    make(chan error),
+=======
+		Logger:   log.New(os.Stderr, "[collectd] ", log.LstdFlags),
+		err:      make(chan error),
+		stats:    &Statistics{},
+		statTags: map[string]string{"bind": c.BindAddress},
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	return &s
@@ -77,12 +107,15 @@ func NewService(c Config) *Service {
 func (s *Service) Open() error {
 	s.Logger.Printf("Starting collectd service")
 
+<<<<<<< HEAD
 	// Configure expvar monitoring. It's OK to do this even if the service fails to open and
 	// should be done before any data could arrive for the service.
 	key := strings.Join([]string{"collectd", s.Config.BindAddress}, ":")
 	tags := map[string]string{"bind": s.Config.BindAddress}
 	s.statMap = influxdb.NewStatistics(key, "collectd", tags)
 
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 	if s.Config.BindAddress == "" {
 		return fmt.Errorf("bind address is blank")
 	} else if s.Config.Database == "" {
@@ -98,11 +131,60 @@ func (s *Service) Open() error {
 
 	if s.typesdb == nil {
 		// Open collectd types.
+<<<<<<< HEAD
 		typesdb, err := gollectd.TypesDBFile(s.Config.TypesDB)
 		if err != nil {
 			return fmt.Errorf("Open(): %s", err)
 		}
 		s.typesdb = typesdb
+=======
+		if stat, err := os.Stat(s.Config.TypesDB); err != nil {
+			return fmt.Errorf("Stat(): %s", err)
+		} else if stat.IsDir() {
+			alltypesdb := make(gollectd.Types)
+			var readdir func(path string)
+			readdir = func(path string) {
+				files, err := ioutil.ReadDir(path)
+				if err != nil {
+					s.Logger.Printf("Unable to read directory %s: %s\n", path, err)
+					return
+				}
+
+				for _, f := range files {
+					fullpath := filepath.Join(path, f.Name())
+					if f.IsDir() {
+						readdir(fullpath)
+						continue
+					}
+
+					s.Logger.Printf("Loading %s\n", fullpath)
+					types, err := gollectd.TypesDBFile(fullpath)
+					if err != nil {
+						s.Logger.Printf("Unable to parse collectd types file: %s\n", f.Name())
+						continue
+					}
+
+					for k, t := range types {
+						a, ok := alltypesdb[k]
+						if ok {
+							alltypesdb[k] = t
+						} else {
+							alltypesdb[k] = append(a, t...)
+						}
+					}
+				}
+			}
+			readdir(s.Config.TypesDB)
+			s.typesdb = alltypesdb
+		} else {
+			s.Logger.Printf("Loading %s\n", s.Config.TypesDB)
+			typesdb, err := gollectd.TypesDBFile(s.Config.TypesDB)
+			if err != nil {
+				return fmt.Errorf("Open(): %s", err)
+			}
+			s.typesdb = typesdb
+		}
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	// Resolve our address.
@@ -172,6 +254,39 @@ func (s *Service) SetLogOutput(w io.Writer) {
 	s.Logger = log.New(w, "[collectd] ", log.LstdFlags)
 }
 
+<<<<<<< HEAD
+=======
+// Statistics maintains statistics for the collectd service.
+type Statistics struct {
+	PointsReceived       int64
+	BytesReceived        int64
+	PointsParseFail      int64
+	ReadFail             int64
+	BatchesTransmitted   int64
+	PointsTransmitted    int64
+	BatchesTransmitFail  int64
+	InvalidDroppedPoints int64
+}
+
+// Statistics returns statistics for periodic monitoring.
+func (s *Service) Statistics(tags map[string]string) []models.Statistic {
+	return []models.Statistic{{
+		Name: "collectd",
+		Tags: s.statTags.Merge(tags),
+		Values: map[string]interface{}{
+			statPointsReceived:       atomic.LoadInt64(&s.stats.PointsReceived),
+			statBytesReceived:        atomic.LoadInt64(&s.stats.BytesReceived),
+			statPointsParseFail:      atomic.LoadInt64(&s.stats.PointsParseFail),
+			statReadFail:             atomic.LoadInt64(&s.stats.ReadFail),
+			statBatchesTransmitted:   atomic.LoadInt64(&s.stats.BatchesTransmitted),
+			statPointsTransmitted:    atomic.LoadInt64(&s.stats.PointsTransmitted),
+			statBatchesTransmitFail:  atomic.LoadInt64(&s.stats.BatchesTransmitFail),
+			statDroppedPointsInvalid: atomic.LoadInt64(&s.stats.InvalidDroppedPoints),
+		},
+	}}
+}
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 // SetTypes sets collectd types db.
 func (s *Service) SetTypes(types string) (err error) {
 	s.typesdb, err = gollectd.TypesDB([]byte(types))
@@ -210,12 +325,20 @@ func (s *Service) serve() {
 
 		n, _, err := s.conn.ReadFromUDP(buffer)
 		if err != nil {
+<<<<<<< HEAD
 			s.statMap.Add(statReadFail, 1)
+=======
+			atomic.AddInt64(&s.stats.ReadFail, 1)
+>>>>>>> 12a5469... start on swarm services; move to glade
 			s.Logger.Printf("collectd ReadFromUDP error: %s", err)
 			continue
 		}
 		if n > 0 {
+<<<<<<< HEAD
 			s.statMap.Add(statBytesReceived, int64(n))
+=======
+			atomic.AddInt64(&s.stats.BytesReceived, int64(n))
+>>>>>>> 12a5469... start on swarm services; move to glade
 			s.handleMessage(buffer[:n])
 		}
 	}
@@ -224,7 +347,11 @@ func (s *Service) serve() {
 func (s *Service) handleMessage(buffer []byte) {
 	packets, err := gollectd.Packets(buffer, s.typesdb)
 	if err != nil {
+<<<<<<< HEAD
 		s.statMap.Add(statPointsParseFail, 1)
+=======
+		atomic.AddInt64(&s.stats.PointsParseFail, 1)
+>>>>>>> 12a5469... start on swarm services; move to glade
 		s.Logger.Printf("Collectd parse error: %s", err)
 		return
 	}
@@ -233,7 +360,11 @@ func (s *Service) handleMessage(buffer []byte) {
 		for _, p := range points {
 			s.batcher.In() <- p
 		}
+<<<<<<< HEAD
 		s.statMap.Add(statPointsReceived, int64(len(points)))
+=======
+		atomic.AddInt64(&s.stats.PointsReceived, int64(len(points)))
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 }
 
@@ -246,11 +377,19 @@ func (s *Service) writePoints() {
 			return
 		case batch := <-s.batcher.Out():
 			if err := s.PointsWriter.WritePoints(s.Config.Database, s.Config.RetentionPolicy, models.ConsistencyLevelAny, batch); err == nil {
+<<<<<<< HEAD
 				s.statMap.Add(statBatchesTrasmitted, 1)
 				s.statMap.Add(statPointsTransmitted, int64(len(batch)))
 			} else {
 				s.Logger.Printf("failed to write point batch to database %q: %s", s.Config.Database, err)
 				s.statMap.Add(statBatchesTransmitFail, 1)
+=======
+				atomic.AddInt64(&s.stats.BatchesTransmitted, 1)
+				atomic.AddInt64(&s.stats.PointsTransmitted, int64(len(batch)))
+			} else {
+				s.Logger.Printf("failed to write point batch to database %q: %s", s.Config.Database, err)
+				atomic.AddInt64(&s.stats.BatchesTransmitFail, 1)
+>>>>>>> 12a5469... start on swarm services; move to glade
 			}
 		}
 	}
@@ -296,7 +435,11 @@ func (s *Service) UnmarshalCollectd(packet *gollectd.Packet) []models.Point {
 		// Drop invalid points
 		if err != nil {
 			s.Logger.Printf("Dropping point %v: %v", name, err)
+<<<<<<< HEAD
 			s.statMap.Add(statDroppedPointsInvalid, 1)
+=======
+			atomic.AddInt64(&s.stats.InvalidDroppedPoints, 1)
+>>>>>>> 12a5469... start on swarm services; move to glade
 			continue
 		}
 

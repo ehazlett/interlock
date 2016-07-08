@@ -5,7 +5,10 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"errors"
+<<<<<<< HEAD
 	"expvar"
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 	"fmt"
 	"io"
 	"log"
@@ -13,8 +16,15 @@ import (
 	"net/http/pprof"
 	"os"
 	"runtime/debug"
+<<<<<<< HEAD
 	"strconv"
 	"strings"
+=======
+	"sort"
+	"strconv"
+	"strings"
+	"sync/atomic"
+>>>>>>> 12a5469... start on swarm services; move to glade
 	"time"
 
 	"github.com/bmizerany/pat"
@@ -22,6 +32,10 @@ import (
 	"github.com/influxdata/influxdb"
 	"github.com/influxdata/influxdb/influxql"
 	"github.com/influxdata/influxdb/models"
+<<<<<<< HEAD
+=======
+	"github.com/influxdata/influxdb/monitor"
+>>>>>>> 12a5469... start on swarm services; move to glade
 	"github.com/influxdata/influxdb/services/continuous_querier"
 	"github.com/influxdata/influxdb/services/meta"
 	"github.com/influxdata/influxdb/uuid"
@@ -78,6 +92,13 @@ type Handler struct {
 
 	QueryExecutor *influxql.QueryExecutor
 
+<<<<<<< HEAD
+=======
+	Monitor interface {
+		Statistics(tags map[string]string) ([]*monitor.Statistic, error)
+	}
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 	PointsWriter interface {
 		WritePoints(database, retentionPolicy string, consistencyLevel models.ConsistencyLevel, points []models.Point) error
 	}
@@ -87,17 +108,29 @@ type Handler struct {
 	Config    *Config
 	Logger    *log.Logger
 	CLFLogger *log.Logger
+<<<<<<< HEAD
 	statMap   *expvar.Map
 }
 
 // NewHandler returns a new instance of handler with routes.
 func NewHandler(c Config, statMap *expvar.Map) *Handler {
+=======
+	stats     *Statistics
+}
+
+// NewHandler returns a new instance of handler with routes.
+func NewHandler(c Config) *Handler {
+>>>>>>> 12a5469... start on swarm services; move to glade
 	h := &Handler{
 		mux:       pat.New(),
 		Config:    &c,
 		Logger:    log.New(os.Stderr, "[httpd] ", log.LstdFlags),
 		CLFLogger: log.New(os.Stderr, "[httpd] ", 0),
+<<<<<<< HEAD
 		statMap:   statMap,
+=======
+		stats:     &Statistics{},
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	h.AddRoutes([]Route{
@@ -147,6 +180,59 @@ func NewHandler(c Config, statMap *expvar.Map) *Handler {
 	return h
 }
 
+<<<<<<< HEAD
+=======
+// Statistics maintains statistics for the httpd service.
+type Statistics struct {
+	Requests                     int64
+	CQRequests                   int64
+	QueryRequests                int64
+	WriteRequests                int64
+	PingRequests                 int64
+	StatusRequests               int64
+	WriteRequestBytesReceived    int64
+	QueryRequestBytesTransmitted int64
+	PointsWrittenOK              int64
+	PointsWrittenFail            int64
+	AuthenticationFailures       int64
+	RequestDuration              int64
+	QueryRequestDuration         int64
+	WriteRequestDuration         int64
+	ActiveRequests               int64
+	ActiveWriteRequests          int64
+	ClientErrors                 int64
+	ServerErrors                 int64
+}
+
+// Statistics returns statistics for periodic monitoring.
+func (h *Handler) Statistics(tags map[string]string) []models.Statistic {
+	return []models.Statistic{{
+		Name: "httpd",
+		Tags: tags,
+		Values: map[string]interface{}{
+			statRequest:                      atomic.LoadInt64(&h.stats.Requests),
+			statCQRequest:                    atomic.LoadInt64(&h.stats.CQRequests),
+			statQueryRequest:                 atomic.LoadInt64(&h.stats.QueryRequests),
+			statWriteRequest:                 atomic.LoadInt64(&h.stats.WriteRequests),
+			statPingRequest:                  atomic.LoadInt64(&h.stats.PingRequests),
+			statStatusRequest:                atomic.LoadInt64(&h.stats.StatusRequests),
+			statWriteRequestBytesReceived:    atomic.LoadInt64(&h.stats.WriteRequestBytesReceived),
+			statQueryRequestBytesTransmitted: atomic.LoadInt64(&h.stats.QueryRequestBytesTransmitted),
+			statPointsWrittenOK:              atomic.LoadInt64(&h.stats.PointsWrittenOK),
+			statPointsWrittenFail:            atomic.LoadInt64(&h.stats.PointsWrittenFail),
+			statAuthFail:                     atomic.LoadInt64(&h.stats.AuthenticationFailures),
+			statRequestDuration:              atomic.LoadInt64(&h.stats.RequestDuration),
+			statQueryRequestDuration:         atomic.LoadInt64(&h.stats.QueryRequestDuration),
+			statWriteRequestDuration:         atomic.LoadInt64(&h.stats.WriteRequestDuration),
+			statRequestsActive:               atomic.LoadInt64(&h.stats.ActiveRequests),
+			statWriteRequestsActive:          atomic.LoadInt64(&h.stats.ActiveWriteRequests),
+			statClientError:                  atomic.LoadInt64(&h.stats.ClientErrors),
+			statServerError:                  atomic.LoadInt64(&h.stats.ServerErrors),
+		},
+	}}
+}
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 // AddRoutes sets the provided routes on the handler.
 func (h *Handler) AddRoutes(routes ...Route) {
 	for _, r := range routes {
@@ -179,8 +265,14 @@ func (h *Handler) AddRoutes(routes ...Route) {
 
 // ServeHTTP responds to HTTP request to the handler.
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+<<<<<<< HEAD
 	h.statMap.Add(statRequest, 1)
 	h.statMap.Add(statRequestsActive, 1)
+=======
+	atomic.AddInt64(&h.stats.Requests, 1)
+	atomic.AddInt64(&h.stats.ActiveRequests, 1)
+	defer atomic.AddInt64(&h.stats.ActiveRequests, -1)
+>>>>>>> 12a5469... start on swarm services; move to glade
 	start := time.Now()
 
 	// Add version header to all InfluxDB requests.
@@ -199,13 +291,21 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			pprof.Index(w, r)
 		}
 	} else if strings.HasPrefix(r.URL.Path, "/debug/vars") {
+<<<<<<< HEAD
 		serveExpvar(w, r)
+=======
+		h.serveExpvar(w, r)
+>>>>>>> 12a5469... start on swarm services; move to glade
 	} else {
 		h.mux.ServeHTTP(w, r)
 	}
 
+<<<<<<< HEAD
 	h.statMap.Add(statRequestsActive, -1)
 	h.statMap.Add(statRequestDuration, time.Since(start).Nanoseconds())
+=======
+	atomic.AddInt64(&h.stats.RequestDuration, time.Since(start).Nanoseconds())
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // writeHeader writes the provided status code in the response, and
@@ -213,15 +313,25 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) writeHeader(w http.ResponseWriter, code int) {
 	switch code / 100 {
 	case 4:
+<<<<<<< HEAD
 		h.statMap.Add(statClientError, 1)
 	case 5:
 		h.statMap.Add(statServerError, 1)
+=======
+		atomic.AddInt64(&h.stats.ClientErrors, 1)
+	case 5:
+		atomic.AddInt64(&h.stats.ServerErrors, 1)
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 	w.WriteHeader(code)
 }
 
 func (h *Handler) serveProcessContinuousQueries(w http.ResponseWriter, r *http.Request, user *meta.UserInfo) {
+<<<<<<< HEAD
 	h.statMap.Add(statCQRequest, 1)
+=======
+	atomic.AddInt64(&h.stats.CQRequests, 1)
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 	// If the continuous query service isn't configured, return 404.
 	if h.ContinuousQuerier == nil {
@@ -263,9 +373,15 @@ func (h *Handler) serveProcessContinuousQueries(w http.ResponseWriter, r *http.R
 
 // serveQuery parses an incoming query and, if valid, executes the query.
 func (h *Handler) serveQuery(w http.ResponseWriter, r *http.Request, user *meta.UserInfo) {
+<<<<<<< HEAD
 	h.statMap.Add(statQueryRequest, 1)
 	defer func(start time.Time) {
 		h.statMap.Add(statQueryRequestDuration, time.Since(start).Nanoseconds())
+=======
+	atomic.AddInt64(&h.stats.QueryRequests, 1)
+	defer func(start time.Time) {
+		atomic.AddInt64(&h.stats.QueryRequestDuration, time.Since(start).Nanoseconds())
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}(time.Now())
 
 	pretty := r.FormValue("pretty") == "true"
@@ -329,7 +445,11 @@ func (h *Handler) serveQuery(w http.ResponseWriter, r *http.Request, user *meta.
 			if err, ok := err.(meta.ErrAuthorize); ok {
 				h.Logger.Printf("Unauthorized request | user: %q | query: %q | database %q\n", err.User, err.Query.String(), err.Database)
 			}
+<<<<<<< HEAD
 			h.httpError(w, "error authorizing query: "+err.Error(), pretty, http.StatusUnauthorized)
+=======
+			h.httpError(w, "error authorizing query: "+err.Error(), pretty, http.StatusForbidden)
+>>>>>>> 12a5469... start on swarm services; move to glade
 			return
 		}
 	}
@@ -403,7 +523,11 @@ func (h *Handler) serveQuery(w http.ResponseWriter, r *http.Request, user *meta.
 			if !pretty {
 				w.Write([]byte("\n"))
 			}
+<<<<<<< HEAD
 			h.statMap.Add(statQueryRequestBytesTransmitted, int64(n))
+=======
+			atomic.AddInt64(&h.stats.QueryRequestBytesTransmitted, int64(n))
+>>>>>>> 12a5469... start on swarm services; move to glade
 			w.(http.Flusher).Flush()
 			continue
 		}
@@ -458,17 +582,29 @@ func (h *Handler) serveQuery(w http.ResponseWriter, r *http.Request, user *meta.
 	// If it's not chunked we buffered everything in memory, so write it out
 	if !chunked {
 		n, _ := w.Write(MarshalJSON(resp, pretty))
+<<<<<<< HEAD
 		h.statMap.Add(statQueryRequestBytesTransmitted, int64(n))
+=======
+		atomic.AddInt64(&h.stats.QueryRequestBytesTransmitted, int64(n))
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 }
 
 // serveWrite receives incoming series data in line protocol format and writes it to the database.
 func (h *Handler) serveWrite(w http.ResponseWriter, r *http.Request, user *meta.UserInfo) {
+<<<<<<< HEAD
 	h.statMap.Add(statWriteRequest, 1)
 	h.statMap.Add(statWriteRequestsActive, 1)
 	defer func(start time.Time) {
 		h.statMap.Add(statWriteRequestsActive, -1)
 		h.statMap.Add(statWriteRequestDuration, time.Since(start).Nanoseconds())
+=======
+	atomic.AddInt64(&h.stats.WriteRequests, 1)
+	atomic.AddInt64(&h.stats.ActiveWriteRequests, 1)
+	defer func(start time.Time) {
+		atomic.AddInt64(&h.stats.ActiveWriteRequests, -1)
+		atomic.AddInt64(&h.stats.WriteRequestDuration, time.Since(start).Nanoseconds())
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}(time.Now())
 
 	database := r.URL.Query().Get("db")
@@ -483,13 +619,21 @@ func (h *Handler) serveWrite(w http.ResponseWriter, r *http.Request, user *meta.
 	}
 
 	if h.Config.AuthEnabled && user == nil {
+<<<<<<< HEAD
 		h.resultError(w, influxql.Result{Err: fmt.Errorf("user is required to write to database %q", database)}, http.StatusUnauthorized)
+=======
+		h.resultError(w, influxql.Result{Err: fmt.Errorf("user is required to write to database %q", database)}, http.StatusForbidden)
+>>>>>>> 12a5469... start on swarm services; move to glade
 		return
 	}
 
 	if h.Config.AuthEnabled {
 		if err := h.WriteAuthorizer.AuthorizeWrite(user.Name, database); err != nil {
+<<<<<<< HEAD
 			h.resultError(w, influxql.Result{Err: fmt.Errorf("%q user is not authorized to write to database %q", user.Name, database)}, http.StatusUnauthorized)
+=======
+			h.resultError(w, influxql.Result{Err: fmt.Errorf("%q user is not authorized to write to database %q", user.Name, database)}, http.StatusForbidden)
+>>>>>>> 12a5469... start on swarm services; move to glade
 			return
 		}
 	}
@@ -524,7 +668,11 @@ func (h *Handler) serveWrite(w http.ResponseWriter, r *http.Request, user *meta.
 		h.resultError(w, influxql.Result{Err: err}, http.StatusBadRequest)
 		return
 	}
+<<<<<<< HEAD
 	h.statMap.Add(statWriteRequestBytesReceived, int64(buf.Len()))
+=======
+	atomic.AddInt64(&h.stats.WriteRequestBytesReceived, int64(buf.Len()))
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 	if h.Config.WriteTracing {
 		h.Logger.Printf("Write body received by handler: %s", buf.Bytes())
@@ -555,23 +703,39 @@ func (h *Handler) serveWrite(w http.ResponseWriter, r *http.Request, user *meta.
 
 	// Write points.
 	if err := h.PointsWriter.WritePoints(database, r.URL.Query().Get("rp"), consistency, points); influxdb.IsClientError(err) {
+<<<<<<< HEAD
 		h.statMap.Add(statPointsWrittenFail, int64(len(points)))
 		h.resultError(w, influxql.Result{Err: err}, http.StatusBadRequest)
 		return
 	} else if err != nil {
 		h.statMap.Add(statPointsWrittenFail, int64(len(points)))
+=======
+		atomic.AddInt64(&h.stats.PointsWrittenFail, int64(len(points)))
+		h.resultError(w, influxql.Result{Err: err}, http.StatusBadRequest)
+		return
+	} else if err != nil {
+		atomic.AddInt64(&h.stats.PointsWrittenFail, int64(len(points)))
+>>>>>>> 12a5469... start on swarm services; move to glade
 		h.resultError(w, influxql.Result{Err: err}, http.StatusInternalServerError)
 		return
 	} else if parseError != nil {
 		// We wrote some of the points
+<<<<<<< HEAD
 		h.statMap.Add(statPointsWrittenOK, int64(len(points)))
+=======
+		atomic.AddInt64(&h.stats.PointsWrittenOK, int64(len(points)))
+>>>>>>> 12a5469... start on swarm services; move to glade
 		// The other points failed to parse which means the client sent invalid line protocol.  We return a 400
 		// response code as well as the lines that failed to parse.
 		h.resultError(w, influxql.Result{Err: fmt.Errorf("partial write:\n%v", parseError)}, http.StatusBadRequest)
 		return
 	}
 
+<<<<<<< HEAD
 	h.statMap.Add(statPointsWrittenOK, int64(len(points)))
+=======
+	atomic.AddInt64(&h.stats.PointsWrittenOK, int64(len(points)))
+>>>>>>> 12a5469... start on swarm services; move to glade
 	h.writeHeader(w, http.StatusNoContent)
 }
 
@@ -582,6 +746,7 @@ func (h *Handler) serveOptions(w http.ResponseWriter, r *http.Request) {
 
 // servePing returns a simple response to let the client know the server is running.
 func (h *Handler) servePing(w http.ResponseWriter, r *http.Request) {
+<<<<<<< HEAD
 	h.statMap.Add(statPingRequest, 1)
 	h.writeHeader(w, http.StatusNoContent)
 }
@@ -590,6 +755,16 @@ func (h *Handler) servePing(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) serveStatus(w http.ResponseWriter, r *http.Request) {
 	h.Logger.Printf("WARNING: /status has been depricated.  Use /ping instead.")
 	h.statMap.Add(statStatusRequest, 1)
+=======
+	atomic.AddInt64(&h.stats.PingRequests, 1)
+	h.writeHeader(w, http.StatusNoContent)
+}
+
+// serveStatus has been deprecated
+func (h *Handler) serveStatus(w http.ResponseWriter, r *http.Request) {
+	h.Logger.Printf("WARNING: /status has been deprecated.  Use /ping instead.")
+	atomic.AddInt64(&h.stats.StatusRequests, 1)
+>>>>>>> 12a5469... start on swarm services; move to glade
 	h.writeHeader(w, http.StatusNoContent)
 }
 
@@ -635,6 +810,7 @@ func MarshalJSON(v interface{}, pretty bool) []byte {
 	return b
 }
 
+<<<<<<< HEAD
 // serveExpvar serves registered expvar information over HTTP.
 func serveExpvar(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -648,11 +824,86 @@ func serveExpvar(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "%q: %s", kv.Key, kv.Value)
 	})
 	fmt.Fprintf(w, "\n}\n")
+=======
+// serveExpvar serves internal metrics in /debug/vars format over HTTP.
+func (h *Handler) serveExpvar(w http.ResponseWriter, r *http.Request) {
+	// Retrieve statistics from the monitor.
+	stats, err := h.Monitor.Statistics(nil)
+	if err != nil {
+		h.httpError(w, err.Error(), false, http.StatusInternalServerError)
+		return
+	}
+
+	m := make(map[string]*monitor.Statistic)
+	for _, s := range stats {
+		// Very hackily create a unique key.
+		buf := bytes.NewBufferString(s.Name)
+		if path, ok := s.Tags["path"]; ok {
+			fmt.Fprintf(buf, ":%s", path)
+			if id, ok := s.Tags["id"]; ok {
+				fmt.Fprintf(buf, ":%s", id)
+			}
+		} else if bind, ok := s.Tags["bind"]; ok {
+			if proto, ok := s.Tags["proto"]; ok {
+				fmt.Fprintf(buf, ":%s", proto)
+			}
+			fmt.Fprintf(buf, ":%s", bind)
+		} else if database, ok := s.Tags["database"]; ok {
+			fmt.Fprintf(buf, ":%s", database)
+			if rp, ok := s.Tags["retention_policy"]; ok {
+				fmt.Fprintf(buf, ":%s", rp)
+				if name, ok := s.Tags["name"]; ok {
+					fmt.Fprintf(buf, ":%s", name)
+				}
+				if dest, ok := s.Tags["destination"]; ok {
+					fmt.Fprintf(buf, ":%s", dest)
+				}
+			}
+		}
+		key := buf.String()
+
+		m[key] = s
+	}
+
+	// Sort the keys to simulate /debug/vars output.
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	fmt.Fprintln(w, "{")
+	first := true
+	for _, key := range keys {
+		// Marshal this statistic to JSON.
+		out, err := json.Marshal(m[key])
+		if err != nil {
+			continue
+		}
+
+		if !first {
+			fmt.Fprintln(w, ",")
+		}
+		first = false
+		fmt.Fprintf(w, "%q: ", key)
+		w.Write(bytes.TrimSpace(out))
+	}
+	fmt.Fprintln(w, "\n}")
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // h.httpError writes an error to the client in a standard format.
 func (h *Handler) httpError(w http.ResponseWriter, error string, pretty bool, code int) {
 	w.Header().Add("Content-Type", "application/json")
+<<<<<<< HEAD
+=======
+	if code == http.StatusUnauthorized {
+		// If an unauthorized header will be sent back, add a WWW-Authenticate header
+		// as an authorization challenge.
+		w.Header().Set("WWW-Authenticate", fmt.Sprintf("Basic realm=\"%s\"", h.Config.Realm))
+	}
+>>>>>>> 12a5469... start on swarm services; move to glade
 	h.writeHeader(w, code)
 	response := Response{Err: errors.New(error)}
 	var b []byte
@@ -751,7 +1002,11 @@ func authenticate(inner func(http.ResponseWriter, *http.Request, *meta.UserInfo)
 		if requireAuthentication && adminExists {
 			creds, err := parseCredentials(r)
 			if err != nil {
+<<<<<<< HEAD
 				h.statMap.Add(statAuthFail, 1)
+=======
+				atomic.AddInt64(&h.stats.AuthenticationFailures, 1)
+>>>>>>> 12a5469... start on swarm services; move to glade
 				h.httpError(w, err.Error(), false, http.StatusUnauthorized)
 				return
 			}
@@ -759,14 +1014,22 @@ func authenticate(inner func(http.ResponseWriter, *http.Request, *meta.UserInfo)
 			switch creds.Method {
 			case UserAuthentication:
 				if creds.Username == "" {
+<<<<<<< HEAD
 					h.statMap.Add(statAuthFail, 1)
+=======
+					atomic.AddInt64(&h.stats.AuthenticationFailures, 1)
+>>>>>>> 12a5469... start on swarm services; move to glade
 					h.httpError(w, "username required", false, http.StatusUnauthorized)
 					return
 				}
 
 				user, err = h.MetaClient.Authenticate(creds.Username, creds.Password)
 				if err != nil {
+<<<<<<< HEAD
 					h.statMap.Add(statAuthFail, 1)
+=======
+					atomic.AddInt64(&h.stats.AuthenticationFailures, 1)
+>>>>>>> 12a5469... start on swarm services; move to glade
 					h.httpError(w, "authorization failed", false, http.StatusUnauthorized)
 					return
 				}

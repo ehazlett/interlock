@@ -326,7 +326,11 @@ func (daemon *Daemon) waitForNetworks(c *container.Container) {
 	}
 	// Make sure if the container has a network that requires discovery that the discovery service is available before starting
 	for netName := range c.NetworkSettings.Networks {
+<<<<<<< HEAD
 		// If we get `ErrNoSuchNetwork` here, it can assumed that it is due to discovery not being ready
+=======
+		// If we get `ErrNoSuchNetwork` here, we can assume that it is due to discovery not being ready
+>>>>>>> 12a5469... start on swarm services; move to glade
 		// Most likely this is because the K/V store used for discovery is in a container and needs to be started
 		if _, err := daemon.netController.NetworkByName(netName); err != nil {
 			if _, ok := err.(libnetwork.ErrNoSuchNetwork); !ok {
@@ -367,7 +371,11 @@ func (daemon *Daemon) registerLink(parent, child *container.Container, alias str
 	return nil
 }
 
+<<<<<<< HEAD
 // SetClusterProvider sets a component for quering the current cluster state.
+=======
+// SetClusterProvider sets a component for querying the current cluster state.
+>>>>>>> 12a5469... start on swarm services; move to glade
 func (daemon *Daemon) SetClusterProvider(clusterProvider cluster.Provider) {
 	daemon.clusterProvider = clusterProvider
 	daemon.netController.SetClusterProvider(clusterProvider)
@@ -613,10 +621,17 @@ func (daemon *Daemon) shutdownContainer(c *container.Container) error {
 		// To terminate a process in freezer cgroup, we should send
 		// SIGTERM to this process then unfreeze it, and the process will
 		// force to terminate immediately.
+<<<<<<< HEAD
 		logrus.Debugf("Found container %s is paused, sending SIGTERM before unpause it", c.ID)
 		sig, ok := signal.SignalMap["TERM"]
 		if !ok {
 			return fmt.Errorf("System doesn not support SIGTERM")
+=======
+		logrus.Debugf("Found container %s is paused, sending SIGTERM before unpausing it", c.ID)
+		sig, ok := signal.SignalMap["TERM"]
+		if !ok {
+			return fmt.Errorf("System does not support SIGTERM")
+>>>>>>> 12a5469... start on swarm services; move to glade
 		}
 		if err := daemon.kill(c, int(sig)); err != nil {
 			return fmt.Errorf("sending SIGTERM to container %s with error: %v", c.ID, err)
@@ -625,7 +640,11 @@ func (daemon *Daemon) shutdownContainer(c *container.Container) error {
 			return fmt.Errorf("Failed to unpause container %s with error: %v", c.ID, err)
 		}
 		if _, err := c.WaitStop(10 * time.Second); err != nil {
+<<<<<<< HEAD
 			logrus.Debugf("container %s failed to exit in 10 second of SIGTERM, sending SIGKILL to force", c.ID)
+=======
+			logrus.Debugf("container %s failed to exit in 10 seconds of SIGTERM, sending SIGKILL to force", c.ID)
+>>>>>>> 12a5469... start on swarm services; move to glade
 			sig, ok := signal.SignalMap["KILL"]
 			if !ok {
 				return fmt.Errorf("System does not support SIGKILL")
@@ -639,7 +658,11 @@ func (daemon *Daemon) shutdownContainer(c *container.Container) error {
 	}
 	// If container failed to exit in 10 seconds of SIGTERM, then using the force
 	if err := daemon.containerStop(c, 10); err != nil {
+<<<<<<< HEAD
 		return fmt.Errorf("Stop container %s with error: %v", c.ID, err)
+=======
+		return fmt.Errorf("Failed to stop container %s with error: %v", c.ID, err)
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	c.WaitStop(-1 * time.Second)

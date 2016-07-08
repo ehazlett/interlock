@@ -1,10 +1,20 @@
 FROM alpine:latest
 
+<<<<<<< HEAD
 ADD bin/etcd /usr/local/bin/
 ADD bin/etcdctl /usr/local/bin/
+=======
+ADD etcd /usr/local/bin/
+ADD etcdctl /usr/local/bin/
+>>>>>>> 12a5469... start on swarm services; move to glade
 RUN mkdir -p /var/etcd/
 
 EXPOSE 2379 2380
 
+<<<<<<< HEAD
 # Define default command.
 CMD ["/usr/local/bin/etcd"]
+=======
+# Define default entrypoint.
+ENTRYPOINT ["/usr/local/bin/etcd"]
+>>>>>>> 12a5469... start on swarm services; move to glade

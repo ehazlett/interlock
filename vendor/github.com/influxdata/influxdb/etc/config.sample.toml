@@ -168,6 +168,10 @@ reporting-disabled = false
   ### Use a separate private key location.
   # https-private-key = ""
   max-row-limit = 10000
+<<<<<<< HEAD
+=======
+  realm = "InfluxDB"
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 ###
 ### [subsciber]

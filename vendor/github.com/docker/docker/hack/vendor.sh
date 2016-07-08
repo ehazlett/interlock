@@ -60,12 +60,20 @@ clone git golang.org/x/net 2beffdc2e92c8a3027590f898fe88f69af48a3f8 https://gith
 clone git golang.org/x/sys eb2c74142fd19a79b3f237334c7384d5167b1b46 https://github.com/golang/sys.git
 clone git github.com/docker/go-units 651fc226e7441360384da338d0fd37f2440ffbe3
 clone git github.com/docker/go-connections fa2850ff103453a9ad190da0df0af134f0314b3d
+<<<<<<< HEAD
 clone git github.com/docker/engine-api c57d0447ea1ae71f6dad83c8d8a1215a89869a0c
+=======
+clone git github.com/docker/engine-api 1d247454d4307fb1ddf10d09fd2996394b085904
+>>>>>>> 12a5469... start on swarm services; move to glade
 clone git github.com/RackSec/srslog 259aed10dfa74ea2961eddd1d9847619f6e98837
 clone git github.com/imdario/mergo 0.2.1
 
 #get libnetwork packages
+<<<<<<< HEAD
 clone git github.com/docker/libnetwork  ed311d050fda7821f2e7c53a7e08a0205923aef5
+=======
+clone git github.com/docker/libnetwork 6eece7dcc21dcd34d907f3e91dd71cb8640b661c
+>>>>>>> 12a5469... start on swarm services; move to glade
 clone git github.com/docker/go-events 39718a26497694185f8fb58a7d6f31947f3dc42d
 clone git github.com/armon/go-radix e39d623f12e8e41c7b5529e9a9dd67a1e2261f80
 clone git github.com/armon/go-metrics eb0af217e5e9747e41dd5303755356b62d28e3ec
@@ -87,7 +95,11 @@ clone git github.com/boltdb/bolt v1.2.1
 clone git github.com/miekg/dns 75e6e86cc601825c5dbcd4e0c209eab180997cd7
 
 # get graph and distribution packages
+<<<<<<< HEAD
 clone git github.com/docker/distribution 5bbf65499960b184fe8e0f045397375e1a6722b8
+=======
+clone git github.com/docker/distribution 4e17ab5d319ac5b70b2769442947567a83386fbc
+>>>>>>> 12a5469... start on swarm services; move to glade
 clone git github.com/vbatts/tar-split v0.9.11
 
 # get go-zfs packages
@@ -136,6 +148,7 @@ clone git google.golang.org/cloud dae7e3d993bc3812a2185af60552bb6b847e52a0 https
 clone git github.com/docker/docker-credential-helpers v0.3.0
 
 # containerd
+<<<<<<< HEAD
 clone git github.com/docker/containerd b93a33be39bc4ef0fb00bfcb79147a28c33d9d43
 
 # cluster
@@ -143,6 +156,15 @@ clone git github.com/docker/swarmkit 3f135f206179ea157aeef2d1d401eb795f618da8
 clone git github.com/golang/mock bd3c8e81be01eef76d4b503f5e687d2d1354d2d9
 clone git github.com/gogo/protobuf 43a2e0b1c32252bfbbdf81f7faa7a88fb3fa4028
 clone git github.com/cloudflare/cfssl 92f037e39eb103fb30f9151be40d9ed267fc4ae2
+=======
+clone git github.com/docker/containerd 1b3a81545ca79456086dc2aa424357be98b962ee
+
+# cluster
+clone git github.com/docker/swarmkit 16fa595d3b6fec012830179dc8e9b2d90335527d
+clone git github.com/golang/mock bd3c8e81be01eef76d4b503f5e687d2d1354d2d9
+clone git github.com/gogo/protobuf 43a2e0b1c32252bfbbdf81f7faa7a88fb3fa4028
+clone git github.com/cloudflare/cfssl b895b0549c0ff676f92cf09ba971ae02bb41367b
+>>>>>>> 12a5469... start on swarm services; move to glade
 clone git github.com/google/certificate-transparency 025a5cab06f6a819c455d9fdc9e2a1b6d0982284
 clone git golang.org/x/crypto 3fbbcd23f1cb824e69491a5930cfeff09b12f4d2 https://github.com/golang/crypto.git
 clone git github.com/mreiferson/go-httpclient 63fe23f7434723dc904c901043af07931f293c47

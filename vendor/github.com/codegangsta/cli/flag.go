@@ -795,11 +795,17 @@ func stringifyFlag(f Flag) string {
 		return withEnvHint(fv.FieldByName("EnvVar").String(),
 			stringifyIntSliceFlag(f.(IntSliceFlag)))
 <<<<<<< HEAD
+<<<<<<< HEAD
 	case Int64SliceFlag:
 		return withEnvHint(fv.FieldByName("EnvVar").String(),
 			stringifyInt64SliceFlag(f.(Int64SliceFlag)))
 =======
 >>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
+=======
+	case Int64SliceFlag:
+		return withEnvHint(fv.FieldByName("EnvVar").String(),
+			stringifyInt64SliceFlag(f.(Int64SliceFlag)))
+>>>>>>> 12a5469... start on swarm services; move to glade
 	case StringSliceFlag:
 		return withEnvHint(fv.FieldByName("EnvVar").String(),
 			stringifyStringSliceFlag(f.(StringSliceFlag)))
@@ -846,6 +852,9 @@ func stringifyIntSliceFlag(f IntSliceFlag) string {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 func stringifyInt64SliceFlag(f Int64SliceFlag) string {
 	defaultVals := []string{}
 	if f.Value != nil && len(f.Value.Value()) > 0 {
@@ -857,8 +866,11 @@ func stringifyInt64SliceFlag(f Int64SliceFlag) string {
 	return stringifySliceFlag(f.Usage, f.Name, defaultVals)
 }
 
+<<<<<<< HEAD
 =======
 >>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 func stringifyStringSliceFlag(f StringSliceFlag) string {
 	defaultVals := []string{}
 	if f.Value != nil && len(f.Value.Value()) > 0 {

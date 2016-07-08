@@ -29,7 +29,11 @@ import (
 var (
 	// MinClusterVersion is the min cluster version this etcd binary is compatible with.
 	MinClusterVersion = "2.3.0"
+<<<<<<< HEAD
 	Version           = "3.0.0-beta.0+git"
+=======
+	Version           = "3.0.0+git"
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 	// Git SHA Value will be set during build
 	GitSHA = "Not provided (use ./build instead of go build)"

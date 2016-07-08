@@ -10,11 +10,25 @@ parent = "smn_cli"
 
 # network rm
 
+<<<<<<< HEAD
     Usage:  docker network rm [OPTIONS] NETWORK [NETWORK...]
 
     Deletes one or more networks
 
       --help             Print usage
+=======
+```markdown
+Usage:  docker network rm NETWORK [NETWORK]...
+
+Remove a network
+
+Aliases:
+  rm, remove
+
+Options:
+      --help   Print usage
+```
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 Removes one or more networks by name or identifier. To remove a network,
 you must first disconnect any containers connected to it.

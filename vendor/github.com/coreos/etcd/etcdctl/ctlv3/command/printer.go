@@ -108,6 +108,12 @@ type simplePrinter struct {
 
 func (s *simplePrinter) Del(resp v3.DeleteResponse) {
 	fmt.Println(resp.Deleted)
+<<<<<<< HEAD
+=======
+	for _, kv := range resp.PrevKvs {
+		printKV(s.isHex, kv)
+	}
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 func (s *simplePrinter) Get(resp v3.GetResponse) {
@@ -116,7 +122,16 @@ func (s *simplePrinter) Get(resp v3.GetResponse) {
 	}
 }
 
+<<<<<<< HEAD
 func (s *simplePrinter) Put(r v3.PutResponse) { fmt.Println("OK") }
+=======
+func (s *simplePrinter) Put(r v3.PutResponse) {
+	fmt.Println("OK")
+	if r.PrevKv != nil {
+		printKV(s.isHex, r.PrevKv)
+	}
+}
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 func (s *simplePrinter) Txn(resp v3.TxnResponse) {
 	if resp.Succeeded {
@@ -143,6 +158,12 @@ func (s *simplePrinter) Txn(resp v3.TxnResponse) {
 func (s *simplePrinter) Watch(resp v3.WatchResponse) {
 	for _, e := range resp.Events {
 		fmt.Println(e.Type)
+<<<<<<< HEAD
+=======
+		if e.PrevKv != nil {
+			printKV(s.isHex, e.PrevKv)
+		}
+>>>>>>> 12a5469... start on swarm services; move to glade
 		printKV(s.isHex, e.Kv)
 	}
 }

@@ -10,11 +10,22 @@ parent = "smn_cli"
 
 # tag
 
+<<<<<<< HEAD
     Usage: docker tag [OPTIONS] NAME[:TAG] NAME[:TAG]
 
     Tag an image into a repository
 
       --help               Print usage
+=======
+```markdown
+Usage:  docker tag IMAGE[:TAG] IMAGE[:TAG]
+
+Tag an image into a repository
+
+Options:
+      --help   Print usage
+```
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 An image name is made up of slash-separated name components, optionally prefixed
 by a registry hostname. The hostname must comply with standard DNS rules, but

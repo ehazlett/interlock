@@ -12,6 +12,10 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+<<<<<<< HEAD
+=======
+	"sync/atomic"
+>>>>>>> 12a5469... start on swarm services; move to glade
 	"time"
 
 	"github.com/influxdata/influxdb/influxql"
@@ -36,6 +40,24 @@ const (
 	keyFieldSeparator = "#!~#"
 )
 
+<<<<<<< HEAD
+=======
+// Statistics gathered by the engine.
+const (
+	statCacheCompactions            = "cacheCompactions"
+	statCacheCompactionError        = "cacheCompactionErr"
+	statCacheCompactionDuration     = "cacheCompactionDuration"
+	statTSMLevel1Compactions        = "tsmLevel1Compactions"
+	statTSMLevel1CompactionDuration = "tsmLevel1CompactionDuration"
+	statTSMLevel2Compactions        = "tsmLevel2Compactions"
+	statTSMLevel2CompactionDuration = "tsmLevel2CompactionDuration"
+	statTSMLevel3Compactions        = "tsmLevel3Compactions"
+	statTSMLevel3CompactionDuration = "tsmLevel3CompactionDuration"
+	statTSMFullCompactions          = "tsmFullCompactions"
+	statTSMFullCompactionDuration   = "tsmFullCompactionDuration"
+)
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 // Engine represents a storage engine with compressed blocks.
 type Engine struct {
 	mu                 sync.RWMutex
@@ -70,6 +92,11 @@ type Engine struct {
 
 	// Controls whether to enabled compactions when the engine is open
 	enableCompactionsOnOpen bool
+<<<<<<< HEAD
+=======
+
+	stats *EngineStatistics
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // NewEngine returns a new instance of Engine.
@@ -105,6 +132,10 @@ func NewEngine(path string, walPath string, opt tsdb.EngineOptions) tsdb.Engine 
 		CacheFlushMemorySizeThreshold: opt.Config.CacheSnapshotMemorySize,
 		CacheFlushWriteColdDuration:   time.Duration(opt.Config.CacheSnapshotWriteColdDuration),
 		enableCompactionsOnOpen:       true,
+<<<<<<< HEAD
+=======
+		stats: &EngineStatistics{},
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 	e.SetLogOutput(os.Stderr)
 
@@ -198,6 +229,47 @@ func (e *Engine) Format() tsdb.EngineFormat {
 	return tsdb.TSM1Format
 }
 
+<<<<<<< HEAD
+=======
+// EngineStatistics maintains statistics for the engine.
+type EngineStatistics struct {
+	CacheCompactions          int64
+	CacheCompactionErrors     int64
+	CacheCompactionDuration   int64
+	TSMCompactions            [3]int64
+	TSMCompactionErrors       [3]int64
+	TSMCompactionDuration     [3]int64
+	TSMFullCompactions        int64
+	TSMFullCompactionErrors   int64
+	TSMFullCompactionDuration int64
+}
+
+// Statistics returns statistics for periodic monitoring.
+func (e *Engine) Statistics(tags map[string]string) []models.Statistic {
+	statistics := make([]models.Statistic, 0, 4)
+	statistics = append(statistics, models.Statistic{
+		Name: "tsm1_engine",
+		Tags: tags,
+		Values: map[string]interface{}{
+			statCacheCompactions:            atomic.LoadInt64(&e.stats.CacheCompactions),
+			statCacheCompactionDuration:     atomic.LoadInt64(&e.stats.CacheCompactionDuration),
+			statTSMLevel1Compactions:        atomic.LoadInt64(&e.stats.TSMCompactions[0]),
+			statTSMLevel1CompactionDuration: atomic.LoadInt64(&e.stats.TSMCompactionDuration[0]),
+			statTSMLevel2Compactions:        atomic.LoadInt64(&e.stats.TSMCompactions[1]),
+			statTSMLevel2CompactionDuration: atomic.LoadInt64(&e.stats.TSMCompactionDuration[1]),
+			statTSMLevel3Compactions:        atomic.LoadInt64(&e.stats.TSMCompactions[2]),
+			statTSMLevel3CompactionDuration: atomic.LoadInt64(&e.stats.TSMCompactionDuration[2]),
+			statTSMFullCompactions:          atomic.LoadInt64(&e.stats.TSMFullCompactions),
+			statTSMFullCompactionDuration:   atomic.LoadInt64(&e.stats.TSMFullCompactionDuration),
+		},
+	})
+	statistics = append(statistics, e.Cache.Statistics(tags)...)
+	statistics = append(statistics, e.FileStore.Statistics(tags)...)
+	statistics = append(statistics, e.WAL.Statistics(tags)...)
+	return statistics
+}
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 // Open opens and initializes the engine.
 func (e *Engine) Open() error {
 	e.done = make(chan struct{})
@@ -707,10 +779,22 @@ func (e *Engine) compactCache() {
 		default:
 			e.Cache.UpdateAge()
 			if e.ShouldCompactCache(e.WAL.LastWriteTime()) {
+<<<<<<< HEAD
 				err := e.WriteSnapshot()
 				if err != nil {
 					e.logger.Printf("error writing snapshot: %v", err)
 				}
+=======
+				start := time.Now()
+				err := e.WriteSnapshot()
+				if err != nil {
+					e.logger.Printf("error writing snapshot: %v", err)
+					atomic.AddInt64(&e.stats.CacheCompactionErrors, 1)
+				} else {
+					atomic.AddInt64(&e.stats.CacheCompactions, 1)
+				}
+				atomic.AddInt64(&e.stats.CacheCompactionDuration, time.Since(start).Nanoseconds())
+>>>>>>> 12a5469... start on swarm services; move to glade
 			}
 		}
 		time.Sleep(time.Second)
@@ -746,6 +830,12 @@ func (e *Engine) compactTSMLevel(fast bool, level int) {
 				continue
 			}
 
+<<<<<<< HEAD
+=======
+			// Keep track of the start time for statistics.
+			start := time.Now()
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 			var wg sync.WaitGroup
 			for i, group := range tsmFiles {
 				wg.Add(1)
@@ -764,6 +854,10 @@ func (e *Engine) compactTSMLevel(fast bool, level int) {
 						files, err = e.Compactor.CompactFast(group)
 						if err != nil {
 							e.logger.Printf("error compacting TSM files: %v", err)
+<<<<<<< HEAD
+=======
+							atomic.AddInt64(&e.stats.TSMCompactionErrors[level-1], 1)
+>>>>>>> 12a5469... start on swarm services; move to glade
 							time.Sleep(time.Second)
 							return
 						}
@@ -771,6 +865,10 @@ func (e *Engine) compactTSMLevel(fast bool, level int) {
 						files, err = e.Compactor.CompactFull(group)
 						if err != nil {
 							e.logger.Printf("error compacting TSM files: %v", err)
+<<<<<<< HEAD
+=======
+							atomic.AddInt64(&e.stats.TSMCompactionErrors[level-1], 1)
+>>>>>>> 12a5469... start on swarm services; move to glade
 							time.Sleep(time.Second)
 							return
 						}
@@ -778,6 +876,10 @@ func (e *Engine) compactTSMLevel(fast bool, level int) {
 
 					if err := e.FileStore.Replace(group, files); err != nil {
 						e.logger.Printf("error replacing new TSM files: %v", err)
+<<<<<<< HEAD
+=======
+						atomic.AddInt64(&e.stats.TSMCompactionErrors[level-1], 1)
+>>>>>>> 12a5469... start on swarm services; move to glade
 						time.Sleep(time.Second)
 						return
 					}
@@ -785,11 +887,21 @@ func (e *Engine) compactTSMLevel(fast bool, level int) {
 					for i, f := range files {
 						e.logger.Printf("compacted level %d group (%d) into %s (#%d)", level, groupNum, f, i)
 					}
+<<<<<<< HEAD
+=======
+					atomic.AddInt64(&e.stats.TSMCompactions[level-1], 1)
+>>>>>>> 12a5469... start on swarm services; move to glade
 					e.logger.Printf("compacted level %d group %d of %d files into %d files in %s",
 						level, groupNum, len(group), len(files), time.Since(start))
 				}(i, group)
 			}
 			wg.Wait()
+<<<<<<< HEAD
+=======
+
+			// Track the amount of time spent compacting the groups.
+			atomic.AddInt64(&e.stats.TSMCompactionDuration[level-1], time.Since(start).Nanoseconds())
+>>>>>>> 12a5469... start on swarm services; move to glade
 		}
 	}
 }
@@ -810,6 +922,12 @@ func (e *Engine) compactTSMFull() {
 				continue
 			}
 
+<<<<<<< HEAD
+=======
+			// Keep track of the start time for statistics.
+			start := time.Now()
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 			var wg sync.WaitGroup
 			for i, group := range tsmFiles {
 				wg.Add(1)
@@ -824,12 +942,20 @@ func (e *Engine) compactTSMFull() {
 					files, err := e.Compactor.CompactFull(group)
 					if err != nil {
 						e.logger.Printf("error compacting TSM files: %v", err)
+<<<<<<< HEAD
+=======
+						atomic.AddInt64(&e.stats.TSMFullCompactionErrors, 1)
+>>>>>>> 12a5469... start on swarm services; move to glade
 						time.Sleep(time.Second)
 						return
 					}
 
 					if err := e.FileStore.Replace(group, files); err != nil {
 						e.logger.Printf("error replacing new TSM files: %v", err)
+<<<<<<< HEAD
+=======
+						atomic.AddInt64(&e.stats.TSMFullCompactionErrors, 1)
+>>>>>>> 12a5469... start on swarm services; move to glade
 						time.Sleep(time.Second)
 						return
 					}
@@ -837,11 +963,21 @@ func (e *Engine) compactTSMFull() {
 					for i, f := range files {
 						e.logger.Printf("compacted full group (%d) into %s (#%d)", groupNum, f, i)
 					}
+<<<<<<< HEAD
+=======
+					atomic.AddInt64(&e.stats.TSMFullCompactions, 1)
+>>>>>>> 12a5469... start on swarm services; move to glade
 					e.logger.Printf("compacted full %d files into %d files in %s",
 						len(group), len(files), time.Since(start))
 				}(i, group)
 			}
 			wg.Wait()
+<<<<<<< HEAD
+=======
+
+			// Track the amount of time spent compacting the groups.
+			atomic.AddInt64(&e.stats.TSMFullCompactionDuration, time.Since(start).Nanoseconds())
+>>>>>>> 12a5469... start on swarm services; move to glade
 		}
 	}
 }

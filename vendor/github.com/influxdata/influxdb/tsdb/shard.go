@@ -2,7 +2,10 @@ package tsdb
 
 import (
 	"errors"
+<<<<<<< HEAD
 	"expvar"
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 	"fmt"
 	"io"
 	"log"
@@ -11,10 +14,17 @@ import (
 	"sort"
 	"strings"
 	"sync"
+<<<<<<< HEAD
 	"time"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/influxdata/influxdb"
+=======
+	"sync/atomic"
+	"time"
+
+	"github.com/gogo/protobuf/proto"
+>>>>>>> 12a5469... start on swarm services; move to glade
 	"github.com/influxdata/influxdb/influxql"
 	"github.com/influxdata/influxdb/models"
 	internal "github.com/influxdata/influxdb/tsdb/internal"
@@ -97,7 +107,12 @@ type Shard struct {
 	enabled bool
 
 	// expvar-based stats.
+<<<<<<< HEAD
 	statMap *expvar.Map
+=======
+	stats    *ShardStatistics
+	statTags models.Tags
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 	logger *log.Logger
 
@@ -108,6 +123,7 @@ type Shard struct {
 
 // NewShard returns a new initialized Shard. walPath doesn't apply to the b1 type index
 func NewShard(id uint64, index *DatabaseIndex, path string, walPath string, options EngineOptions) *Shard {
+<<<<<<< HEAD
 	// Configure statistics collection.
 	key := fmt.Sprintf("shard:%s:%d", path, id)
 	db, rp := DecodeStorePath(path)
@@ -120,6 +136,9 @@ func NewShard(id uint64, index *DatabaseIndex, path string, walPath string, opti
 	}
 	statMap := influxdb.NewStatistics(key, "shard", tags)
 
+=======
+	db, rp := DecodeStorePath(path)
+>>>>>>> 12a5469... start on swarm services; move to glade
 	s := &Shard{
 		index:   index,
 		id:      id,
@@ -128,6 +147,7 @@ func NewShard(id uint64, index *DatabaseIndex, path string, walPath string, opti
 		options: options,
 		closing: make(chan struct{}),
 
+<<<<<<< HEAD
 		database:        db,
 		retentionPolicy: rp,
 
@@ -135,6 +155,23 @@ func NewShard(id uint64, index *DatabaseIndex, path string, walPath string, opti
 		LogOutput:    os.Stderr,
 		EnableOnOpen: true,
 	}
+=======
+		stats: &ShardStatistics{},
+		statTags: map[string]string{
+			"path":            path,
+			"id":              fmt.Sprintf("%d", id),
+			"database":        db,
+			"retentionPolicy": rp,
+		},
+
+		database:        db,
+		retentionPolicy: rp,
+
+		LogOutput:    os.Stderr,
+		EnableOnOpen: true,
+	}
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 	s.SetLogOutput(os.Stderr)
 	return s
 }
@@ -162,6 +199,40 @@ func (s *Shard) SetEnabled(enabled bool) {
 	s.mu.Unlock()
 }
 
+<<<<<<< HEAD
+=======
+// ShardStatistics maintains statistics for a shard.
+type ShardStatistics struct {
+	WriteReq        int64
+	SeriesCreated   int64
+	FieldsCreated   int64
+	WritePointsFail int64
+	WritePointsOK   int64
+	BytesWritten    int64
+	DiskBytes       int64
+}
+
+// Statistics returns statistics for periodic monitoring.
+func (s *Shard) Statistics(tags map[string]string) []models.Statistic {
+	tags = s.statTags.Merge(tags)
+	statistics := []models.Statistic{{
+		Name: "shard",
+		Tags: models.Tags(tags).Merge(map[string]string{"engine": s.options.EngineVersion}),
+		Values: map[string]interface{}{
+			statWriteReq:        atomic.LoadInt64(&s.stats.WriteReq),
+			statSeriesCreate:    atomic.LoadInt64(&s.stats.SeriesCreated),
+			statFieldsCreate:    atomic.LoadInt64(&s.stats.FieldsCreated),
+			statWritePointsFail: atomic.LoadInt64(&s.stats.WritePointsFail),
+			statWritePointsOK:   atomic.LoadInt64(&s.stats.WritePointsOK),
+			statWriteBytes:      atomic.LoadInt64(&s.stats.BytesWritten),
+			statDiskBytes:       atomic.LoadInt64(&s.stats.DiskBytes),
+		},
+	}}
+	statistics = append(statistics, s.engine.Statistics(tags)...)
+	return statistics
+}
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 // Path returns the path set on the shard when it was created.
 func (s *Shard) Path() string { return s.path }
 
@@ -200,7 +271,11 @@ func (s *Shard) Open() error {
 		}
 
 		count := s.index.SeriesShardN(s.id)
+<<<<<<< HEAD
 		s.statMap.Add(statSeriesCreate, int64(count))
+=======
+		atomic.AddInt64(&s.stats.SeriesCreated, int64(count))
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 		s.engine = e
 
@@ -318,13 +393,21 @@ func (s *Shard) WritePoints(points []models.Point) error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
+<<<<<<< HEAD
 	s.statMap.Add(statWriteReq, 1)
+=======
+	atomic.AddInt64(&s.stats.WriteReq, 1)
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 	fieldsToCreate, err := s.validateSeriesAndFields(points)
 	if err != nil {
 		return err
 	}
+<<<<<<< HEAD
 	s.statMap.Add(statFieldsCreate, int64(len(fieldsToCreate)))
+=======
+	atomic.AddInt64(&s.stats.FieldsCreated, int64(len(fieldsToCreate)))
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 	// add any new fields and keep track of what needs to be saved
 	if err := s.createFieldsAndMeasurements(fieldsToCreate); err != nil {
@@ -333,10 +416,17 @@ func (s *Shard) WritePoints(points []models.Point) error {
 
 	// Write to the engine.
 	if err := s.engine.WritePoints(points); err != nil {
+<<<<<<< HEAD
 		s.statMap.Add(statWritePointsFail, 1)
 		return fmt.Errorf("engine: %s", err)
 	}
 	s.statMap.Add(statWritePointsOK, int64(len(points)))
+=======
+		atomic.AddInt64(&s.stats.WritePointsFail, 1)
+		return fmt.Errorf("engine: %s", err)
+	}
+	atomic.AddInt64(&s.stats.WritePointsOK, int64(len(points)))
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 	return nil
 }
@@ -419,7 +509,11 @@ func (s *Shard) validateSeriesAndFields(points []models.Point) ([]*FieldCreate, 
 		ss := s.index.Series(key)
 		if ss == nil {
 			ss = NewSeries(key, p.Tags())
+<<<<<<< HEAD
 			s.statMap.Add(statSeriesCreate, 1)
+=======
+			atomic.AddInt64(&s.stats.SeriesCreated, 1)
+>>>>>>> 12a5469... start on swarm services; move to glade
 		}
 
 		ss = s.index.CreateSeriesIndexIfNotExists(p.Name(), ss)
@@ -467,7 +561,11 @@ func (s *Shard) WriteTo(w io.Writer) (int64, error) {
 		return 0, err
 	}
 	n, err := s.engine.WriteTo(w)
+<<<<<<< HEAD
 	s.statMap.Add(statWriteBytes, int64(n))
+=======
+	atomic.AddInt64(&s.stats.BytesWritten, int64(n))
+>>>>>>> 12a5469... start on swarm services; move to glade
 	return n, err
 }
 
@@ -658,9 +756,13 @@ func (s *Shard) monitorSize() {
 				s.logger.Printf("Error collecting shard size: %v", err)
 				continue
 			}
+<<<<<<< HEAD
 			sizeStat := new(expvar.Int)
 			sizeStat.Set(size)
 			s.statMap.Set(statDiskBytes, sizeStat)
+=======
+			atomic.StoreInt64(&s.stats.DiskBytes, size)
+>>>>>>> 12a5469... start on swarm services; move to glade
 		}
 	}
 }

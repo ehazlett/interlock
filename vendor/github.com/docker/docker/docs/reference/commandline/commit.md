@@ -10,6 +10,7 @@ parent = "smn_cli"
 
 # commit
 
+<<<<<<< HEAD
     Usage: docker commit [OPTIONS] CONTAINER [REPOSITORY[:TAG]]
 
     Create a new image from a container's changes
@@ -19,6 +20,20 @@ parent = "smn_cli"
       --help              Print usage
       -m, --message=""    Commit message
       -p, --pause=true    Pause container during commit
+=======
+```markdown
+Usage:  docker commit [OPTIONS] CONTAINER [REPOSITORY[:TAG]]
+
+Create a new image from a container's changes
+
+Options:
+  -a, --author string    Author (e.g., "John Hannibal Smith <hannibal@a-team.com>")
+  -c, --change value     Apply Dockerfile instruction to the created image (default [])
+      --help             Print usage
+  -m, --message string   Commit message
+  -p, --pause            Pause container during commit (default true)
+```
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 It can be useful to commit a container's file changes or settings into a new
 image. This allows you debug a container by running an interactive shell, or to

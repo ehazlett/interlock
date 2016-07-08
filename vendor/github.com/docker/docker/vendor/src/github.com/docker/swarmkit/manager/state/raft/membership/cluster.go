@@ -27,8 +27,11 @@ var (
 // Cluster represents a set of active
 // raft Members
 type Cluster struct {
+<<<<<<< HEAD
 	id uint64
 
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 	mu      sync.RWMutex
 	members map[uint64]*Member
 
@@ -103,6 +106,7 @@ func (c *Cluster) RemoveMember(id uint64) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
+<<<<<<< HEAD
 	if c.members[id] == nil {
 		return ErrIDNotFound
 	}
@@ -114,6 +118,17 @@ func (c *Cluster) RemoveMember(id uint64) error {
 
 	c.removed[id] = true
 	delete(c.members, id)
+=======
+	if c.members[id] != nil {
+		conn := c.members[id].Conn
+		if conn != nil {
+			_ = conn.Close()
+		}
+		delete(c.members, id)
+	}
+
+	c.removed[id] = true
+>>>>>>> 12a5469... start on swarm services; move to glade
 	return nil
 }
 
@@ -169,6 +184,7 @@ func (c *Cluster) ValidateConfigurationChange(cc raftpb.ConfChange) error {
 // that might block or harm the Cluster on Member recovery
 func (c *Cluster) CanRemoveMember(from uint64, id uint64) bool {
 	members := c.Members()
+<<<<<<< HEAD
 
 	nmembers := 0
 	nreachable := 0
@@ -182,6 +198,13 @@ func (c *Cluster) CanRemoveMember(from uint64, id uint64) bool {
 		// Local node from where the remove is issued
 		if m.RaftID == from {
 			nmembers++
+=======
+	nreachable := 0
+
+	for _, m := range members {
+		// Local node from where the remove is issued
+		if m.RaftID == from {
+>>>>>>> 12a5469... start on swarm services; move to glade
 			nreachable++
 			continue
 		}
@@ -190,8 +213,11 @@ func (c *Cluster) CanRemoveMember(from uint64, id uint64) bool {
 		if err == nil && connState == grpc.Ready {
 			nreachable++
 		}
+<<<<<<< HEAD
 
 		nmembers++
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	// Special case of 2 managers
@@ -199,7 +225,11 @@ func (c *Cluster) CanRemoveMember(from uint64, id uint64) bool {
 		return false
 	}
 
+<<<<<<< HEAD
 	nquorum := nmembers/2 + 1
+=======
+	nquorum := (len(members)+1)/2 + 1
+>>>>>>> 12a5469... start on swarm services; move to glade
 	if nreachable < nquorum {
 		return false
 	}

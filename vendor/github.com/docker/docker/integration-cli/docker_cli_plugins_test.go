@@ -52,3 +52,13 @@ func (s *DockerSuite) TestPluginInstallDisable(c *check.C) {
 	c.Assert(err, checker.IsNil)
 	c.Assert(out, checker.Contains, nameWithTag)
 }
+<<<<<<< HEAD
+=======
+
+func (s *DockerSuite) TestPluginInstallImage(c *check.C) {
+	testRequires(c, DaemonIsLinux, ExperimentalDaemon)
+	out, _, err := dockerCmdWithError("plugin", "install", "redis")
+	c.Assert(err, checker.NotNil)
+	c.Assert(out, checker.Contains, "content is not a plugin")
+}
+>>>>>>> 12a5469... start on swarm services; move to glade

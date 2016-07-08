@@ -428,7 +428,11 @@ func startProxy(cfg *config) error {
 		if cfg.Durl != "" {
 			plog.Warningf("discovery token ignored since the proxy has already been initialized. Valid cluster file found at %q", clusterfile)
 		}
+<<<<<<< HEAD
 		if cfg.DnsCluster != "" {
+=======
+		if cfg.DNSCluster != "" {
+>>>>>>> 12a5469... start on swarm services; move to glade
 			plog.Warningf("DNS SRV discovery ignored since the proxy has already been initialized. Valid cluster file found at %q", clusterfile)
 		}
 		urls := struct{ PeerURLs []string }{}
@@ -547,9 +551,15 @@ func getPeerURLsMapAndToken(cfg *config, which string) (urlsmap types.URLsMap, t
 		// self's advertised peer URLs
 		urlsmap[cfg.Name] = cfg.apurls
 		token = cfg.Durl
+<<<<<<< HEAD
 	case cfg.DnsCluster != "":
 		var clusterStr string
 		clusterStr, token, err = discovery.SRVGetCluster(cfg.Name, cfg.DnsCluster, cfg.InitialClusterToken, cfg.apurls)
+=======
+	case cfg.DNSCluster != "":
+		var clusterStr string
+		clusterStr, token, err = discovery.SRVGetCluster(cfg.Name, cfg.DNSCluster, cfg.InitialClusterToken, cfg.apurls)
+>>>>>>> 12a5469... start on swarm services; move to glade
 		if err != nil {
 			return nil, "", err
 		}

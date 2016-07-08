@@ -42,7 +42,11 @@ func updateNodes(dockerCli *client.DockerCli, nodes []string, mergeNode func(nod
 	ctx := context.Background()
 
 	for _, nodeID := range nodes {
+<<<<<<< HEAD
 		node, err := client.NodeInspect(ctx, nodeID)
+=======
+		node, _, err := client.NodeInspectWithRaw(ctx, nodeID)
+>>>>>>> 12a5469... start on swarm services; move to glade
 		if err != nil {
 			return err
 		}

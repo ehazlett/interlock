@@ -27,11 +27,19 @@ import (
 
 func TestPeriodic(t *testing.T) {
 	fc := clockwork.NewFakeClock()
+<<<<<<< HEAD
+=======
+	rg := &fakeRevGetter{testutil.NewRecorderStream(), 0}
+>>>>>>> 12a5469... start on swarm services; move to glade
 	compactable := &fakeCompactable{testutil.NewRecorderStream()}
 	tb := &Periodic{
 		clock:        fc,
 		periodInHour: 1,
+<<<<<<< HEAD
 		rg:           &fakeRevGetter{},
+=======
+		rg:           rg,
+>>>>>>> 12a5469... start on swarm services; move to glade
 		c:            compactable,
 	}
 
@@ -41,7 +49,11 @@ func TestPeriodic(t *testing.T) {
 	n := int(time.Hour / checkCompactionInterval)
 	for i := 0; i < 3; i++ {
 		for j := 0; j < n; j++ {
+<<<<<<< HEAD
 			time.Sleep(5 * time.Millisecond)
+=======
+			rg.Wait(1)
+>>>>>>> 12a5469... start on swarm services; move to glade
 			fc.Advance(checkCompactionInterval)
 		}
 
@@ -58,10 +70,18 @@ func TestPeriodic(t *testing.T) {
 func TestPeriodicPause(t *testing.T) {
 	fc := clockwork.NewFakeClock()
 	compactable := &fakeCompactable{testutil.NewRecorderStream()}
+<<<<<<< HEAD
 	tb := &Periodic{
 		clock:        fc,
 		periodInHour: 1,
 		rg:           &fakeRevGetter{},
+=======
+	rg := &fakeRevGetter{testutil.NewRecorderStream(), 0}
+	tb := &Periodic{
+		clock:        fc,
+		periodInHour: 1,
+		rg:           rg,
+>>>>>>> 12a5469... start on swarm services; move to glade
 		c:            compactable,
 	}
 
@@ -70,7 +90,11 @@ func TestPeriodicPause(t *testing.T) {
 
 	n := int(time.Hour / checkCompactionInterval)
 	for i := 0; i < 3*n; i++ {
+<<<<<<< HEAD
 		time.Sleep(5 * time.Millisecond)
+=======
+		rg.Wait(1)
+>>>>>>> 12a5469... start on swarm services; move to glade
 		fc.Advance(checkCompactionInterval)
 	}
 
@@ -81,6 +105,10 @@ func TestPeriodicPause(t *testing.T) {
 	}
 
 	tb.Resume()
+<<<<<<< HEAD
+=======
+	rg.Wait(1)
+>>>>>>> 12a5469... start on swarm services; move to glade
 	fc.Advance(checkCompactionInterval)
 
 	a, err := compactable.Wait(1)
@@ -102,10 +130,18 @@ func (fc *fakeCompactable) Compact(ctx context.Context, r *pb.CompactionRequest)
 }
 
 type fakeRevGetter struct {
+<<<<<<< HEAD
+=======
+	testutil.Recorder
+>>>>>>> 12a5469... start on swarm services; move to glade
 	rev int64
 }
 
 func (fr *fakeRevGetter) Rev() int64 {
+<<<<<<< HEAD
+=======
+	fr.Record(testutil.Action{Name: "g"})
+>>>>>>> 12a5469... start on swarm services; move to glade
 	fr.rev++
 	return fr.rev
 }

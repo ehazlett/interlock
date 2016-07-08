@@ -2,6 +2,10 @@ package controlapi
 
 import (
 	"github.com/docker/swarmkit/api"
+<<<<<<< HEAD
+=======
+	"github.com/docker/swarmkit/manager/state/raft/membership"
+>>>>>>> 12a5469... start on swarm services; move to glade
 	"github.com/docker/swarmkit/manager/state/store"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -188,8 +192,15 @@ func (s *Server) UpdateNode(ctx context.Context, request *api.UpdateNodeRequest)
 
 	var (
 		node   *api.Node
+<<<<<<< HEAD
 		demote bool
 	)
+=======
+		member *membership.Member
+		demote bool
+	)
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 	err := s.store.Update(func(tx store.Tx) error {
 		node = store.GetNode(tx, request.NodeID)
 		if node == nil {
@@ -199,6 +210,11 @@ func (s *Server) UpdateNode(ctx context.Context, request *api.UpdateNodeRequest)
 		// Demotion sanity checks.
 		if node.Spec.Role == api.NodeRoleManager && request.Spec.Role == api.NodeRoleWorker {
 			demote = true
+<<<<<<< HEAD
+=======
+
+			// Check for manager entries in Store.
+>>>>>>> 12a5469... start on swarm services; move to glade
 			managers, err := store.FindNodes(tx, store.ByRole(api.NodeRoleManager))
 			if err != nil {
 				return grpc.Errorf(codes.Internal, "internal store error: %v", err)
@@ -206,6 +222,19 @@ func (s *Server) UpdateNode(ctx context.Context, request *api.UpdateNodeRequest)
 			if len(managers) == 1 && managers[0].ID == node.ID {
 				return grpc.Errorf(codes.FailedPrecondition, "attempting to demote the last manager of the swarm")
 			}
+<<<<<<< HEAD
+=======
+
+			// Check for node in memberlist
+			if member = s.raft.GetMemberByNodeID(request.NodeID); member == nil {
+				return grpc.Errorf(codes.NotFound, "can't find manager in raft memberlist")
+			}
+
+			// Quorum safeguard
+			if !s.raft.CanRemoveMember(member.RaftID) {
+				return grpc.Errorf(codes.FailedPrecondition, "can't remove member from the raft: this would result in a loss of quorum")
+			}
+>>>>>>> 12a5469... start on swarm services; move to glade
 		}
 
 		node.Meta.Version = *request.NodeVersion
@@ -220,6 +249,7 @@ func (s *Server) UpdateNode(ctx context.Context, request *api.UpdateNodeRequest)
 	}
 
 	if demote && s.raft != nil {
+<<<<<<< HEAD
 		memberlist := s.raft.GetMemberlist()
 		for raftID, member := range memberlist {
 			if member.NodeID == request.NodeID {
@@ -228,6 +258,14 @@ func (s *Server) UpdateNode(ctx context.Context, request *api.UpdateNodeRequest)
 				}
 				break
 			}
+=======
+		// TODO(abronan): the remove can potentially fail and leave the node with
+		// an incorrect role (worker rather than manager), we need to reconcile the
+		// memberlist with the desired state rather than attempting to remove the
+		// member once.
+		if err := s.raft.RemoveMember(ctx, member.RaftID); err != nil {
+			return nil, grpc.Errorf(codes.Internal, "cannot demote manager to worker: %v", err)
+>>>>>>> 12a5469... start on swarm services; move to glade
 		}
 	}
 

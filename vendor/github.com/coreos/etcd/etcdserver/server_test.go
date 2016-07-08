@@ -845,7 +845,11 @@ func TestSnapshot(t *testing.T) {
 	s := raft.NewMemoryStorage()
 	s.Append([]raftpb.Entry{{Index: 1}})
 	st := mockstore.NewRecorder()
+<<<<<<< HEAD
 	p := mockstorage.NewStorageRecorder("")
+=======
+	p := mockstorage.NewStorageRecorderStream("")
+>>>>>>> 12a5469... start on swarm services; move to glade
 	srv := &EtcdServer{
 		Cfg: &ServerConfig{},
 		r: raftNode{
@@ -869,7 +873,11 @@ func TestSnapshot(t *testing.T) {
 	if !reflect.DeepEqual(gaction[1], testutil.Action{Name: "SaveNoCopy"}) {
 		t.Errorf("action = %s, want SaveNoCopy", gaction[1])
 	}
+<<<<<<< HEAD
 	gaction = p.Action()
+=======
+	gaction, _ = p.Wait(1)
+>>>>>>> 12a5469... start on swarm services; move to glade
 	if len(gaction) != 1 {
 		t.Fatalf("len(action) = %d, want 1", len(gaction))
 	}

@@ -10,11 +10,25 @@ parent = "smn_cli"
 
 # volume rm
 
+<<<<<<< HEAD
     Usage: docker volume rm [OPTIONS] VOLUME [VOLUME...]
 
     Remove a volume
 
       --help             Print usage
+=======
+```markdown
+Usage:  docker volume rm VOLUME [VOLUME]...
+
+Remove a volume
+
+Aliases:
+  rm, remove
+
+Options:
+      --help   Print usage
+```
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 Removes one or more volumes. You cannot remove a volume that is in use by a container.
 

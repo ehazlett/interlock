@@ -135,6 +135,11 @@ func (c *controller) acceptClientConnections(sock string, l net.Listener) {
 			continue
 		}
 		go func() {
+<<<<<<< HEAD
+=======
+			defer conn.Close()
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 			err := c.processExternalKey(conn)
 			ret := success
 			if err != nil {

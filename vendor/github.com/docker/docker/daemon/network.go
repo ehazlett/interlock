@@ -292,6 +292,13 @@ func (daemon *Daemon) UpdateContainerServiceConfig(containerName string, service
 	return nil
 }
 
+<<<<<<< HEAD
+=======
+func errClusterNetworkConnect() error {
+	return fmt.Errorf("cannot connect or disconnect managed containers on a network")
+}
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 // ConnectContainerToNetwork connects the given container to the given
 // network. If either cannot be found, an err is returned. If the
 // network cannot be set up, an err is returned.
@@ -300,6 +307,12 @@ func (daemon *Daemon) ConnectContainerToNetwork(containerName, networkName strin
 	if err != nil {
 		return err
 	}
+<<<<<<< HEAD
+=======
+	if container.Managed {
+		return errClusterNetworkConnect()
+	}
+>>>>>>> 12a5469... start on swarm services; move to glade
 	return daemon.ConnectToNetwork(container, networkName, endpointConfig)
 }
 
@@ -313,6 +326,12 @@ func (daemon *Daemon) DisconnectContainerFromNetwork(containerName string, netwo
 		}
 		return err
 	}
+<<<<<<< HEAD
+=======
+	if container.Managed {
+		return errClusterNetworkConnect()
+	}
+>>>>>>> 12a5469... start on swarm services; move to glade
 	return daemon.DisconnectFromNetwork(container, network, force)
 }
 

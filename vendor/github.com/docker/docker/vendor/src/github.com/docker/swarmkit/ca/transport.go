@@ -124,6 +124,17 @@ func (c *MutableTLSCreds) LoadNewTLSConfig(newConfig *tls.Config) error {
 	return nil
 }
 
+<<<<<<< HEAD
+=======
+// Config returns the current underlying TLS config.
+func (c *MutableTLSCreds) Config() *tls.Config {
+	c.Lock()
+	defer c.Unlock()
+
+	return c.config
+}
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 // Role returns the OU for the certificate encapsulated in this TransportAuthenticator
 func (c *MutableTLSCreds) Role() string {
 	c.Lock()

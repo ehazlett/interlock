@@ -9,8 +9,15 @@ import (
 	"syscall"
 
 	"github.com/Sirupsen/logrus"
+<<<<<<< HEAD
 	executorpkg "github.com/docker/docker/daemon/cluster/executor"
 	"github.com/docker/engine-api/types"
+=======
+	"github.com/docker/docker/api/server/httputils"
+	executorpkg "github.com/docker/docker/daemon/cluster/executor"
+	"github.com/docker/engine-api/types"
+	"github.com/docker/engine-api/types/versions"
+>>>>>>> 12a5469... start on swarm services; move to glade
 	"github.com/docker/libnetwork"
 	"github.com/docker/swarmkit/api"
 	"github.com/docker/swarmkit/log"
@@ -44,7 +51,10 @@ func (c *containerAdapter) pullImage(ctx context.Context) error {
 	var encodedAuthConfig string
 	if spec.PullOptions != nil {
 		encodedAuthConfig = spec.PullOptions.RegistryAuth
+<<<<<<< HEAD
 
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	authConfig := &types.AuthConfig{}
@@ -116,13 +126,23 @@ func (c *containerAdapter) removeNetworks(ctx context.Context) error {
 func (c *containerAdapter) create(ctx context.Context, backend executorpkg.Backend) error {
 	var cr types.ContainerCreateResponse
 	var err error
+<<<<<<< HEAD
+=======
+	version := httputils.VersionFromContext(ctx)
+	validateHostname := versions.GreaterThanOrEqualTo(version, "1.24")
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 	if cr, err = backend.CreateManagedContainer(types.ContainerCreateConfig{
 		Name:       c.container.name(),
 		Config:     c.container.config(),
 		HostConfig: c.container.hostConfig(),
 		// Use the first network in container create
 		NetworkingConfig: c.container.createNetworkingConfig(),
+<<<<<<< HEAD
 	}); err != nil {
+=======
+	}, validateHostname); err != nil {
+>>>>>>> 12a5469... start on swarm services; move to glade
 		return err
 	}
 
@@ -146,7 +166,13 @@ func (c *containerAdapter) create(ctx context.Context, backend executorpkg.Backe
 }
 
 func (c *containerAdapter) start(ctx context.Context) error {
+<<<<<<< HEAD
 	return c.backend.ContainerStart(c.container.name(), nil)
+=======
+	version := httputils.VersionFromContext(ctx)
+	validateHostname := versions.GreaterThanOrEqualTo(version, "1.24")
+	return c.backend.ContainerStart(c.container.name(), nil, validateHostname)
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 func (c *containerAdapter) inspect(ctx context.Context) (types.ContainerJSON, error) {

@@ -2,7 +2,10 @@ package ovmanager
 
 import (
 	"fmt"
+<<<<<<< HEAD
 	"log"
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 	"net"
 	"strconv"
 	"strings"
@@ -20,7 +23,11 @@ import (
 const (
 	networkType  = "overlay"
 	vxlanIDStart = 256
+<<<<<<< HEAD
 	vxlanIDEnd   = 1000
+=======
+	vxlanIDEnd   = (1 << 24) - 1
+>>>>>>> 12a5469... start on swarm services; move to glade
 )
 
 type networkTable map[string]*network
@@ -111,7 +118,12 @@ func (d *driver) NetworkAllocate(id string, option map[string]string, ipV4Data, 
 		}
 
 		if err := n.obtainVxlanID(s); err != nil {
+<<<<<<< HEAD
 			log.Printf("Could not obtain vxlan id for pool %s: %v", s.subnetIP, err)
+=======
+			n.releaseVxlanID()
+			return nil, fmt.Errorf("could not obtain vxlan id for pool %s: %v", s.subnetIP, err)
+>>>>>>> 12a5469... start on swarm services; move to glade
 		}
 
 		n.subnets = append(n.subnets, s)

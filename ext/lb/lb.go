@@ -17,6 +17,7 @@ import (
 	"github.com/docker/engine-api/types"
 	etypes "github.com/docker/engine-api/types/events"
 	ntypes "github.com/docker/engine-api/types/network"
+	swarmtypes "github.com/docker/engine-api/types/swarm"
 	"github.com/ehazlett/interlock/config"
 	"github.com/ehazlett/interlock/ext"
 	"github.com/ehazlett/interlock/ext/lb/haproxy"
@@ -46,7 +47,7 @@ type proxyContainerNetworkConfig struct {
 type LoadBalancerBackend interface {
 	Name() string
 	ConfigPath() string
-	GenerateProxyConfig(c []types.Container) (interface{}, error)
+	GenerateProxyConfig(c []types.Container, s []swarmtypes.Service) (interface{}, error)
 	Template() string
 	Reload(proxyContainers []types.Container) error
 }
@@ -210,9 +211,16 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *client.Client) (*LoadBal
 				continue
 			}
 
+			svcOpts := types.ServiceListOptions{}
+			services, err := client.ServiceList(context.Background(), svcOpts)
+			if err != nil {
+				errChan <- err
+				continue
+			}
+
 			// generate proxy config
 			log().Debug("generating proxy config")
-			cfg, err := extension.backend.GenerateProxyConfig(containers)
+			cfg, err := extension.backend.GenerateProxyConfig(containers, services)
 			if err != nil {
 				errChan <- err
 				continue

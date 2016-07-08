@@ -25,7 +25,11 @@ import (
 func NewDefragCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "defrag",
+<<<<<<< HEAD
 		Short: "defrag defragments the storage of the etcd members with given endpoints.",
+=======
+		Short: "Defragments the storage of the etcd members with given endpoints",
+>>>>>>> 12a5469... start on swarm services; move to glade
 		Run:   defragCommandFunc,
 	}
 }

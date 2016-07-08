@@ -11,6 +11,7 @@ var (
 
 	// ErrStoreClosed is returned when closing an already closed store.
 	ErrStoreClosed = errors.New("raft store already closed")
+<<<<<<< HEAD
 
 	// ErrTooManyPeers is returned when more than 3 peers are used.
 	ErrTooManyPeers = errors.New("too many peers; influxdb v0.9.0 is limited to 3 nodes in a cluster")
@@ -33,6 +34,8 @@ var (
 	// ErrNodeUnableToDropFinalNode is returned if the node being dropped is the last
 	// node in the cluster
 	ErrNodeUnableToDropFinalNode = errors.New("unable to drop the final node in a cluster")
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 )
 
 var (

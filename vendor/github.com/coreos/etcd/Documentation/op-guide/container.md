@@ -8,7 +8,11 @@ In order to expose the etcd API to clients outside of Docker host, use the host 
 
 ```
 # For each machine
+<<<<<<< HEAD
 ETCD_VERSION=v3.0.0-beta.0
+=======
+ETCD_VERSION=v3.0.0
+>>>>>>> 12a5469... start on swarm services; move to glade
 TOKEN=my-etcd-token
 CLUSTER_STATE=new
 NAME_1=etcd-node-0

@@ -14,7 +14,11 @@ import (
 	"github.com/hashicorp/memberlist"
 )
 
+<<<<<<< HEAD
 const reapInterval = 2 * time.Second
+=======
+const reapInterval = 30 * time.Second
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 type logWriter struct{}
 

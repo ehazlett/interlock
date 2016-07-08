@@ -502,7 +502,10 @@ Return low-level information on the container `id`
 		},
 		"Created": "2015-01-06T15:47:31.485331387Z",
 		"Driver": "devicemapper",
+<<<<<<< HEAD
 		"ExecDriver": "native-0.2",
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 		"ExecIDs": null,
 		"HostConfig": {
 			"Binds": null,

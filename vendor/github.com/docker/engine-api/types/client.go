@@ -241,12 +241,27 @@ func (v VersionResponse) ServerOK() bool {
 	return v.Server != nil
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 // NodeListOptions holds parameters to list  nodes with.
 type NodeListOptions struct {
 	Filter filters.Args
 }
 
+<<<<<<< HEAD
+=======
+// ServiceCreateOptions contains the options to use when creating a service.
+type ServiceCreateOptions struct {
+	// EncodedRegistryAuth is the encoded registry authorization credentials to
+	// use when updating the service.
+	//
+	// This field follows the format of the X-Registry-Auth header.
+	EncodedRegistryAuth string
+}
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 // ServiceCreateResponse contains the information returned to a client
 // on the  creation of a new service.
 type ServiceCreateResponse struct {
@@ -254,6 +269,22 @@ type ServiceCreateResponse struct {
 	ID string
 }
 
+<<<<<<< HEAD
+=======
+// ServiceUpdateOptions contains the options to be used for updating services.
+type ServiceUpdateOptions struct {
+	// EncodedRegistryAuth is the encoded registry authorization credentials to
+	// use when updating the service.
+	//
+	// This field follows the format of the X-Registry-Auth header.
+	EncodedRegistryAuth string
+
+	// TODO(stevvooe): Consider moving the version parameter of ServiceUpdate
+	// into this field. While it does open API users up to racy writes, most
+	// users may not need that level of consistency in practice.
+}
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 // ServiceListOptions holds parameters to list  services with.
 type ServiceListOptions struct {
 	Filter filters.Args
@@ -263,5 +294,8 @@ type ServiceListOptions struct {
 type TaskListOptions struct {
 	Filter filters.Args
 }
+<<<<<<< HEAD
 =======
 >>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade

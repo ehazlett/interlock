@@ -47,6 +47,12 @@ type Engine interface {
 	// Format will return the format for the engine
 	Format() EngineFormat
 
+<<<<<<< HEAD
+=======
+	// Statistics will return statistics relevant to this engine.
+	Statistics(tags map[string]string) []models.Statistic
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 	io.WriterTo
 }
 

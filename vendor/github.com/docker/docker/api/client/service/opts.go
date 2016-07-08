@@ -176,10 +176,23 @@ func (m *MountOpt) Set(value string) error {
 		}
 	}
 
+<<<<<<< HEAD
 	for _, field := range fields {
 		parts := strings.SplitN(field, "=", 2)
 		if len(parts) == 1 && strings.ToLower(parts[0]) == "writable" {
 			mount.Writable = true
+=======
+	// Set writable as the default
+	for _, field := range fields {
+		parts := strings.SplitN(field, "=", 2)
+		if len(parts) == 1 && strings.ToLower(parts[0]) == "readonly" {
+			mount.ReadOnly = true
+			continue
+		}
+
+		if len(parts) == 1 && strings.ToLower(parts[0]) == "volume-nocopy" {
+			volumeOptions().NoCopy = true
+>>>>>>> 12a5469... start on swarm services; move to glade
 			continue
 		}
 
@@ -195,6 +208,7 @@ func (m *MountOpt) Set(value string) error {
 			mount.Source = value
 		case "target":
 			mount.Target = value
+<<<<<<< HEAD
 		case "writable":
 			mount.Writable, err = strconv.ParseBool(value)
 			if err != nil {
@@ -204,6 +218,18 @@ func (m *MountOpt) Set(value string) error {
 			bindOptions().Propagation = swarm.MountPropagation(strings.ToUpper(value))
 		case "volume-populate":
 			volumeOptions().Populate, err = strconv.ParseBool(value)
+=======
+		case "readonly":
+			ro, err := strconv.ParseBool(value)
+			if err != nil {
+				return fmt.Errorf("invalid value for readonly: %s", value)
+			}
+			mount.ReadOnly = ro
+		case "bind-propagation":
+			bindOptions().Propagation = swarm.MountPropagation(strings.ToUpper(value))
+		case "volume-nocopy":
+			volumeOptions().NoCopy, err = strconv.ParseBool(value)
+>>>>>>> 12a5469... start on swarm services; move to glade
 			if err != nil {
 				return fmt.Errorf("invalid value for populate: %s", value)
 			}
@@ -217,7 +243,11 @@ func (m *MountOpt) Set(value string) error {
 			}
 			setValueOnMap(volumeOptions().DriverConfig.Options, value)
 		default:
+<<<<<<< HEAD
 			return fmt.Errorf("unexpected key '%s' in '%s'", key, value)
+=======
+			return fmt.Errorf("unexpected key '%s' in '%s'", key, field)
+>>>>>>> 12a5469... start on swarm services; move to glade
 		}
 	}
 
@@ -229,6 +259,20 @@ func (m *MountOpt) Set(value string) error {
 		return fmt.Errorf("target is required")
 	}
 
+<<<<<<< HEAD
+=======
+	if mount.VolumeOptions != nil && mount.Source == "" {
+		return fmt.Errorf("source is required when specifying volume-* options")
+	}
+
+	if mount.Type == swarm.MountType("BIND") && mount.VolumeOptions != nil {
+		return fmt.Errorf("cannot mix 'volume-*' options with mount type '%s'", swarm.MountTypeBind)
+	}
+	if mount.Type == swarm.MountType("VOLUME") && mount.BindOptions != nil {
+		return fmt.Errorf("cannot mix 'bind-*' options with mount type '%s'", swarm.MountTypeVolume)
+	}
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 	m.values = append(m.values, mount)
 	return nil
 }
@@ -373,6 +417,11 @@ type serviceOptions struct {
 	update        updateOptions
 	networks      []string
 	endpoint      endpointOptions
+<<<<<<< HEAD
+=======
+
+	registryAuth bool
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 func newServiceOptions() *serviceOptions {
@@ -436,7 +485,11 @@ func (opts *serviceOptions) ToService() (swarm.ServiceSpec, error) {
 	return service, nil
 }
 
+<<<<<<< HEAD
 // addServiceFlags adds all flags that are common to both `create` and `update.
+=======
+// addServiceFlags adds all flags that are common to both `create` and `update`.
+>>>>>>> 12a5469... start on swarm services; move to glade
 // Any flags that are not common are added separately in the individual command
 func addServiceFlags(cmd *cobra.Command, opts *serviceOptions) {
 	flags := cmd.Flags()
@@ -456,7 +509,11 @@ func addServiceFlags(cmd *cobra.Command, opts *serviceOptions) {
 
 	flags.Var(&opts.replicas, flagReplicas, "Number of tasks")
 
+<<<<<<< HEAD
 	flags.StringVar(&opts.restartPolicy.condition, flagRestartCondition, "", "Restart when condition is met (none, on_failure, or any)")
+=======
+	flags.StringVar(&opts.restartPolicy.condition, flagRestartCondition, "", "Restart when condition is met (none, on-failure, or any)")
+>>>>>>> 12a5469... start on swarm services; move to glade
 	flags.Var(&opts.restartPolicy.delay, flagRestartDelay, "Delay between restart attempts")
 	flags.Var(&opts.restartPolicy.maxAttempts, flagRestartMaxAttempts, "Maximum number of restarts before giving up")
 	flags.Var(&opts.restartPolicy.window, flagRestartWindow, "Window used to evaluate the restart policy")
@@ -467,8 +524,15 @@ func addServiceFlags(cmd *cobra.Command, opts *serviceOptions) {
 	flags.DurationVar(&opts.update.delay, flagUpdateDelay, time.Duration(0), "Delay between updates")
 
 	flags.StringSliceVar(&opts.networks, flagNetwork, []string{}, "Network attachments")
+<<<<<<< HEAD
 	flags.StringVar(&opts.endpoint.mode, flagEndpointMode, "", "Endpoint mode(Valid values: vip, dnsrr)")
 	flags.VarP(&opts.endpoint.ports, flagPublish, "p", "Publish a port as a node port")
+=======
+	flags.StringVar(&opts.endpoint.mode, flagEndpointMode, "", "Endpoint mode (vip or dnsrr)")
+	flags.VarP(&opts.endpoint.ports, flagPublish, "p", "Publish a port as a node port")
+
+	flags.BoolVar(&opts.registryAuth, flagRegistryAuth, false, "Send registry authentication details to Swarm agents")
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 const (
@@ -493,4 +557,8 @@ const (
 	flagUpdateDelay        = "update-delay"
 	flagUpdateParallelism  = "update-parallelism"
 	flagUser               = "user"
+<<<<<<< HEAD
+=======
+	flagRegistryAuth       = "registry-auth"
+>>>>>>> 12a5469... start on swarm services; move to glade
 )

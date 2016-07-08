@@ -7,4 +7,8 @@ rm -rf "$DEST"
 	DEST="$(dirname $DEST)/binary-daemon"
 	source "${MAKEDIR}/.binary-setup"
 	install_binary "${DEST}/${DOCKER_DAEMON_BINARY_NAME}"
+<<<<<<< HEAD
+=======
+	install_binary "${DEST}/${DOCKER_PROXY_BINARY_NAME}"
+>>>>>>> 12a5469... start on swarm services; move to glade
 )

@@ -502,7 +502,11 @@ default is `/bin/sh -c` on Linux or `cmd /S /C` on Windows)
 - `RUN ["executable", "param1", "param2"]` (*exec* form)
 
 The `RUN` instruction will execute any commands in a new layer on top of the
+<<<<<<< HEAD
 current image and commit the results. The resulting committed image will be
+=======
+current image and commit the results. The resulting comitted image will be
+>>>>>>> 12a5469... start on swarm services; move to glade
 used for the next step in the `Dockerfile`.
 
 Layering `RUN` instructions and generating commits conforms to the core
@@ -544,7 +548,11 @@ RUN /bin/bash -c 'source $HOME/.bashrc ; echo $HOME'
 >
 > **Note**:
 > In the *JSON* form, it is necessary to escape backslashes. This is
+<<<<<<< HEAD
 > particularly relevant on Windows where the backslash is the path seperator.
+=======
+> particularly relevant on Windows where the backslash is the path separator.
+>>>>>>> 12a5469... start on swarm services; move to glade
 > The following line would otherwise be treated as *shell* form due to not
 > being valid JSON, and fail in an unexpected way:
 > `RUN ["c:\windows\system32\tasklist.exe"]`

@@ -92,7 +92,11 @@ type NetworkAPIClient interface {
 
 // NodeAPIClient defines API client methods for the nodes
 type NodeAPIClient interface {
+<<<<<<< HEAD
 	NodeInspect(ctx context.Context, nodeID string) (swarm.Node, error)
+=======
+	NodeInspectWithRaw(ctx context.Context, nodeID string) (swarm.Node, []byte, error)
+>>>>>>> 12a5469... start on swarm services; move to glade
 	NodeList(ctx context.Context, options types.NodeListOptions) ([]swarm.Node, error)
 	NodeRemove(ctx context.Context, nodeID string) error
 	NodeUpdate(ctx context.Context, nodeID string, version swarm.Version, node swarm.NodeSpec) error
@@ -100,11 +104,19 @@ type NodeAPIClient interface {
 
 // ServiceAPIClient defines API client methods for the services
 type ServiceAPIClient interface {
+<<<<<<< HEAD
 	ServiceCreate(ctx context.Context, service swarm.ServiceSpec) (types.ServiceCreateResponse, error)
 	ServiceInspectWithRaw(ctx context.Context, serviceID string) (swarm.Service, []byte, error)
 	ServiceList(ctx context.Context, options types.ServiceListOptions) ([]swarm.Service, error)
 	ServiceRemove(ctx context.Context, serviceID string) error
 	ServiceUpdate(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec) error
+=======
+	ServiceCreate(ctx context.Context, service swarm.ServiceSpec, options types.ServiceCreateOptions) (types.ServiceCreateResponse, error)
+	ServiceInspectWithRaw(ctx context.Context, serviceID string) (swarm.Service, []byte, error)
+	ServiceList(ctx context.Context, options types.ServiceListOptions) ([]swarm.Service, error)
+	ServiceRemove(ctx context.Context, serviceID string) error
+	ServiceUpdate(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options types.ServiceUpdateOptions) error
+>>>>>>> 12a5469... start on swarm services; move to glade
 	TaskInspectWithRaw(ctx context.Context, taskID string) (swarm.Task, []byte, error)
 	TaskList(ctx context.Context, options types.TaskListOptions) ([]swarm.Task, error)
 }

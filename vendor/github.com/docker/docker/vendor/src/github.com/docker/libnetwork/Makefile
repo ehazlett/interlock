@@ -7,6 +7,10 @@ docker = docker run --rm -it ${dockerargs} $$EXTRA_ARGS ${container_env} ${build
 ciargs = -e CIRCLECI -e "COVERALLS_TOKEN=$$COVERALLS_TOKEN" -e "INSIDECONTAINER=-incontainer=true"
 cidocker = docker run ${dockerargs} ${ciargs} $$EXTRA_ARGS ${container_env} ${build_image}
 CROSS_PLATFORMS = linux/amd64 linux/386 linux/arm windows/amd64
+<<<<<<< HEAD
+=======
+export PATH := $(CURDIR)/bin:$(PATH)
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 all: ${build_image}.created build check integration-tests clean
 
@@ -24,10 +28,18 @@ build: ${build_image}.created
 build-local:
 	@mkdir -p "bin"
 	$(shell which godep) go build -tags experimental -o "bin/dnet" ./cmd/dnet
+<<<<<<< HEAD
 
 clean:
 	@if [ -d bin ]; then \
 		echo "Removing dnet binaries"; \
+=======
+	$(shell which godep) go build -o "bin/docker-proxy" ./cmd/proxy
+
+clean:
+	@if [ -d bin ]; then \
+		echo "Removing dnet and proxy binaries"; \
+>>>>>>> 12a5469... start on swarm services; move to glade
 		rm -rf bin; \
 	fi
 
@@ -41,6 +53,10 @@ cross: ${build_image}.created
 
 cross-local:
 	$(shell which godep) go build -o "bin/dnet-$$GOOS-$$GOARCH" ./cmd/dnet
+<<<<<<< HEAD
+=======
+	$(shell which godep) go build -o "bin/docker-proxy-$$GOOS-$$GOARCH" ./cmd/proxy
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 check: ${build_image}.created
 	@${docker} ./wrapmake.sh check-local
@@ -102,4 +118,8 @@ circle-ci-check: ${build_image}.created
 circle-ci-build: ${build_image}.created
 	@${cidocker} make build-local
 
+<<<<<<< HEAD
 circle-ci: circle-ci-check circle-ci-cross circle-ci-build integration-tests
+=======
+circle-ci: circle-ci-build circle-ci-check circle-ci-cross integration-tests
+>>>>>>> 12a5469... start on swarm services; move to glade

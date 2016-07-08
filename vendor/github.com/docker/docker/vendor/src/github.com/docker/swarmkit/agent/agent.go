@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"math/rand"
 	"reflect"
+<<<<<<< HEAD
 	"sync"
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 	"time"
 
 	"github.com/docker/swarmkit/api"
@@ -37,7 +40,10 @@ type Agent struct {
 	stopped chan struct{} // requests shutdown
 	closed  chan struct{} // only closed in run
 	err     error         // read only after closed is closed
+<<<<<<< HEAD
 	mu      sync.Mutex
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // New returns a new agent, ready for task dispatch.
@@ -197,6 +203,11 @@ func (a *Agent) run(ctx context.Context) {
 				log.G(ctx).WithError(err).Error("agent: closing session failed")
 			}
 			sessionq = nil
+<<<<<<< HEAD
+=======
+			// if we're here before <-registered, do nothing for that event
+			registered = nil
+>>>>>>> 12a5469... start on swarm services; move to glade
 		case <-session.closed:
 			log.G(ctx).Debugf("agent: rebuild session")
 

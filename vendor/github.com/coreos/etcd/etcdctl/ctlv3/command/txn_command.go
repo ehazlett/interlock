@@ -34,10 +34,17 @@ var (
 func NewTxnCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "txn [options]",
+<<<<<<< HEAD
 		Short: "Txn processes all the requests in one transaction.",
 		Run:   txnCommandFunc,
 	}
 	cmd.Flags().BoolVarP(&txnInteractive, "interactive", "i", false, "input transaction in interactive mode")
+=======
+		Short: "Txn processes all the requests in one transaction",
+		Run:   txnCommandFunc,
+	}
+	cmd.Flags().BoolVarP(&txnInteractive, "interactive", "i", false, "Input transaction in interactive mode")
+>>>>>>> 12a5469... start on swarm services; move to glade
 	return cmd
 }
 

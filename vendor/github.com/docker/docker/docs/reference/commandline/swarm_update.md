@@ -11,6 +11,7 @@ parent = "smn_cli"
 
 # swarm update
 
+<<<<<<< HEAD
     Usage:  docker swarm update [OPTIONS]
 
     update the Swarm.
@@ -21,6 +22,22 @@ parent = "smn_cli"
           --help                            Print usage
           --secret string                   Set secret value needed to accept nodes into cluster
           --task-history-limit int          Task history retention limit (default 10)
+=======
+```markdown
+Usage:  docker swarm update [OPTIONS]
+
+Update the Swarm
+
+Options:
+      --auto-accept value               Auto acceptance policy (worker, manager or none)
+      --cert-expiry duration            Validity period for node certificates (default 2160h0m0s)
+      --dispatcher-heartbeat duration   Dispatcher heartbeat period (default 5s)
+      --external-ca value               Specifications of one or more certificate signing endpoints
+      --help                            Print usage
+      --secret string                   Set secret value needed to accept nodes into cluster
+      --task-history-limit int          Task history retention limit (default 10)
+```
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 Updates a Swarm cluster with new parameter values. This command must target a manager node.
 

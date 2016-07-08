@@ -10,6 +10,7 @@ parent = "smn_cli"
 
 # stop
 
+<<<<<<< HEAD
     Usage: docker stop [OPTIONS] CONTAINER [CONTAINER...]
 
     Stop a container by sending SIGTERM and then SIGKILL after a
@@ -17,6 +18,17 @@ parent = "smn_cli"
 
       --help             Print usage
       -t, --time=10      Seconds to wait for stop before killing it
+=======
+```markdown
+Usage:  docker stop [OPTIONS] CONTAINER [CONTAINER...]
+
+Stop one or more running containers
+
+Options:
+      --help       Print usage
+  -t, --time int   Seconds to wait for stop before killing it (default 10)
+```
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 The main process inside the container will receive `SIGTERM`, and after a grace
 period, `SIGKILL`.

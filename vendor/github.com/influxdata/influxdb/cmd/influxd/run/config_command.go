@@ -61,21 +61,49 @@ func (cmd *PrintConfigCommand) Run(args ...string) error {
 // ParseConfig parses the config at path.
 // Returns a demo configuration if path is blank.
 func (cmd *PrintConfigCommand) parseConfig(path string) (*Config, error) {
+<<<<<<< HEAD
 	if path == "" {
 		return NewDemoConfig()
 	}
 
 	config := NewConfig()
+=======
+	config, err := NewDemoConfig()
+	if err != nil {
+		config = NewConfig()
+	}
+
+	if path == "" {
+		return config, nil
+	}
+
+	fmt.Fprintf(os.Stderr, "Merging with configuration at: %s\n", path)
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 	if err := config.FromTomlFile(path); err != nil {
 		return nil, err
 	}
 	return config, nil
 }
 
+<<<<<<< HEAD
 var printConfigUsage = `usage: influxd config [flags]
 
 Displays the default configuration.
 
 	-config <path>
 			Set the path to the initial configuration file.
+=======
+var printConfigUsage = `Displays the default configuration.
+
+Usage: influxd config [flags]
+
+    -config <path>
+            Set the path to the initial configuration file.
+            This defaults to the environment variable INFLUXDB_CONFIG_PATH,
+            ~/.influxdb/influxdb.conf, or /etc/influxdb/influxdb.conf if a file
+            is present at any of these locations.
+            Disable the automatic loading of a configuration file using
+            the null device (such as /dev/null).
+>>>>>>> 12a5469... start on swarm services; move to glade
 `

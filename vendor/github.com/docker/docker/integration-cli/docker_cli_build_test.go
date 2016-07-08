@@ -4200,6 +4200,17 @@ func (s *DockerSuite) TestBuildClearCmd(c *check.C) {
 }
 
 func (s *DockerSuite) TestBuildEmptyCmd(c *check.C) {
+<<<<<<< HEAD
+=======
+	// Windows Server 2016 RS1 builds load the windowsservercore image from a tar rather than
+	// a .WIM file, and the tar layer has the default CMD set (same as the Linux ubuntu image),
+	// where-as the TP5 .WIM had a blank CMD. Hence this test is not applicable on RS1 or later
+	// builds
+	if daemonPlatform == "windows" && windowsDaemonKV >= 14375 {
+		c.Skip("Not applicable on Windows RS1 or later builds")
+	}
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 	name := "testbuildemptycmd"
 	if _, err := buildImage(name, "FROM "+minimalBaseImage()+"\nMAINTAINER quux\n", true); err != nil {
 		c.Fatal(err)
@@ -4907,7 +4918,11 @@ func (s *DockerSuite) TestBuildRenamedDockerfile(c *check.C) {
 	}
 
 	if expected := fmt.Sprintf("The Dockerfile (%s) must be within the build context (.)", nonDockerfileFile); !strings.Contains(out, expected) {
+<<<<<<< HEAD
 		c.Fatalf("wrong error messsage:%v\nexpected to contain=%v", out, expected)
+=======
+		c.Fatalf("wrong error message:%v\nexpected to contain=%v", out, expected)
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	out, _, err = dockerCmdInDir(c, filepath.Join(ctx.Dir, "files"), "build", "-f", filepath.Join("..", "Dockerfile"), "-t", "test6", "..")
@@ -6952,3 +6967,31 @@ func (s *DockerSuite) TestBuildShellWindowsPowershell(c *check.C) {
 		c.Fatalf("Line with 'John' not found in output %q", out)
 	}
 }
+<<<<<<< HEAD
+=======
+
+// #22868. Make sure shell-form CMD is marked as escaped in the config of the image
+func (s *DockerSuite) TestBuildCmdShellArgsEscaped(c *check.C) {
+	testRequires(c, DaemonIsWindows)
+	name := "testbuildcmdshellescaped"
+
+	_, err := buildImage(name, `
+  FROM `+minimalBaseImage()+`
+  CMD "tasklist"
+  `, true)
+	if err != nil {
+		c.Fatal(err)
+	}
+	res := inspectFieldJSON(c, name, "Config.ArgsEscaped")
+	if res != "true" {
+		c.Fatalf("CMD did not update Config.ArgsEscaped on image: %v", res)
+	}
+	dockerCmd(c, "run", "--name", "inspectme", name)
+	dockerCmd(c, "wait", "inspectme")
+	res = inspectFieldJSON(c, name, "Config.Cmd")
+
+	if res != `["cmd","/S","/C","\"tasklist\""]` {
+		c.Fatalf("CMD was not escaped Config.Cmd: got %v", res)
+	}
+}
+>>>>>>> 12a5469... start on swarm services; move to glade

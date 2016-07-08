@@ -996,6 +996,7 @@ func (s *SelectStatement) TimeFieldName() string {
 
 // Clone returns a deep copy of the statement.
 func (s *SelectStatement) Clone() *SelectStatement {
+<<<<<<< HEAD
 	clone := &SelectStatement{
 		Fields:     make(Fields, 0, len(s.Fields)),
 		Dimensions: make(Dimensions, 0, len(s.Dimensions)),
@@ -1010,6 +1011,15 @@ func (s *SelectStatement) Clone() *SelectStatement {
 		FillValue:  s.FillValue,
 		IsRawQuery: s.IsRawQuery,
 	}
+=======
+	clone := *s
+	clone.Fields = make(Fields, 0, len(s.Fields))
+	clone.Dimensions = make(Dimensions, 0, len(s.Dimensions))
+	clone.Sources = cloneSources(s.Sources)
+	clone.SortFields = make(SortFields, 0, len(s.SortFields))
+	clone.Condition = CloneExpr(s.Condition)
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 	if s.Target != nil {
 		clone.Target = &Target{
 			Measurement: &Measurement{
@@ -1029,7 +1039,11 @@ func (s *SelectStatement) Clone() *SelectStatement {
 	for _, f := range s.SortFields {
 		clone.SortFields = append(clone.SortFields, &SortField{Name: f.Name, Ascending: f.Ascending})
 	}
+<<<<<<< HEAD
 	return clone
+=======
+	return &clone
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 func cloneSources(sources Sources) Sources {
@@ -3071,7 +3085,11 @@ func encodeMeasurement(mm *Measurement) *internal.Measurement {
 		IsTarget:        proto.Bool(mm.IsTarget),
 	}
 	if mm.Regex != nil {
+<<<<<<< HEAD
 		pb.Regex = proto.String(mm.Regex.String())
+=======
+		pb.Regex = proto.String(mm.Regex.Val.String())
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 	return pb
 }

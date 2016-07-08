@@ -62,6 +62,10 @@ func (c *Command) readConfig() *Config {
 	var retryIntervalWan string
 	var dnsRecursors []string
 	var dev bool
+<<<<<<< HEAD
+=======
+	var dcDeprecated string
+>>>>>>> 12a5469... start on swarm services; move to glade
 	cmdFlags := flag.NewFlagSet("agent", flag.ContinueOnError)
 	cmdFlags.Usage = func() { c.Ui.Output(c.Help()) }
 
@@ -72,7 +76,12 @@ func (c *Command) readConfig() *Config {
 
 	cmdFlags.StringVar(&cmdConfig.LogLevel, "log-level", "", "log level")
 	cmdFlags.StringVar(&cmdConfig.NodeName, "node", "", "node name")
+<<<<<<< HEAD
 	cmdFlags.StringVar(&cmdConfig.Datacenter, "dc", "", "node datacenter")
+=======
+	cmdFlags.StringVar(&dcDeprecated, "dc", "", "node datacenter (deprecated: use 'datacenter' instead)")
+	cmdFlags.StringVar(&cmdConfig.Datacenter, "datacenter", "", "node datacenter")
+>>>>>>> 12a5469... start on swarm services; move to glade
 	cmdFlags.StringVar(&cmdConfig.DataDir, "data-dir", "", "path to the data directory")
 	cmdFlags.BoolVar(&cmdConfig.EnableUi, "ui", false, "enable the built-in web UI")
 	cmdFlags.StringVar(&cmdConfig.UiDir, "ui-dir", "", "path to the web UI directory")
@@ -239,6 +248,17 @@ func (c *Command) readConfig() *Config {
 		}
 	}
 
+<<<<<<< HEAD
+=======
+	// Output a warning if the 'dc' flag has been used.
+	if dcDeprecated != "" {
+		c.Ui.Error("WARNING: the 'dc' flag has been deprecated. Use 'datacenter' instead")
+
+		// Making sure that we don't break previous versions.
+		config.Datacenter = dcDeprecated
+	}
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 	// Ensure the datacenter is always lowercased. The DNS endpoints automatically
 	// lowercase all queries, and internally we expect DC1 and dc1 to be the same.
 	config.Datacenter = strings.ToLower(config.Datacenter)
@@ -1074,7 +1094,12 @@ Options:
   -dev                     Starts the agent in development mode.
   -recursor=1.2.3.4        Address of an upstream DNS server.
                            Can be specified multiple times.
+<<<<<<< HEAD
   -dc=east-aws             Datacenter of the agent
+=======
+  -dc=east-aws             Datacenter of the agent (deprecated: use 'datacenter' instead).
+  -datacenter=east-aws     Datacenter of the agent.
+>>>>>>> 12a5469... start on swarm services; move to glade
   -encrypt=key             Provides the gossip encryption key
   -join=1.2.3.4            Address of an agent to join at start time.
                            Can be specified multiple times.

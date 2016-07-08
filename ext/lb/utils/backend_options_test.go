@@ -15,7 +15,7 @@ func TestBackendOptions(t *testing.T) {
 		},
 	}
 
-	opts := BackendOptions(cfg)
+	opts := BackendOptions(cfg.Labels)
 
 	if len(opts) != 2 {
 		t.Fatalf("expected %d options; received %d", len(cfg.Labels), len(opts))
@@ -27,7 +27,7 @@ func TestBackendOptionsNoLabels(t *testing.T) {
 		Labels: map[string]string{},
 	}
 
-	opts := BackendOptions(cfg)
+	opts := BackendOptions(cfg.Labels)
 
 	if len(opts) != 0 {
 		t.Fatalf("expected no options; received %s", opts)

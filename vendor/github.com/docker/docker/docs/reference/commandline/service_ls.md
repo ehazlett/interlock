@@ -12,8 +12,11 @@ parent = "smn_cli"
 # service ls
 
 ```Markdown
+<<<<<<< HEAD
 docker service ls --help
 
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 Usage:	docker service ls [OPTIONS]
 
 List services

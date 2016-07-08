@@ -26,7 +26,11 @@ import (
 func NewVersionCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",
+<<<<<<< HEAD
 		Short: "Print the version of etcdctl.",
+=======
+		Short: "Prints the version of etcdctl",
+>>>>>>> 12a5469... start on swarm services; move to glade
 		Run:   versionCommandFunc,
 	}
 }

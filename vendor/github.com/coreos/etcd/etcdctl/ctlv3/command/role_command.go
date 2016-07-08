@@ -26,7 +26,11 @@ import (
 func NewRoleCommand() *cobra.Command {
 	ac := &cobra.Command{
 		Use:   "role <subcommand>",
+<<<<<<< HEAD
 		Short: "role related command",
+=======
+		Short: "Role related commands",
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	ac.AddCommand(newRoleAddCommand())
@@ -42,7 +46,11 @@ func NewRoleCommand() *cobra.Command {
 func newRoleAddCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "add <role name>",
+<<<<<<< HEAD
 		Short: "add a new role",
+=======
+		Short: "Adds a new role",
+>>>>>>> 12a5469... start on swarm services; move to glade
 		Run:   roleAddCommandFunc,
 	}
 }
@@ -50,7 +58,11 @@ func newRoleAddCommand() *cobra.Command {
 func newRoleDeleteCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "delete <role name>",
+<<<<<<< HEAD
 		Short: "delete a role",
+=======
+		Short: "Deletes a role",
+>>>>>>> 12a5469... start on swarm services; move to glade
 		Run:   roleDeleteCommandFunc,
 	}
 }
@@ -58,7 +70,11 @@ func newRoleDeleteCommand() *cobra.Command {
 func newRoleGetCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "get <role name>",
+<<<<<<< HEAD
 		Short: "get detailed information of a role",
+=======
+		Short: "Gets detailed information of a role",
+>>>>>>> 12a5469... start on swarm services; move to glade
 		Run:   roleGetCommandFunc,
 	}
 }
@@ -66,7 +82,11 @@ func newRoleGetCommand() *cobra.Command {
 func newRoleListCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "list",
+<<<<<<< HEAD
 		Short: "list up all roles",
+=======
+		Short: "Lists all roles",
+>>>>>>> 12a5469... start on swarm services; move to glade
 		Run:   roleListCommandFunc,
 	}
 }
@@ -74,7 +94,11 @@ func newRoleListCommand() *cobra.Command {
 func newRoleGrantPermissionCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "grant-permission <role name> <permission type> <key> [endkey]",
+<<<<<<< HEAD
 		Short: "grant a key to a role",
+=======
+		Short: "Grants a key to a role",
+>>>>>>> 12a5469... start on swarm services; move to glade
 		Run:   roleGrantPermissionCommandFunc,
 	}
 }
@@ -82,7 +106,11 @@ func newRoleGrantPermissionCommand() *cobra.Command {
 func newRoleRevokePermissionCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "revoke-permission <role name> <key> [endkey]",
+<<<<<<< HEAD
 		Short: "revoke a key from a role",
+=======
+		Short: "Revokes a key from a role",
+>>>>>>> 12a5469... start on swarm services; move to glade
 		Run:   roleRevokePermissionCommandFunc,
 	}
 }

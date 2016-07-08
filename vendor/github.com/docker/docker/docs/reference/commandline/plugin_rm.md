@@ -11,6 +11,7 @@ parent = "smn_cli"
 
 # plugin rm (experimental)
 
+<<<<<<< HEAD
     Usage: docker plugin rm PLUGIN
 
     Remove a plugin
@@ -19,6 +20,19 @@ parent = "smn_cli"
 
     Aliases:
       rm, remove
+=======
+```markdown
+Usage:  docker plugin rm PLUGIN
+
+Remove a plugin
+
+Aliases:
+  rm, remove
+
+Options:
+      --help   Print usage
+```
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 Removes a plugin. You cannot remove a plugin if it is active, you must disable
 a plugin using the [`docker plugin disable`](plugin_disable.md) before removing

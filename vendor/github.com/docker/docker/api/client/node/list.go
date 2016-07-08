@@ -74,6 +74,7 @@ func printTable(out io.Writer, nodes []swarm.Node, info types.Info) {
 	// Ignore flushing errors
 	defer writer.Flush()
 
+<<<<<<< HEAD
 	fmt.Fprintf(writer, listItemFmt, "ID", "NAME", "MEMBERSHIP", "STATUS", "AVAILABILITY", "MANAGER STATUS")
 	for _, node := range nodes {
 		name := node.Spec.Name
@@ -84,6 +85,14 @@ func printTable(out io.Writer, nodes []swarm.Node, info types.Info) {
 			name = node.Description.Hostname
 		}
 
+=======
+	fmt.Fprintf(writer, listItemFmt, "ID", "HOSTNAME", "MEMBERSHIP", "STATUS", "AVAILABILITY", "MANAGER STATUS")
+	for _, node := range nodes {
+		name := node.Description.Hostname
+		availability := string(node.Spec.Availability)
+		membership := string(node.Spec.Membership)
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 		reachability := ""
 		if node.ManagerStatus != nil {
 			if node.ManagerStatus.Leader {

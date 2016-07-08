@@ -9,6 +9,10 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
+<<<<<<< HEAD
+=======
+	"encoding/asn1"
+>>>>>>> 12a5469... start on swarm services; move to glade
 	"encoding/pem"
 	"errors"
 	"net"
@@ -129,8 +133,14 @@ func (kr *BasicKeyRequest) SigAlgo() x509.SignatureAlgorithm {
 
 // CAConfig is a section used in the requests initialising a new CA.
 type CAConfig struct {
+<<<<<<< HEAD
 	PathLength int    `json:"pathlen"`
 	Expiry     string `json:"expiry"`
+=======
+	PathLength  int    `json:"pathlen"`
+	PathLenZero bool   `json:"pathlenzero"`
+	Expiry      string `json:"expiry"`
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // A CertificateRequest encapsulates the API interface to the
@@ -175,6 +185,15 @@ func (cr *CertificateRequest) Name() pkix.Name {
 	return name
 }
 
+<<<<<<< HEAD
+=======
+// BasicConstraints CSR information RFC 5280, 4.2.1.9
+type BasicConstraints struct {
+	IsCA       bool `asn1:"optional"`
+	MaxPathLen int  `asn1:"optional,default:-1"`
+}
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 // ParseRequest takes a certificate request and generates a key and
 // CSR from it. It does no validation -- caveat emptor. It will,
 // however, fail if the key request is not valid (i.e., an unsupported
@@ -217,6 +236,7 @@ func ParseRequest(req *CertificateRequest) (csr, key []byte, err error) {
 		panic("Generate should have failed to produce a valid key.")
 	}
 
+<<<<<<< HEAD
 	var tpl = x509.CertificateRequest{
 		Subject:            req.Name(),
 		SignatureAlgorithm: req.KeyRequest.SigAlgo(),
@@ -245,6 +265,13 @@ func ParseRequest(req *CertificateRequest) (csr, key []byte, err error) {
 
 	log.Info("encoded CSR")
 	csr = pem.EncodeToMemory(&block)
+=======
+	csr, err = Generate(priv.(crypto.Signer), req)
+	if err != nil {
+		log.Errorf("failed to generate a CSR: %v", err)
+		err = cferr.Wrap(cferr.CSRError, cferr.BadRequest, err)
+	}
+>>>>>>> 12a5469... start on swarm services; move to glade
 	return
 }
 
@@ -265,6 +292,10 @@ func ExtractCertificateRequest(cert *x509.Certificate) *CertificateRequest {
 		// issue date and expiry date.
 		req.CA.Expiry = cert.NotAfter.Sub(cert.NotBefore).String()
 		req.CA.PathLength = cert.MaxPathLen
+<<<<<<< HEAD
+=======
+		req.CA.PathLenZero = cert.MaxPathLenZero
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	return req
@@ -377,7 +408,11 @@ func Regenerate(priv crypto.Signer, csr []byte) ([]byte, error) {
 // Generate creates a new CSR from a CertificateRequest structure and
 // an existing key. The KeyRequest field is ignored.
 func Generate(priv crypto.Signer, req *CertificateRequest) (csr []byte, err error) {
+<<<<<<< HEAD
 	sigAlgo := helpers.SignerAlgo(priv, crypto.SHA256)
+=======
+	sigAlgo := helpers.SignerAlgo(priv)
+>>>>>>> 12a5469... start on swarm services; move to glade
 	if sigAlgo == x509.UnknownSignatureAlgorithm {
 		return nil, cferr.New(cferr.PrivateKeyError, cferr.Unavailable)
 	}
@@ -397,6 +432,17 @@ func Generate(priv crypto.Signer, req *CertificateRequest) (csr []byte, err erro
 		}
 	}
 
+<<<<<<< HEAD
+=======
+	if req.CA != nil {
+		err = appendCAInfoToCSR(req.CA, &tpl)
+		if err != nil {
+			err = cferr.Wrap(cferr.CSRError, cferr.GenerationFailed, err)
+			return
+		}
+	}
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 	csr, err = x509.CreateCertificateRequest(rand.Reader, &tpl, priv)
 	if err != nil {
 		log.Errorf("failed to generate a CSR: %v", err)
@@ -412,3 +458,29 @@ func Generate(priv crypto.Signer, req *CertificateRequest) (csr []byte, err erro
 	csr = pem.EncodeToMemory(&block)
 	return
 }
+<<<<<<< HEAD
+=======
+
+// appendCAInfoToCSR appends CAConfig BasicConstraint extension to a CSR
+func appendCAInfoToCSR(reqConf *CAConfig, csr *x509.CertificateRequest) error {
+	pathlen := reqConf.PathLength
+	if pathlen == 0 && !reqConf.PathLenZero {
+		pathlen = -1
+	}
+	val, err := asn1.Marshal(BasicConstraints{true, pathlen})
+
+	if err != nil {
+		return err
+	}
+
+	csr.ExtraExtensions = []pkix.Extension{
+		{
+			Id:       asn1.ObjectIdentifier{2, 5, 29, 19},
+			Value:    val,
+			Critical: true,
+		},
+	}
+
+	return nil
+}
+>>>>>>> 12a5469... start on swarm services; move to glade

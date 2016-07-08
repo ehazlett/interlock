@@ -32,12 +32,15 @@ type DLL struct {
 
 // LoadDLL loads DLL file into memory.
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 //
 // Warning: using LoadDLL without an absolute path name is subject to
 // DLL preloading attacks. To safely load a system DLL, use LazyDLL
 // with System set to true, or use LoadLibraryEx directly.
 >>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 func LoadDLL(name string) (dll *DLL, err error) {
 	namep, err := UTF16PtrFromString(name)
 	if err != nil {
@@ -170,6 +173,7 @@ func (p *Proc) Call(a ...uintptr) (r1, r2 uintptr, lastErr error) {
 // LazyProc's Addr method.
 type LazyDLL struct {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	mu   sync.Mutex
 	dll  *DLL // non nil once DLL is loaded
 	Name string
@@ -184,6 +188,11 @@ type LazyDLL struct {
 	mu  sync.Mutex
 	dll *DLL // non nil once DLL is loaded
 >>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
+=======
+	mu   sync.Mutex
+	dll  *DLL // non nil once DLL is loaded
+	Name string
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // Load loads DLL file d.Name into memory. It returns an error if fails.
@@ -191,6 +200,9 @@ type LazyDLL struct {
 func (d *LazyDLL) Load() error {
 	// Non-racy version of:
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 	// if d.dll == nil {
 	if atomic.LoadPointer((*unsafe.Pointer)(unsafe.Pointer(&d.dll))) == nil {
 		d.mu.Lock()
@@ -204,6 +216,7 @@ func (d *LazyDLL) Load() error {
 			// d.dll = dll
 			atomic.StorePointer((*unsafe.Pointer)(unsafe.Pointer(&d.dll)), unsafe.Pointer(dll))
 		}
+<<<<<<< HEAD
 	}
 =======
 	// if d.dll != nil {
@@ -234,6 +247,9 @@ func (d *LazyDLL) Load() error {
 	// d.dll = dll
 	atomic.StorePointer((*unsafe.Pointer)(unsafe.Pointer(&d.dll)), unsafe.Pointer(dll))
 >>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
+=======
+	}
+>>>>>>> 12a5469... start on swarm services; move to glade
 	return nil
 }
 
@@ -262,6 +278,7 @@ func NewLazyDLL(name string) *LazyDLL {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // A LazyProc implements access to a procedure inside a LazyDLL.
 // It delays the lookup until the Addr method is called.
 type LazyProc struct {
@@ -275,13 +292,17 @@ func NewLazySystemDLL(name string) *LazyDLL {
 	return &LazyDLL{Name: name, System: true}
 }
 
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 // A LazyProc implements access to a procedure inside a LazyDLL.
 // It delays the lookup until the Addr method is called.
 type LazyProc struct {
-	Name string
-
 	mu   sync.Mutex
+<<<<<<< HEAD
 >>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
+=======
+	Name string
+>>>>>>> 12a5469... start on swarm services; move to glade
 	l    *LazyDLL
 	proc *Proc
 }
@@ -338,6 +359,7 @@ func (p *LazyProc) Call(a ...uintptr) (r1, r2 uintptr, lastErr error) {
 	p.mustFind()
 	return p.proc.Call(a...)
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 
@@ -409,3 +431,5 @@ type errString string
 
 func (s errString) Error() string { return string(s) }
 >>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade

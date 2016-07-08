@@ -53,14 +53,23 @@ bk658fpbex0d57cqcwoe3jthu  redis.2   redis   redis:3.0.6  Running 9 seconds   Ru
 
 The filtering flag (`-f` or `--filter`) format is a `key=value` pair. If there
 is more than one filter, then pass multiple flags (e.g. `--filter "foo=bar" --filter "bif=baz"`).
+<<<<<<< HEAD
 Multiple filter flags are combined as an `OR` filter. For example, 
 `-f type=custom -f type=builtin` returns both `custom` and `builtin` networks.
+=======
+Multiple filter flags are combined as an `OR` filter. For example,
+`-f name=redis.1 -f name=redis.7` returns both `redis.1` and `redis.7` tasks.
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 The currently supported filters are:
 
 * [id](#id)
 * [name](#name)
+<<<<<<< HEAD
 * [desired_state](#desired_state)
+=======
+* [desired-state](#desired-state)
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 
 #### ID
@@ -85,9 +94,15 @@ ID                         NAME      SERVICE  IMAGE        DESIRED STATE  LAST S
 ```
 
 
+<<<<<<< HEAD
 #### desired_state
 
 The `desired_state` filter can take the values `running` and `accepted`.
+=======
+#### desired-state
+
+The `desired-state` filter can take the values `running` and `accepted`.
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 
 ## Related information

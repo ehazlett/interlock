@@ -1432,7 +1432,11 @@ func (s *DockerSuite) TestPostContainersCreateWithOomScoreAdjInvalidRange(c *che
 	}
 }
 
+<<<<<<< HEAD
 // test case for #22210 where an emtpy container name caused panic.
+=======
+// test case for #22210 where an empty container name caused panic.
+>>>>>>> 12a5469... start on swarm services; move to glade
 func (s *DockerSuite) TestContainerApiDeleteWithEmptyName(c *check.C) {
 	status, out, err := sockRequest("DELETE", "/containers/", nil)
 	c.Assert(err, checker.IsNil)

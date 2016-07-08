@@ -3,6 +3,7 @@
 package windows
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 import "unsafe"
 import "syscall"
 =======
@@ -11,11 +12,18 @@ import (
 	"unsafe"
 )
 >>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
+=======
+import "unsafe"
+import "syscall"
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 var _ unsafe.Pointer
 
 var (
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 	modadvapi32 = syscall.NewLazyDLL("advapi32.dll")
 	modkernel32 = syscall.NewLazyDLL("kernel32.dll")
 	modshell32  = syscall.NewLazyDLL("shell32.dll")
@@ -27,6 +35,7 @@ var (
 	modsecur32  = syscall.NewLazyDLL("secur32.dll")
 	modnetapi32 = syscall.NewLazyDLL("netapi32.dll")
 	moduserenv  = syscall.NewLazyDLL("userenv.dll")
+<<<<<<< HEAD
 =======
 	modadvapi32 = NewLazySystemDLL("advapi32.dll")
 	modkernel32 = NewLazySystemDLL("kernel32.dll")
@@ -40,6 +49,8 @@ var (
 	modnetapi32 = NewLazySystemDLL("netapi32.dll")
 	moduserenv  = NewLazySystemDLL("userenv.dll")
 >>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 	procRegisterEventSourceW               = modadvapi32.NewProc("RegisterEventSourceW")
 	procDeregisterEventSource              = modadvapi32.NewProc("DeregisterEventSource")
@@ -61,9 +72,12 @@ var (
 	procGetLastError                       = modkernel32.NewProc("GetLastError")
 	procLoadLibraryW                       = modkernel32.NewProc("LoadLibraryW")
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	procLoadLibraryExW                     = modkernel32.NewProc("LoadLibraryExW")
 >>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 	procFreeLibrary                        = modkernel32.NewProc("FreeLibrary")
 	procGetProcAddress                     = modkernel32.NewProc("GetProcAddress")
 	procGetVersion                         = modkernel32.NewProc("GetVersion")
@@ -456,6 +470,7 @@ func _LoadLibrary(libname *uint16) (handle Handle, err error) {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 func LoadLibraryEx(libname string, zero Handle, flags uintptr) (handle Handle, err error) {
 	var _p0 *uint16
@@ -480,6 +495,8 @@ func _LoadLibraryEx(libname *uint16, zero Handle, flags uintptr) (handle Handle,
 }
 
 >>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 func FreeLibrary(handle Handle) (err error) {
 	r1, _, e1 := syscall.Syscall(procFreeLibrary.Addr(), 1, uintptr(handle), 0, 0)
 	if r1 == 0 {

@@ -10,11 +10,22 @@ parent = "smn_cli"
 
 # diff
 
+<<<<<<< HEAD
     Usage: docker diff [OPTIONS] CONTAINER
 
     Inspect changes on a container's filesystem
 
       --help              Print usage
+=======
+```markdown
+Usage:  docker diff CONTAINER
+
+Inspect changes on a container's filesystem
+
+Options:
+      --help   Print usage
+```
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 List the changed files and directories in a container᾿s filesystem
  There are 3 events that are listed in the `diff`:

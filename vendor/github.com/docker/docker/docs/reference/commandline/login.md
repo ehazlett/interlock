@@ -10,6 +10,7 @@ parent = "smn_cli"
 
 # login
 
+<<<<<<< HEAD
     Usage: docker login [OPTIONS] [SERVER]
 
     Log in to a Docker registry server, if no server is
@@ -18,6 +19,19 @@ parent = "smn_cli"
       --help               Print usage
       -p, --password=""    Password
       -u, --username=""    Username
+=======
+```markdown
+Usage:  docker login [OPTIONS] [SERVER]
+
+Log in to a Docker registry.
+If no server is specified, the default is defined by the daemon.
+
+Options:
+      --help              Print usage
+  -p, --password string   Password
+  -u, --username string   Username
+```
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 If you want to login to a self-hosted registry you can specify this by
 adding the server name.

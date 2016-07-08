@@ -20,6 +20,7 @@
 // err represents an operating system error describing the failure and
 // holds a value of type syscall.Errno.
 <<<<<<< HEAD
+<<<<<<< HEAD
 package windows // import "golang.org/x/sys/windows"
 
 import (
@@ -31,6 +32,13 @@ package windows
 import (
 	"syscall"
 >>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
+=======
+package windows // import "golang.org/x/sys/windows"
+
+import (
+	"syscall"
+	"unsafe"
+>>>>>>> 12a5469... start on swarm services; move to glade
 )
 
 // ByteSliceFromString returns a NUL-terminated slice of bytes
@@ -78,10 +86,16 @@ func (tv *Timeval) Nano() int64 {
 	return int64(tv.Sec)*1e9 + int64(tv.Usec)*1000
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 // use is a no-op, but the compiler cannot see that it is.
 // Calling use(p) ensures that p is kept live until that point.
 //go:noescape
 func use(p unsafe.Pointer)
+<<<<<<< HEAD
 =======
 >>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade

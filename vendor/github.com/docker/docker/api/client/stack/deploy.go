@@ -184,18 +184,31 @@ func deployServices(
 		if service, exists := existingServiceMap[name]; exists {
 			fmt.Fprintf(out, "Updating service %s (id: %s)\n", name, service.ID)
 
+<<<<<<< HEAD
+=======
+			// TODO(nishanttotla): Pass auth token
+>>>>>>> 12a5469... start on swarm services; move to glade
 			if err := apiClient.ServiceUpdate(
 				ctx,
 				service.ID,
 				service.Version,
 				serviceSpec,
+<<<<<<< HEAD
+=======
+				types.ServiceUpdateOptions{},
+>>>>>>> 12a5469... start on swarm services; move to glade
 			); err != nil {
 				return err
 			}
 		} else {
 			fmt.Fprintf(out, "Creating service %s\n", name)
 
+<<<<<<< HEAD
 			if _, err := apiClient.ServiceCreate(ctx, serviceSpec); err != nil {
+=======
+			// TODO(nishanttotla): Pass headers with X-Registry-Auth
+			if _, err := apiClient.ServiceCreate(ctx, serviceSpec, types.ServiceCreateOptions{}); err != nil {
+>>>>>>> 12a5469... start on swarm services; move to glade
 				return err
 			}
 		}

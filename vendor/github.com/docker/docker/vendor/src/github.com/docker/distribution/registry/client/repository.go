@@ -10,6 +10,10 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+<<<<<<< HEAD
+=======
+	"strings"
+>>>>>>> 12a5469... start on swarm services; move to glade
 	"time"
 
 	"github.com/docker/distribution"
@@ -213,6 +217,7 @@ func (t *tags) All(ctx context.Context) ([]string, error) {
 		return tags, err
 	}
 
+<<<<<<< HEAD
 	resp, err := t.client.Get(u)
 	if err != nil {
 		return tags, err
@@ -235,6 +240,37 @@ func (t *tags) All(ctx context.Context) ([]string, error) {
 		return tags, nil
 	}
 	return tags, HandleErrorResponse(resp)
+=======
+	for {
+		resp, err := t.client.Get(u)
+		if err != nil {
+			return tags, err
+		}
+		defer resp.Body.Close()
+
+		if SuccessStatus(resp.StatusCode) {
+			b, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				return tags, err
+			}
+
+			tagsResponse := struct {
+				Tags []string `json:"tags"`
+			}{}
+			if err := json.Unmarshal(b, &tagsResponse); err != nil {
+				return tags, err
+			}
+			tags = append(tags, tagsResponse.Tags...)
+			if link := resp.Header.Get("Link"); link != "" {
+				u = strings.Trim(strings.Split(link, ";")[0], "<>")
+			} else {
+				return tags, nil
+			}
+		} else {
+			return tags, HandleErrorResponse(resp)
+		}
+	}
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 func descriptorFromResponse(response *http.Response) (distribution.Descriptor, error) {
@@ -394,11 +430,32 @@ func (o etagOption) Apply(ms distribution.ManifestService) error {
 	return fmt.Errorf("etag options is a client-only option")
 }
 
+<<<<<<< HEAD
+=======
+// ReturnContentDigest allows a client to set a the content digest on
+// a successful request from the 'Docker-Content-Digest' header. This
+// returned digest is represents the digest which the registry uses
+// to refer to the content and can be used to delete the content.
+func ReturnContentDigest(dgst *digest.Digest) distribution.ManifestServiceOption {
+	return contentDigestOption{dgst}
+}
+
+type contentDigestOption struct{ digest *digest.Digest }
+
+func (o contentDigestOption) Apply(ms distribution.ManifestService) error {
+	return nil
+}
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 func (ms *manifests) Get(ctx context.Context, dgst digest.Digest, options ...distribution.ManifestServiceOption) (distribution.Manifest, error) {
 	var (
 		digestOrTag string
 		ref         reference.Named
 		err         error
+<<<<<<< HEAD
+=======
+		contentDgst *digest.Digest
+>>>>>>> 12a5469... start on swarm services; move to glade
 	)
 
 	for _, option := range options {
@@ -408,6 +465,11 @@ func (ms *manifests) Get(ctx context.Context, dgst digest.Digest, options ...dis
 			if err != nil {
 				return nil, err
 			}
+<<<<<<< HEAD
+=======
+		} else if opt, ok := option.(contentDigestOption); ok {
+			contentDgst = opt.digest
+>>>>>>> 12a5469... start on swarm services; move to glade
 		} else {
 			err := option.Apply(ms)
 			if err != nil {
@@ -450,6 +512,15 @@ func (ms *manifests) Get(ctx context.Context, dgst digest.Digest, options ...dis
 	if resp.StatusCode == http.StatusNotModified {
 		return nil, distribution.ErrManifestNotModified
 	} else if SuccessStatus(resp.StatusCode) {
+<<<<<<< HEAD
+=======
+		if contentDgst != nil {
+			dgst, err := digest.ParseDigest(resp.Header.Get("Docker-Content-Digest"))
+			if err == nil {
+				*contentDgst = dgst
+			}
+		}
+>>>>>>> 12a5469... start on swarm services; move to glade
 		mt := resp.Header.Get("Content-Type")
 		body, err := ioutil.ReadAll(resp.Body)
 

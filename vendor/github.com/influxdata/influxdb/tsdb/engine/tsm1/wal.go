@@ -3,7 +3,10 @@ package tsm1
 import (
 	"encoding/binary"
 	"errors"
+<<<<<<< HEAD
 	"expvar"
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 	"fmt"
 	"io"
 	"log"
@@ -14,11 +17,19 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+<<<<<<< HEAD
 	"time"
 
 	"github.com/golang/snappy"
 	"github.com/influxdata/influxdb"
 	"github.com/influxdata/influxdb/tsdb"
+=======
+	"sync/atomic"
+	"time"
+
+	"github.com/golang/snappy"
+	"github.com/influxdata/influxdb/models"
+>>>>>>> 12a5469... start on swarm services; move to glade
 )
 
 const (
@@ -90,11 +101,19 @@ type WAL struct {
 	// LoggingEnabled specifies if detailed logs should be output
 	LoggingEnabled bool
 
+<<<<<<< HEAD
 	statMap *expvar.Map
 }
 
 func NewWAL(path string) *WAL {
 	db, rp := tsdb.DecodeStorePath(path)
+=======
+	// statistics for the WAL
+	stats *WALStatistics
+}
+
+func NewWAL(path string) *WAL {
+>>>>>>> 12a5469... start on swarm services; move to glade
 	return &WAL{
 		path: path,
 
@@ -103,12 +122,16 @@ func NewWAL(path string) *WAL {
 		SegmentSize: DefaultSegmentSize,
 		logger:      log.New(os.Stderr, "[tsm1wal] ", log.LstdFlags),
 		closing:     make(chan struct{}),
+<<<<<<< HEAD
 
 		statMap: influxdb.NewStatistics(
 			"tsm1_wal:"+path,
 			"tsm1_wal",
 			map[string]string{"path": path, "database": db, "retentionPolicy": rp},
 		),
+=======
+		stats:       &WALStatistics{},
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 }
 
@@ -118,6 +141,27 @@ func (l *WAL) SetLogOutput(w io.Writer) {
 	l.logger = log.New(w, "[tsm1wal] ", log.LstdFlags)
 }
 
+<<<<<<< HEAD
+=======
+// WALStatistics maintains statistics about the WAL.
+type WALStatistics struct {
+	OldBytes     int64
+	CurrentBytes int64
+}
+
+// Statistics returns statistics for periodic monitoring.
+func (l *WAL) Statistics(tags map[string]string) []models.Statistic {
+	return []models.Statistic{{
+		Name: "tsm1_wal",
+		Tags: tags,
+		Values: map[string]interface{}{
+			statWALOldBytes:     atomic.LoadInt64(&l.stats.OldBytes),
+			statWALCurrentBytes: atomic.LoadInt64(&l.stats.CurrentBytes),
+		},
+	}}
+}
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 // Path returns the path the log was initialized with.
 func (l *WAL) Path() string {
 	l.mu.RLock()
@@ -174,9 +218,13 @@ func (l *WAL) Open() error {
 
 		totalOldDiskSize += stat.Size()
 	}
+<<<<<<< HEAD
 	sizeStat := new(expvar.Int)
 	sizeStat.Set(totalOldDiskSize)
 	l.statMap.Set(statWALOldBytes, sizeStat)
+=======
+	atomic.StoreInt64(&l.stats.OldBytes, totalOldDiskSize)
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 	l.closing = make(chan struct{})
 
@@ -254,9 +302,13 @@ func (l *WAL) Remove(files []string) error {
 
 		totalOldDiskSize += stat.Size()
 	}
+<<<<<<< HEAD
 	sizeStat := new(expvar.Int)
 	sizeStat.Set(totalOldDiskSize)
 	l.statMap.Set(statWALOldBytes, sizeStat)
+=======
+	atomic.StoreInt64(&l.stats.OldBytes, totalOldDiskSize)
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 	return nil
 }
@@ -303,9 +355,13 @@ func (l *WAL) writeToLog(entry WALEntry) (int, error) {
 	}
 
 	// Update stats for current segment size
+<<<<<<< HEAD
 	curSize := new(expvar.Int)
 	curSize.Set(int64(l.currentSegmentWriter.size))
 	l.statMap.Set(statWALCurrentBytes, curSize)
+=======
+	atomic.StoreInt64(&l.stats.CurrentBytes, int64(l.currentSegmentWriter.size))
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 	l.lastWriteTime = time.Now()
 
@@ -409,7 +465,11 @@ func (l *WAL) newSegmentFile() error {
 		if err := l.currentSegmentWriter.close(); err != nil {
 			return err
 		}
+<<<<<<< HEAD
 		l.statMap.Add(statWALOldBytes, int64(l.currentSegmentWriter.size))
+=======
+		atomic.StoreInt64(&l.stats.OldBytes, int64(l.currentSegmentWriter.size))
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	fileName := filepath.Join(l.path, fmt.Sprintf("%s%05d.%s", WALFilePrefix, l.currentSegmentID, WALFileExtension))
@@ -420,9 +480,13 @@ func (l *WAL) newSegmentFile() error {
 	l.currentSegmentWriter = NewWALSegmentWriter(fd)
 
 	// Reset the current segment size stat
+<<<<<<< HEAD
 	curSize := new(expvar.Int)
 	curSize.Set(0)
 	l.statMap.Set(statWALCurrentBytes, curSize)
+=======
+	atomic.StoreInt64(&l.stats.CurrentBytes, 0)
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 	return nil
 }

@@ -31,3 +31,23 @@ function teardown() {
   runc state test_busybox
   [ "$status" -ne 0 ]
 }
+<<<<<<< HEAD
+=======
+
+@test "runc delete --force" {
+  # run busybox detached
+  runc run -d --console /dev/pts/ptmx test_busybox
+  [ "$status" -eq 0 ]
+
+  # check state
+  wait_for_container 15 1 test_busybox
+
+  testcontainer test_busybox running
+
+  # force delete test_busybox
+  runc delete --force test_busybox
+
+  runc state test_busybox
+  [ "$status" -ne 0 ]
+}
+>>>>>>> 12a5469... start on swarm services; move to glade

@@ -22,6 +22,10 @@ import (
 	"github.com/docker/docker/pkg/ioutils"
 	"github.com/docker/docker/runconfig"
 	apitypes "github.com/docker/engine-api/types"
+<<<<<<< HEAD
+=======
+	"github.com/docker/engine-api/types/filters"
+>>>>>>> 12a5469... start on swarm services; move to glade
 	types "github.com/docker/engine-api/types/swarm"
 	swarmagent "github.com/docker/swarmkit/agent"
 	swarmapi "github.com/docker/swarmkit/api"
@@ -86,6 +90,7 @@ type Config struct {
 // manager.
 type Cluster struct {
 	sync.RWMutex
+<<<<<<< HEAD
 	root           string
 	config         Config
 	configEvent    chan struct{} // todo: make this array and goroutine safe
@@ -98,6 +103,25 @@ type Cluster struct {
 	reconnectDelay time.Duration
 	stop           bool
 	cancelDelay    func()
+=======
+	*node
+	root        string
+	config      Config
+	configEvent chan struct{} // todo: make this array and goroutine safe
+	listenAddr  string
+	stop        bool
+	err         error
+	cancelDelay func()
+}
+
+type node struct {
+	*swarmagent.Node
+	done           chan struct{}
+	ready          bool
+	conn           *grpc.ClientConn
+	client         swarmapi.ControlClient
+	reconnectDelay time.Duration
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // New creates a new Cluster instance using provided config.
@@ -107,10 +131,16 @@ func New(config Config) (*Cluster, error) {
 		return nil, err
 	}
 	c := &Cluster{
+<<<<<<< HEAD
 		root:           root,
 		config:         config,
 		configEvent:    make(chan struct{}, 10),
 		reconnectDelay: initialReconnectDelay,
+=======
+		root:        root,
+		config:      config,
+		configEvent: make(chan struct{}, 10),
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	st, err := c.loadState()
@@ -121,7 +151,11 @@ func New(config Config) (*Cluster, error) {
 		return nil, err
 	}
 
+<<<<<<< HEAD
 	n, ctx, err := c.startNewNode(false, st.ListenAddr, "", "", "", false)
+=======
+	n, err := c.startNewNode(false, st.ListenAddr, "", "", "", false)
+>>>>>>> 12a5469... start on swarm services; move to glade
 	if err != nil {
 		return nil, err
 	}
@@ -130,12 +164,19 @@ func New(config Config) (*Cluster, error) {
 	case <-time.After(swarmConnectTimeout):
 		logrus.Errorf("swarm component could not be started before timeout was reached")
 	case <-n.Ready():
+<<<<<<< HEAD
 	case <-ctx.Done():
 	}
 	if ctx.Err() != nil {
 		return nil, fmt.Errorf("swarm component could not be started")
 	}
 	go c.reconnectOnFailure(ctx)
+=======
+	case <-n.done:
+		return nil, fmt.Errorf("swarm component could not be started: %v", c.err)
+	}
+	go c.reconnectOnFailure(n)
+>>>>>>> 12a5469... start on swarm services; move to glade
 	return c, nil
 }
 
@@ -166,20 +207,35 @@ func (c *Cluster) saveState() error {
 	return ioutils.AtomicWriteFile(filepath.Join(c.root, stateFile), dt, 0600)
 }
 
+<<<<<<< HEAD
 func (c *Cluster) reconnectOnFailure(ctx context.Context) {
 	for {
 		<-ctx.Done()
+=======
+func (c *Cluster) reconnectOnFailure(n *node) {
+	for {
+		<-n.done
+>>>>>>> 12a5469... start on swarm services; move to glade
 		c.Lock()
 		if c.stop || c.node != nil {
 			c.Unlock()
 			return
 		}
+<<<<<<< HEAD
 		c.reconnectDelay *= 2
 		if c.reconnectDelay > maxReconnectDelay {
 			c.reconnectDelay = maxReconnectDelay
 		}
 		logrus.Warnf("Restarting swarm in %.2f seconds", c.reconnectDelay.Seconds())
 		delayCtx, cancel := context.WithTimeout(context.Background(), c.reconnectDelay)
+=======
+		n.reconnectDelay *= 2
+		if n.reconnectDelay > maxReconnectDelay {
+			n.reconnectDelay = maxReconnectDelay
+		}
+		logrus.Warnf("Restarting swarm in %.2f seconds", n.reconnectDelay.Seconds())
+		delayCtx, cancel := context.WithTimeout(context.Background(), n.reconnectDelay)
+>>>>>>> 12a5469... start on swarm services; move to glade
 		c.cancelDelay = cancel
 		c.Unlock()
 		<-delayCtx.Done()
@@ -192,15 +248,23 @@ func (c *Cluster) reconnectOnFailure(ctx context.Context) {
 			return
 		}
 		var err error
+<<<<<<< HEAD
 		_, ctx, err = c.startNewNode(false, c.listenAddr, c.getRemoteAddress(), "", "", false)
 		if err != nil {
 			c.err = err
 			ctx = delayCtx
+=======
+		n, err = c.startNewNode(false, c.listenAddr, c.getRemoteAddress(), "", "", false)
+		if err != nil {
+			c.err = err
+			close(n.done)
+>>>>>>> 12a5469... start on swarm services; move to glade
 		}
 		c.Unlock()
 	}
 }
 
+<<<<<<< HEAD
 func (c *Cluster) startNewNode(forceNewCluster bool, listenAddr, joinAddr, secret, cahash string, ismanager bool) (*swarmagent.Node, context.Context, error) {
 	if err := c.config.Backend.IsSwarmCompatible(); err != nil {
 		return nil, nil, err
@@ -208,6 +272,16 @@ func (c *Cluster) startNewNode(forceNewCluster bool, listenAddr, joinAddr, secre
 	c.node = nil
 	c.cancelDelay = nil
 	node, err := swarmagent.NewNode(&swarmagent.NodeConfig{
+=======
+func (c *Cluster) startNewNode(forceNewCluster bool, listenAddr, joinAddr, secret, cahash string, ismanager bool) (*node, error) {
+	if err := c.config.Backend.IsSwarmCompatible(); err != nil {
+		return nil, err
+	}
+	c.node = nil
+	c.cancelDelay = nil
+	c.stop = false
+	n, err := swarmagent.NewNode(&swarmagent.NodeConfig{
+>>>>>>> 12a5469... start on swarm services; move to glade
 		Hostname:         c.config.Name,
 		ForceNewCluster:  forceNewCluster,
 		ListenControlAPI: filepath.Join(c.root, controlSocket),
@@ -222,6 +296,7 @@ func (c *Cluster) startNewNode(forceNewCluster bool, listenAddr, joinAddr, secre
 		IsManager:        ismanager,
 	})
 	if err != nil {
+<<<<<<< HEAD
 		return nil, nil, err
 	}
 	ctx, cancel := context.WithCancel(context.Background())
@@ -229,16 +304,34 @@ func (c *Cluster) startNewNode(forceNewCluster bool, listenAddr, joinAddr, secre
 		return nil, nil, err
 	}
 
+=======
+		return nil, err
+	}
+	ctx := context.Background()
+	if err := n.Start(ctx); err != nil {
+		return nil, err
+	}
+	node := &node{
+		Node:           n,
+		done:           make(chan struct{}),
+		reconnectDelay: initialReconnectDelay,
+	}
+>>>>>>> 12a5469... start on swarm services; move to glade
 	c.node = node
 	c.listenAddr = listenAddr
 	c.saveState()
 	c.config.Backend.SetClusterProvider(c)
 	go func() {
+<<<<<<< HEAD
 		err := node.Err(ctx)
+=======
+		err := n.Err(ctx)
+>>>>>>> 12a5469... start on swarm services; move to glade
 		if err != nil {
 			logrus.Errorf("cluster exited with error: %v", err)
 		}
 		c.Lock()
+<<<<<<< HEAD
 		c.conn = nil
 		c.client = nil
 		c.node = nil
@@ -246,10 +339,17 @@ func (c *Cluster) startNewNode(forceNewCluster bool, listenAddr, joinAddr, secre
 		c.err = err
 		c.Unlock()
 		cancel()
+=======
+		c.node = nil
+		c.err = err
+		c.Unlock()
+		close(node.done)
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}()
 
 	go func() {
 		select {
+<<<<<<< HEAD
 		case <-node.Ready():
 			c.Lock()
 			c.reconnectDelay = initialReconnectDelay
@@ -261,11 +361,20 @@ func (c *Cluster) startNewNode(forceNewCluster bool, listenAddr, joinAddr, secre
 			c.ready = true
 			c.err = nil
 			c.Unlock()
+=======
+		case <-n.Ready():
+			c.Lock()
+			node.ready = true
+			c.err = nil
+			c.Unlock()
+		case <-ctx.Done():
+>>>>>>> 12a5469... start on swarm services; move to glade
 		}
 		c.configEvent <- struct{}{}
 	}()
 
 	go func() {
+<<<<<<< HEAD
 		for conn := range node.ListenControlSocket(ctx) {
 			c.Lock()
 			if c.conn != conn {
@@ -275,18 +384,35 @@ func (c *Cluster) startNewNode(forceNewCluster bool, listenAddr, joinAddr, secre
 				c.client = nil
 			}
 			c.conn = conn
+=======
+		for conn := range n.ListenControlSocket(ctx) {
+			c.Lock()
+			if node.conn != conn {
+				if conn == nil {
+					node.client = nil
+				} else {
+					node.client = swarmapi.NewControlClient(conn)
+				}
+			}
+			node.conn = conn
+>>>>>>> 12a5469... start on swarm services; move to glade
 			c.Unlock()
 			c.configEvent <- struct{}{}
 		}
 	}()
 
+<<<<<<< HEAD
 	return node, ctx, nil
+=======
+	return node, nil
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // Init initializes new cluster from user provided request.
 func (c *Cluster) Init(req types.InitRequest) (string, error) {
 	c.Lock()
 	if node := c.node; node != nil {
+<<<<<<< HEAD
 		c.Unlock()
 		if !req.ForceNewCluster {
 			return "", errSwarmExists(node)
@@ -301,6 +427,16 @@ func (c *Cluster) Init(req types.InitRequest) (string, error) {
 		c.node = nil
 		c.conn = nil
 		c.ready = false
+=======
+		if !req.ForceNewCluster {
+			c.Unlock()
+			return "", errSwarmExists(node)
+		}
+		if err := c.stopNode(); err != nil {
+			c.Unlock()
+			return "", err
+		}
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	if err := validateAndSanitizeInitRequest(&req); err != nil {
@@ -309,7 +445,11 @@ func (c *Cluster) Init(req types.InitRequest) (string, error) {
 	}
 
 	// todo: check current state existing
+<<<<<<< HEAD
 	n, ctx, err := c.startNewNode(req.ForceNewCluster, req.ListenAddr, "", "", "", false)
+=======
+	n, err := c.startNewNode(req.ForceNewCluster, req.ListenAddr, "", "", "", false)
+>>>>>>> 12a5469... start on swarm services; move to glade
 	if err != nil {
 		c.Unlock()
 		return "", err
@@ -321,6 +461,7 @@ func (c *Cluster) Init(req types.InitRequest) (string, error) {
 		if err := initClusterSpec(n, req.Spec); err != nil {
 			return "", err
 		}
+<<<<<<< HEAD
 		go c.reconnectOnFailure(ctx)
 		return n.NodeID(), nil
 	case <-ctx.Done():
@@ -335,6 +476,19 @@ func (c *Cluster) Init(req types.InitRequest) (string, error) {
 			return "", c.err
 		}
 		return "", ctx.Err()
+=======
+		go c.reconnectOnFailure(n)
+		return n.NodeID(), nil
+	case <-n.done:
+		c.RLock()
+		defer c.RUnlock()
+		if !req.ForceNewCluster { // if failure on first attempt don't keep state
+			if err := c.clearState(); err != nil {
+				return "", err
+			}
+		}
+		return "", c.err
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 }
 
@@ -350,7 +504,11 @@ func (c *Cluster) Join(req types.JoinRequest) error {
 		return err
 	}
 	// todo: check current state existing
+<<<<<<< HEAD
 	n, ctx, err := c.startNewNode(false, req.ListenAddr, req.RemoteAddrs[0], req.Secret, req.CACertHash, req.Manager)
+=======
+	n, err := c.startNewNode(false, req.ListenAddr, req.RemoteAddrs[0], req.Secret, req.CACertHash, req.Manager)
+>>>>>>> 12a5469... start on swarm services; move to glade
 	if err != nil {
 		c.Unlock()
 		return err
@@ -367,6 +525,7 @@ func (c *Cluster) Join(req types.JoinRequest) error {
 			certificateRequested = nil
 		case <-time.After(swarmConnectTimeout):
 			// attempt to connect will continue in background, also reconnecting
+<<<<<<< HEAD
 			go c.reconnectOnFailure(ctx)
 			return ErrSwarmJoinTimeoutReached
 		case <-n.Ready():
@@ -379,16 +538,50 @@ func (c *Cluster) Join(req types.JoinRequest) error {
 				return c.err
 			}
 			return ctx.Err()
+=======
+			go c.reconnectOnFailure(n)
+			return ErrSwarmJoinTimeoutReached
+		case <-n.Ready():
+			go c.reconnectOnFailure(n)
+			return nil
+		case <-n.done:
+			c.RLock()
+			defer c.RUnlock()
+			return c.err
+>>>>>>> 12a5469... start on swarm services; move to glade
 		}
 	}
 }
 
+<<<<<<< HEAD
 func (c *Cluster) cancelReconnect() {
+=======
+// stopNode is a helper that stops the active c.node and waits until it has
+// shut down. Call while keeping the cluster lock.
+func (c *Cluster) stopNode() error {
+	if c.node == nil {
+		return nil
+	}
+>>>>>>> 12a5469... start on swarm services; move to glade
 	c.stop = true
 	if c.cancelDelay != nil {
 		c.cancelDelay()
 		c.cancelDelay = nil
 	}
+<<<<<<< HEAD
+=======
+	node := c.node
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	// TODO: can't hold lock on stop because it calls back to network
+	c.Unlock()
+	defer c.Lock()
+	if err := node.Stop(ctx); err != nil && !strings.Contains(err.Error(), "context canceled") {
+		return err
+	}
+	<-node.done
+	return nil
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // Leave shuts down Cluster and removes current state.
@@ -407,17 +600,26 @@ func (c *Cluster) Leave(force bool) error {
 			if err == nil {
 				if active && reachable-2 <= unreachable {
 					if reachable == 1 && unreachable == 0 {
+<<<<<<< HEAD
 						msg += "Leaving last manager will remove all current state of the cluster. Use `--force` to ignore this message. "
 						c.Unlock()
 						return fmt.Errorf(msg)
 					}
 					msg += fmt.Sprintf("Leaving cluster will leave you with %v managers out of %v. This means Raft quorum will be lost and your cluster will become inaccessible. ", reachable-1, reachable+unreachable)
+=======
+						msg += "Removing the last manager will erase all current state of the cluster. Use `--force` to ignore this message. "
+						c.Unlock()
+						return fmt.Errorf(msg)
+					}
+					msg += fmt.Sprintf("Leaving the cluster will leave you with %v managers out of %v. This means Raft quorum will be lost and your cluster will become inaccessible. ", reachable-1, reachable+unreachable)
+>>>>>>> 12a5469... start on swarm services; move to glade
 				}
 			}
 		} else {
 			msg += "Doing so may lose the consensus of your cluster. "
 		}
 
+<<<<<<< HEAD
 		msg += "Only way to restore a cluster that has lost consensus is to reinitialize it with `--force-new-cluster`. Use `--force` to ignore this message."
 		c.Unlock()
 		return fmt.Errorf(msg)
@@ -430,6 +632,17 @@ func (c *Cluster) Leave(force bool) error {
 	if err := node.Stop(ctx); err != nil && !strings.Contains(err.Error(), "context canceled") {
 		return err
 	}
+=======
+		msg += "The only way to restore a cluster that has lost consensus is to reinitialize it with `--force-new-cluster`. Use `--force` to ignore this message."
+		c.Unlock()
+		return fmt.Errorf(msg)
+	}
+	if err := c.stopNode(); err != nil {
+		c.Unlock()
+		return err
+	}
+	c.Unlock()
+>>>>>>> 12a5469... start on swarm services; move to glade
 	if nodeID := node.NodeID(); nodeID != "" {
 		for _, id := range c.config.Backend.ListContainersForNode(nodeID) {
 			if err := c.config.Backend.ContainerRm(id, &apitypes.ContainerRmConfig{ForceRemove: true}); err != nil {
@@ -437,11 +650,14 @@ func (c *Cluster) Leave(force bool) error {
 			}
 		}
 	}
+<<<<<<< HEAD
 	c.Lock()
 	defer c.Unlock()
 	c.node = nil
 	c.conn = nil
 	c.ready = false
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 	c.configEvent <- struct{}{}
 	// todo: cleanup optional?
 	if err := c.clearState(); err != nil {
@@ -531,7 +747,11 @@ func (c *Cluster) IsManager() bool {
 func (c *Cluster) IsAgent() bool {
 	c.RLock()
 	defer c.RUnlock()
+<<<<<<< HEAD
 	return c.ready
+=======
+	return c.node != nil && c.ready
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // GetListenAddress returns the listening address for current manager's
@@ -539,7 +759,11 @@ func (c *Cluster) IsAgent() bool {
 func (c *Cluster) GetListenAddress() string {
 	c.RLock()
 	defer c.RUnlock()
+<<<<<<< HEAD
 	if c.conn != nil {
+=======
+	if c.isActiveManager() {
+>>>>>>> 12a5469... start on swarm services; move to glade
 		return c.listenAddr
 	}
 	return ""
@@ -594,7 +818,10 @@ func (c *Cluster) Info() types.Info {
 	if c.err != nil {
 		info.Error = c.err.Error()
 	}
+<<<<<<< HEAD
 
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 	if c.isActiveManager() {
 		info.ControlAvailable = true
 		if r, err := c.client.ListNodes(c.getRequestContext(), &swarmapi.ListNodesRequest{}); err == nil {
@@ -623,7 +850,11 @@ func (c *Cluster) Info() types.Info {
 
 // isActiveManager should not be called without a read lock
 func (c *Cluster) isActiveManager() bool {
+<<<<<<< HEAD
 	return c.conn != nil
+=======
+	return c.node != nil && c.conn != nil
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // errNoManager returns error describing why manager commands can't be used.
@@ -668,7 +899,11 @@ func (c *Cluster) GetServices(options apitypes.ServiceListOptions) ([]types.Serv
 }
 
 // CreateService creates a new service in a managed swarm cluster.
+<<<<<<< HEAD
 func (c *Cluster) CreateService(s types.ServiceSpec) (string, error) {
+=======
+func (c *Cluster) CreateService(s types.ServiceSpec, encodedAuth string) (string, error) {
+>>>>>>> 12a5469... start on swarm services; move to glade
 	c.RLock()
 	defer c.RUnlock()
 
@@ -687,6 +922,18 @@ func (c *Cluster) CreateService(s types.ServiceSpec) (string, error) {
 	if err != nil {
 		return "", err
 	}
+<<<<<<< HEAD
+=======
+
+	if encodedAuth != "" {
+		ctnr := serviceSpec.Task.GetContainer()
+		if ctnr == nil {
+			return "", fmt.Errorf("service does not use container tasks")
+		}
+		ctnr.PullOptions = &swarmapi.ContainerSpec_PullOptions{RegistryAuth: encodedAuth}
+	}
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 	r, err := c.client.CreateService(ctx, &swarmapi.CreateServiceRequest{Spec: &serviceSpec})
 	if err != nil {
 		return "", err
@@ -712,7 +959,11 @@ func (c *Cluster) GetService(input string) (types.Service, error) {
 }
 
 // UpdateService updates existing service to match new properties.
+<<<<<<< HEAD
 func (c *Cluster) UpdateService(serviceID string, version uint64, spec types.ServiceSpec) error {
+=======
+func (c *Cluster) UpdateService(serviceID string, version uint64, spec types.ServiceSpec, encodedAuth string) error {
+>>>>>>> 12a5469... start on swarm services; move to glade
 	c.RLock()
 	defer c.RUnlock()
 
@@ -725,6 +976,29 @@ func (c *Cluster) UpdateService(serviceID string, version uint64, spec types.Ser
 		return err
 	}
 
+<<<<<<< HEAD
+=======
+	if encodedAuth != "" {
+		ctnr := serviceSpec.Task.GetContainer()
+		if ctnr == nil {
+			return fmt.Errorf("service does not use container tasks")
+		}
+		ctnr.PullOptions = &swarmapi.ContainerSpec_PullOptions{RegistryAuth: encodedAuth}
+	} else {
+		// this is needed because if the encodedAuth isn't being updated then we
+		// shouldn't lose it, and continue to use the one that was already present
+		currentService, err := getService(c.getRequestContext(), c.client, serviceID)
+		if err != nil {
+			return err
+		}
+		ctnr := currentService.Spec.Task.GetContainer()
+		if ctnr == nil {
+			return fmt.Errorf("service does not use container tasks")
+		}
+		serviceSpec.Task.GetContainer().PullOptions = ctnr.PullOptions
+	}
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 	_, err = c.client.UpdateService(
 		c.getRequestContext(),
 		&swarmapi.UpdateServiceRequest{
@@ -860,7 +1134,37 @@ func (c *Cluster) GetTasks(options apitypes.TaskListOptions) ([]types.Task, erro
 		return nil, c.errNoManager()
 	}
 
+<<<<<<< HEAD
 	filters, err := newListTasksFilters(options.Filter)
+=======
+	byName := func(filter filters.Args) error {
+		if filter.Include("service") {
+			serviceFilters := filter.Get("service")
+			for _, serviceFilter := range serviceFilters {
+				service, err := c.GetService(serviceFilter)
+				if err != nil {
+					return err
+				}
+				filter.Del("service", serviceFilter)
+				filter.Add("service", service.ID)
+			}
+		}
+		if filter.Include("node") {
+			nodeFilters := filter.Get("node")
+			for _, nodeFilter := range nodeFilters {
+				node, err := c.GetNode(nodeFilter)
+				if err != nil {
+					return err
+				}
+				filter.Del("node", nodeFilter)
+				filter.Add("node", node.ID)
+			}
+		}
+		return nil
+	}
+
+	filters, err := newListTasksFilters(options.Filter, byName)
+>>>>>>> 12a5469... start on swarm services; move to glade
 	if err != nil {
 		return nil, err
 	}
@@ -1007,7 +1311,11 @@ func getNetwork(ctx context.Context, c swarmapi.ControlClient, input string) (*s
 		}
 
 		if l := len(rl.Networks); l > 1 {
+<<<<<<< HEAD
 			return nil, fmt.Errorf("network %s is ambigious (%d matches found)", input, l)
+=======
+			return nil, fmt.Errorf("network %s is ambiguous (%d matches found)", input, l)
+>>>>>>> 12a5469... start on swarm services; move to glade
 		}
 
 		return rl.Networks[0], nil
@@ -1023,7 +1331,11 @@ func (c *Cluster) Cleanup() {
 		c.Unlock()
 		return
 	}
+<<<<<<< HEAD
 
+=======
+	defer c.Unlock()
+>>>>>>> 12a5469... start on swarm services; move to glade
 	if c.isActiveManager() {
 		active, reachable, unreachable, err := c.managerStats()
 		if err == nil {
@@ -1033,6 +1345,7 @@ func (c *Cluster) Cleanup() {
 			}
 		}
 	}
+<<<<<<< HEAD
 	c.cancelReconnect()
 	c.Unlock()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -1045,6 +1358,9 @@ func (c *Cluster) Cleanup() {
 	c.ready = false
 	c.conn = nil
 	c.Unlock()
+=======
+	c.stopNode()
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 func (c *Cluster) managerStats() (current bool, reachable int, unreachable int, err error) {
@@ -1139,14 +1455,22 @@ func validateAddr(addr string) (string, error) {
 	return strings.TrimPrefix(newaddr, "tcp://"), nil
 }
 
+<<<<<<< HEAD
 func errSwarmExists(node *swarmagent.Node) error {
+=======
+func errSwarmExists(node *node) error {
+>>>>>>> 12a5469... start on swarm services; move to glade
 	if node.NodeMembership() != swarmapi.NodeMembershipAccepted {
 		return ErrPendingSwarmExists
 	}
 	return ErrSwarmExists
 }
 
+<<<<<<< HEAD
 func initClusterSpec(node *swarmagent.Node, spec types.Spec) error {
+=======
+func initClusterSpec(node *node, spec types.Spec) error {
+>>>>>>> 12a5469... start on swarm services; move to glade
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 	for conn := range node.ListenControlSocket(ctx) {
 		if ctx.Err() != nil {

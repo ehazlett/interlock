@@ -22,6 +22,10 @@ import (
 	"github.com/opencontainers/runc/libcontainer/cgroups"
 	"github.com/opencontainers/runc/libcontainer/configs"
 	"github.com/opencontainers/runc/libcontainer/criurpc"
+<<<<<<< HEAD
+=======
+	"github.com/opencontainers/runc/libcontainer/system"
+>>>>>>> 12a5469... start on swarm services; move to glade
 	"github.com/opencontainers/runc/libcontainer/utils"
 	"github.com/syndtr/gocapability/capability"
 	"github.com/vishvananda/netlink/nl"
@@ -30,6 +34,7 @@ import (
 const stdioFdCount = 3
 
 type linuxContainer struct {
+<<<<<<< HEAD
 	id            string
 	root          string
 	config        *configs.Config
@@ -42,6 +47,21 @@ type linuxContainer struct {
 	criuVersion   int
 	state         containerState
 	created       time.Time
+=======
+	id                   string
+	root                 string
+	config               *configs.Config
+	cgroupManager        cgroups.Manager
+	initPath             string
+	initArgs             []string
+	initProcess          parentProcess
+	initProcessStartTime string
+	criuPath             string
+	m                    sync.Mutex
+	criuVersion          int
+	state                containerState
+	created              time.Time
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // State represents a running container's state
@@ -252,9 +272,18 @@ func (c *linuxContainer) start(process *Process, isInit bool) error {
 		c.state = &createdState{
 			c: c,
 		}
+<<<<<<< HEAD
 		if err := c.updateState(parent); err != nil {
 			return err
 		}
+=======
+		state, err := c.updateState(parent)
+		if err != nil {
+			return err
+		}
+		c.initProcessStartTime = state.InitProcessStartTime
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 		if c.config.Hooks != nil {
 			s := configs.HookState{
 				Version:    c.config.Version,
@@ -1043,7 +1072,11 @@ func (c *linuxContainer) criuNotifications(resp *criurpc.CriuResp, process *Proc
 		}); err != nil {
 			return err
 		}
+<<<<<<< HEAD
 		if err := c.updateState(r); err != nil {
+=======
+		if _, err := c.updateState(r); err != nil {
+>>>>>>> 12a5469... start on swarm services; move to glade
 			return err
 		}
 		if err := os.Remove(filepath.Join(c.root, "checkpoint")); err != nil {
@@ -1055,6 +1088,7 @@ func (c *linuxContainer) criuNotifications(resp *criurpc.CriuResp, process *Proc
 	return nil
 }
 
+<<<<<<< HEAD
 func (c *linuxContainer) updateState(process parentProcess) error {
 	c.initProcess = process
 	state, err := c.currentState()
@@ -1062,6 +1096,19 @@ func (c *linuxContainer) updateState(process parentProcess) error {
 		return err
 	}
 	return c.saveState(state)
+=======
+func (c *linuxContainer) updateState(process parentProcess) (*State, error) {
+	c.initProcess = process
+	state, err := c.currentState()
+	if err != nil {
+		return nil, err
+	}
+	err = c.saveState(state)
+	if err != nil {
+		return nil, err
+	}
+	return state, nil
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 func (c *linuxContainer) saveState(s *State) error {
@@ -1109,6 +1156,24 @@ func (c *linuxContainer) refreshState() error {
 	return c.state.transition(&stoppedState{c: c})
 }
 
+<<<<<<< HEAD
+=======
+// doesInitProcessExist checks if the init process is still the same process
+// as the initial one, it could happen that the original process has exited
+// and a new process has been created with the same pid, in this case, the
+// container would already be stopped.
+func (c *linuxContainer) doesInitProcessExist(initPid int) (bool, error) {
+	startTime, err := system.GetProcessStartTime(initPid)
+	if err != nil {
+		return false, newSystemErrorWithCausef(err, "getting init process %d start time", initPid)
+	}
+	if c.initProcessStartTime != startTime {
+		return false, nil
+	}
+	return true, nil
+}
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 func (c *linuxContainer) runType() (Status, error) {
 	if c.initProcess == nil {
 		return Stopped, nil
@@ -1124,6 +1189,14 @@ func (c *linuxContainer) runType() (Status, error) {
 		}
 		return Stopped, newSystemErrorWithCausef(err, "sending signal 0 to pid %d", pid)
 	}
+<<<<<<< HEAD
+=======
+	// check if the process is still the original init process.
+	exist, err := c.doesInitProcessExist(pid)
+	if !exist || err != nil {
+		return Stopped, err
+	}
+>>>>>>> 12a5469... start on swarm services; move to glade
 	// check if the process that is running is the init process or the user's process.
 	// this is the difference between the container Running and Created.
 	environ, err := ioutil.ReadFile(fmt.Sprintf("/proc/%d/environ", pid))

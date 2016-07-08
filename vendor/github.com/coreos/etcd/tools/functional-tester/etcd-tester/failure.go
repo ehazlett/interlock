@@ -20,6 +20,7 @@ import (
 	"time"
 )
 
+<<<<<<< HEAD
 const (
 	snapshotCount      = 10000
 	slowNetworkLatency = 500 // 500 millisecond
@@ -32,6 +33,8 @@ const (
 	waitRecover = 5 * time.Second
 )
 
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 type failure interface {
 	// Inject injeccts the failure into the testing cluster at the given
 	// round. When calling the function, the cluster should be in health.
@@ -47,6 +50,7 @@ type description string
 
 func (d description) Desc() string { return string(d) }
 
+<<<<<<< HEAD
 type failureKillAll struct {
 	description
 }
@@ -88,21 +92,69 @@ func newFailureKillMajority() *failureKillMajority {
 func (f *failureKillMajority) Inject(c *cluster, round int) error {
 	for i := range getToKillMap(c.Size, round) {
 		if err := c.Agents[i].Stop(); err != nil {
+=======
+type injectMemberFunc func(*member) error
+type recoverMemberFunc func(*member) error
+
+type failureByFunc struct {
+	description
+	injectMember  injectMemberFunc
+	recoverMember recoverMemberFunc
+}
+
+type failureOne failureByFunc
+type failureAll failureByFunc
+type failureMajority failureByFunc
+type failureLeader struct {
+	failureByFunc
+	idx int
+}
+
+type failureDelay struct {
+	failure
+	delayDuration time.Duration
+}
+
+// failureUntilSnapshot injects a failure and waits for a snapshot event
+type failureUntilSnapshot struct{ failure }
+
+func (f *failureOne) Inject(c *cluster, round int) error {
+	return f.injectMember(c.Members[round%c.Size])
+}
+
+func (f *failureOne) Recover(c *cluster, round int) error {
+	if err := f.recoverMember(c.Members[round%c.Size]); err != nil {
+		return err
+	}
+	return c.WaitHealth()
+}
+
+func (f *failureAll) Inject(c *cluster, round int) error {
+	for _, m := range c.Members {
+		if err := f.injectMember(m); err != nil {
+>>>>>>> 12a5469... start on swarm services; move to glade
 			return err
 		}
 	}
 	return nil
 }
 
+<<<<<<< HEAD
 func (f *failureKillMajority) Recover(c *cluster, round int) error {
 	for i := range getToKillMap(c.Size, round) {
 		if _, err := c.Agents[i].Restart(); err != nil {
+=======
+func (f *failureAll) Recover(c *cluster, round int) error {
+	for _, m := range c.Members {
+		if err := f.recoverMember(m); err != nil {
+>>>>>>> 12a5469... start on swarm services; move to glade
 			return err
 		}
 	}
 	return c.WaitHealth()
 }
 
+<<<<<<< HEAD
 func getToKillMap(size int, seed int) map[int]bool {
 	m := make(map[int]bool)
 	r := rand.New(rand.NewSource(int64(seed)))
@@ -198,10 +250,27 @@ func (f *failureKillOneForLongTime) Inject(c *cluster, round int) error {
 			time.Sleep(time.Second)
 		}
 		return fmt.Errorf("cluster too slow: only commit %d requests in %ds", end-start, retry)
+=======
+func (f *failureMajority) Inject(c *cluster, round int) error {
+	for i := range killMap(c.Size, round) {
+		if err := f.injectMember(c.Members[i]); err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
+func (f *failureMajority) Recover(c *cluster, round int) error {
+	for i := range killMap(c.Size, round) {
+		if err := f.recoverMember(c.Members[i]); err != nil {
+			return err
+		}
+>>>>>>> 12a5469... start on swarm services; move to glade
+	}
+	return nil
+}
+
+<<<<<<< HEAD
 func (f *failureKillOneForLongTime) Recover(c *cluster, round int) error {
 	i := round % c.Size
 	if _, err := c.Agents[i].Restart(); err != nil {
@@ -224,11 +293,15 @@ func newFailureKillLeaderForLongTime() *failureKillLeaderForLongTime {
 }
 
 func (f *failureKillLeaderForLongTime) Inject(c *cluster, round int) error {
+=======
+func (f *failureLeader) Inject(c *cluster, round int) error {
+>>>>>>> 12a5469... start on swarm services; move to glade
 	idx, err := c.GetLeader()
 	if err != nil {
 		return err
 	}
 	f.idx = idx
+<<<<<<< HEAD
 	if err := c.Agents[idx].Stop(); err != nil {
 		return err
 	}
@@ -273,11 +346,19 @@ func (f *failureIsolate) Inject(c *cluster, round int) error {
 func (f *failureIsolate) Recover(c *cluster, round int) error {
 	i := round % c.Size
 	if err := c.Agents[i].RecoverPort(peerURLPort); err != nil {
+=======
+	return f.injectMember(c.Members[idx])
+}
+
+func (f *failureLeader) Recover(c *cluster, round int) error {
+	if err := f.recoverMember(c.Members[f.idx]); err != nil {
+>>>>>>> 12a5469... start on swarm services; move to glade
 		return err
 	}
 	return c.WaitHealth()
 }
 
+<<<<<<< HEAD
 type failureIsolateAll struct {
 	description
 }
@@ -398,4 +479,54 @@ func (f *failureSlowNetworkAll) Recover(c *cluster, round int) error {
 	}
 	time.Sleep(waitRecover)
 	return c.WaitHealth()
+=======
+func (f *failureDelay) Inject(c *cluster, round int) error {
+	if err := f.failure.Inject(c, round); err != nil {
+		return err
+	}
+	time.Sleep(f.delayDuration)
+	return nil
+}
+
+func (f *failureUntilSnapshot) Inject(c *cluster, round int) error {
+	if err := f.failure.Inject(c, round); err != nil {
+		return err
+	}
+
+	if c.Size < 3 {
+		return nil
+	}
+
+	start, _ := c.Report()
+	end := start
+	// Normal healthy cluster could accept 1000req/s at least.
+	// Give it 3-times time to create a new snapshot.
+	retry := snapshotCount / 1000 * 3
+	for j := 0; j < retry; j++ {
+		end, _ = c.Report()
+		// If the number of proposals committed is bigger than snapshot count,
+		// a new snapshot should have been created.
+		if end-start > snapshotCount {
+			return nil
+		}
+		time.Sleep(time.Second)
+	}
+	return fmt.Errorf("cluster too slow: only commit %d requests in %ds", end-start, retry)
+}
+
+func (f *failureUntilSnapshot) Desc() string {
+	return f.failure.Desc() + " for a long time and expect it to recover from an incoming snapshot"
+}
+
+func killMap(size int, seed int) map[int]bool {
+	m := make(map[int]bool)
+	r := rand.New(rand.NewSource(int64(seed)))
+	majority := size/2 + 1
+	for {
+		m[r.Intn(size)] = true
+		if len(m) >= majority {
+			return m
+		}
+	}
+>>>>>>> 12a5469... start on swarm services; move to glade
 }

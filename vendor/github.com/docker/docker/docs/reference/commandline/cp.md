@@ -10,6 +10,7 @@ parent = "smn_cli"
 
 # cp
 
+<<<<<<< HEAD
     Usage: docker cp [OPTIONS] CONTAINER:SRC_PATH DEST_PATH | -
            docker cp [OPTIONS] SRC_PATH | - CONTAINER:DEST_PATH
 
@@ -17,6 +18,23 @@ parent = "smn_cli"
 
       -L, --follow-link          Always follow symbol link in SRC_PATH
       --help                     Print usage
+=======
+```markdown
+Usage:  docker cp [OPTIONS] CONTAINER:SRC_PATH DEST_PATH|-
+        docker cp [OPTIONS] SRC_PATH|- CONTAINER:DEST_PATH
+
+Copy files/folders between a container and the local filesystem
+
+Use '-' as the source to read a tar archive from stdin
+and extract it to a directory destination in a container.
+Use '-' as the destination to stream a tar archive of a
+container source to stdout.
+
+Options:
+  -L, --follow-link   Always follow symbol link in SRC_PATH
+      --help          Print usage
+```
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 The `docker cp` utility copies the contents of `SRC_PATH` to the `DEST_PATH`.
 You can copy from the container's file system to the local machine or the

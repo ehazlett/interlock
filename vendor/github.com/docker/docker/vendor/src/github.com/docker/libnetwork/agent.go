@@ -102,7 +102,11 @@ func (c *controller) handleKeyChange(keys []*types.EncryptionKey) error {
 				deleted = cKey.Key
 			}
 
+<<<<<<< HEAD
 			if cKey.Subsystem == subsysGossip /* subsysIPSec */ {
+=======
+			if cKey.Subsystem == subsysIPSec {
+>>>>>>> 12a5469... start on swarm services; move to glade
 				drvEnc.Prune = cKey.Key
 				drvEnc.PruneTag = cKey.LamportTime
 			}
@@ -128,7 +132,11 @@ func (c *controller) handleKeyChange(keys []*types.EncryptionKey) error {
 				a.networkDB.SetKey(key.Key)
 			}
 
+<<<<<<< HEAD
 			if key.Subsystem == subsysGossip /*subsysIPSec*/ {
+=======
+			if key.Subsystem == subsysIPSec {
+>>>>>>> 12a5469... start on swarm services; move to glade
 				drvEnc.Key = key.Key
 				drvEnc.Tag = key.LamportTime
 			}
@@ -138,7 +146,11 @@ func (c *controller) handleKeyChange(keys []*types.EncryptionKey) error {
 	key, tag := c.getPrimaryKeyTag(subsysGossip)
 	a.networkDB.SetPrimaryKey(key)
 
+<<<<<<< HEAD
 	//key, tag = c.getPrimaryKeyTag(subsysIPSec)
+=======
+	key, tag = c.getPrimaryKeyTag(subsysIPSec)
+>>>>>>> 12a5469... start on swarm services; move to glade
 	drvEnc.Primary = key
 	drvEnc.PrimaryTag = tag
 
@@ -317,17 +329,24 @@ func (c *controller) agentInit(bindAddrOrInterface string) error {
 		return nil
 	}
 
+<<<<<<< HEAD
 	drvEnc := discoverapi.DriverEncryptionConfig{}
 
 	keys, tags := c.getKeys(subsysGossip) // getKeys(subsysIPSec)
 	drvEnc.Keys = keys
 	drvEnc.Tags = tags
 
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 	bindAddr, err := resolveAddr(bindAddrOrInterface)
 	if err != nil {
 		return err
 	}
 
+<<<<<<< HEAD
+=======
+	keys, tags := c.getKeys(subsysGossip)
+>>>>>>> 12a5469... start on swarm services; move to glade
 	hostname, _ := os.Hostname()
 	nDB, err := networkdb.New(&networkdb.Config{
 		BindAddr: bindAddr,
@@ -350,6 +369,14 @@ func (c *controller) agentInit(bindAddrOrInterface string) error {
 
 	go c.handleTableEvents(ch, c.handleEpTableEvent)
 
+<<<<<<< HEAD
+=======
+	drvEnc := discoverapi.DriverEncryptionConfig{}
+	keys, tags = c.getKeys(subsysIPSec)
+	drvEnc.Keys = keys
+	drvEnc.Tags = tags
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 	c.drvRegistry.WalkDrivers(func(name string, driver driverapi.Driver, capability driverapi.Capability) bool {
 		err := driver.DiscoverNew(discoverapi.EncryptionKeysConfig, drvEnc)
 		if err != nil {
@@ -380,7 +407,11 @@ func (c *controller) agentDriverNotify(d driverapi.Driver) {
 	})
 
 	drvEnc := discoverapi.DriverEncryptionConfig{}
+<<<<<<< HEAD
 	keys, tags := c.getKeys(subsysGossip) // getKeys(subsysIPSec)
+=======
+	keys, tags := c.getKeys(subsysIPSec)
+>>>>>>> 12a5469... start on swarm services; move to glade
 	drvEnc.Keys = keys
 	drvEnc.Tags = tags
 

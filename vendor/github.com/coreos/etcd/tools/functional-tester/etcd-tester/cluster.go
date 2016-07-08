@@ -22,30 +22,51 @@ import (
 	"time"
 
 	"golang.org/x/net/context"
+<<<<<<< HEAD
 	"google.golang.org/grpc"
 
 	clientv2 "github.com/coreos/etcd/client"
 	"github.com/coreos/etcd/clientv3"
+=======
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 	pb "github.com/coreos/etcd/etcdserver/etcdserverpb"
 	"github.com/coreos/etcd/tools/functional-tester/etcd-agent/client"
 )
 
+<<<<<<< HEAD
 const peerURLPort = 2380
+=======
+const (
+	peerURLPort   = 2380
+	failpointPort = 2381
+)
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 type cluster struct {
 	v2Only bool // to be deprecated
 
+<<<<<<< HEAD
 	agentEndpoints       []string
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 	datadir              string
 	stressKeySize        int
 	stressKeySuffixRange int
 
+<<<<<<< HEAD
 	Size       int
 	Agents     []client.Agent
 	Stressers  []Stresser
 	Names      []string
 	GRPCURLs   []string
 	ClientURLs []string
+=======
+	Size      int
+	Stressers []Stresser
+
+	Members []*member
+>>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 type ClusterStatus struct {
@@ -56,17 +77,25 @@ type ClusterStatus struct {
 func newCluster(agentEndpoints []string, datadir string, stressKeySize, stressKeySuffixRange int, isV2Only bool) (*cluster, error) {
 	c := &cluster{
 		v2Only:               isV2Only,
+<<<<<<< HEAD
 		agentEndpoints:       agentEndpoints,
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 		datadir:              datadir,
 		stressKeySize:        stressKeySize,
 		stressKeySuffixRange: stressKeySuffixRange,
 	}
+<<<<<<< HEAD
 	if err := c.Bootstrap(); err != nil {
+=======
+	if err := c.bootstrap(agentEndpoints); err != nil {
+>>>>>>> 12a5469... start on swarm services; move to glade
 		return nil, err
 	}
 	return c, nil
 }
 
+<<<<<<< HEAD
 func (c *cluster) Bootstrap() error {
 	size := len(c.agentEndpoints)
 
@@ -85,10 +114,23 @@ func (c *cluster) Bootstrap() error {
 
 		names[i] = fmt.Sprintf("etcd-%d", i)
 
+=======
+func (c *cluster) bootstrap(agentEndpoints []string) error {
+	size := len(agentEndpoints)
+
+	members := make([]*member, size)
+	memberNameURLs := make([]string, size)
+	for i, u := range agentEndpoints {
+		agent, err := client.NewAgent(u)
+		if err != nil {
+			return err
+		}
+>>>>>>> 12a5469... start on swarm services; move to glade
 		host, _, err := net.SplitHostPort(u)
 		if err != nil {
 			return err
 		}
+<<<<<<< HEAD
 		grpcURLs[i] = fmt.Sprintf("%s:2379", host)
 		clientURLs[i] = fmt.Sprintf("http://%s:2379", host)
 		peerURLs[i] = fmt.Sprintf("http://%s:%d", host, peerURLPort)
@@ -118,6 +160,32 @@ func (c *cluster) Bootstrap() error {
 			// cleanup
 			for j := 0; j < i; j++ {
 				agents[j].Terminate()
+=======
+		members[i] = &member{
+			Agent:        agent,
+			Endpoint:     u,
+			Name:         fmt.Sprintf("etcd-%d", i),
+			ClientURL:    fmt.Sprintf("http://%s:2379", host),
+			PeerURL:      fmt.Sprintf("http://%s:%d", host, peerURLPort),
+			FailpointURL: fmt.Sprintf("http://%s:%d", host, failpointPort),
+		}
+		memberNameURLs[i] = members[i].ClusterEntry()
+	}
+	clusterStr := strings.Join(memberNameURLs, ",")
+	token := fmt.Sprint(rand.Int())
+
+	for i, m := range members {
+		flags := append(
+			m.Flags(),
+			"--data-dir", c.datadir,
+			"--initial-cluster-token", token,
+			"--initial-cluster", clusterStr)
+
+		if _, err := m.Agent.Start(flags...); err != nil {
+			// cleanup
+			for _, m := range members[:i] {
+				m.Agent.Terminate()
+>>>>>>> 12a5469... start on swarm services; move to glade
 			}
 			return err
 		}
@@ -126,15 +194,24 @@ func (c *cluster) Bootstrap() error {
 	// TODO: Too intensive stressers can panic etcd member with
 	// 'out of memory' error. Put rate limits in server side.
 	stressN := 100
+<<<<<<< HEAD
 	var stressers []Stresser
 	if c.v2Only {
 		for _, u := range clientURLs {
 			s := &stresserV2{
 				Endpoint:       u,
+=======
+	c.Stressers = make([]Stresser, len(members))
+	for i, m := range members {
+		if c.v2Only {
+			c.Stressers[i] = &stresserV2{
+				Endpoint:       m.ClientURL,
+>>>>>>> 12a5469... start on swarm services; move to glade
 				KeySize:        c.stressKeySize,
 				KeySuffixRange: c.stressKeySuffixRange,
 				N:              stressN,
 			}
+<<<<<<< HEAD
 			go s.Stress()
 			stressers = append(stressers, s)
 		}
@@ -142,10 +219,16 @@ func (c *cluster) Bootstrap() error {
 		for _, u := range grpcURLs {
 			s := &stresser{
 				Endpoint:       u,
+=======
+		} else {
+			c.Stressers[i] = &stresser{
+				Endpoint:       m.grpcAddr(),
+>>>>>>> 12a5469... start on swarm services; move to glade
 				KeySize:        c.stressKeySize,
 				KeySuffixRange: c.stressKeySuffixRange,
 				N:              stressN,
 			}
+<<<<<<< HEAD
 			go s.Stress()
 			stressers = append(stressers, s)
 		}
@@ -160,18 +243,50 @@ func (c *cluster) Bootstrap() error {
 	return nil
 }
 
+=======
+		}
+		go c.Stressers[i].Stress()
+	}
+
+	c.Size = size
+	c.Members = members
+	return nil
+}
+
+func (c *cluster) Reset() error {
+	eps := make([]string, len(c.Members))
+	for i, m := range c.Members {
+		eps[i] = m.Endpoint
+	}
+	return c.bootstrap(eps)
+}
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 func (c *cluster) WaitHealth() error {
 	var err error
 	// wait 60s to check cluster health.
 	// TODO: set it to a reasonable value. It is set that high because
 	// follower may use long time to catch up the leader when reboot under
 	// reasonable workload (https://github.com/coreos/etcd/issues/2698)
+<<<<<<< HEAD
 	healthFunc, urls := setHealthKey, c.GRPCURLs
 	if c.v2Only {
 		healthFunc, urls = setHealthKeyV2, c.ClientURLs
 	}
 	for i := 0; i < 60; i++ {
 		err = healthFunc(urls)
+=======
+	healthFunc := func(m *member) error { return m.SetHealthKeyV3() }
+	if c.v2Only {
+		healthFunc = func(m *member) error { return m.SetHealthKeyV2() }
+	}
+	for i := 0; i < 60; i++ {
+		for _, m := range c.Members {
+			if err = healthFunc(m); err != nil {
+				break
+			}
+		}
+>>>>>>> 12a5469... start on swarm services; move to glade
 		if err == nil {
 			return nil
 		}
@@ -186,6 +301,7 @@ func (c *cluster) GetLeader() (int, error) {
 	if c.v2Only {
 		return 0, nil
 	}
+<<<<<<< HEAD
 
 	for i, ep := range c.GRPCURLs {
 		cli, err := clientv3.New(clientv3.Config{
@@ -207,6 +323,14 @@ func (c *cluster) GetLeader() (int, error) {
 		}
 	}
 
+=======
+	for i, m := range c.Members {
+		isLeader, err := m.IsLeader()
+		if isLeader || err != nil {
+			return i, err
+		}
+	}
+>>>>>>> 12a5469... start on swarm services; move to glade
 	return 0, fmt.Errorf("no leader found")
 }
 
@@ -221,8 +345,13 @@ func (c *cluster) Report() (success, failure int) {
 
 func (c *cluster) Cleanup() error {
 	var lasterr error
+<<<<<<< HEAD
 	for _, a := range c.Agents {
 		if err := a.Cleanup(); err != nil {
+=======
+	for _, m := range c.Members {
+		if err := m.Agent.Cleanup(); err != nil {
+>>>>>>> 12a5469... start on swarm services; move to glade
 			lasterr = err
 		}
 	}
@@ -233,8 +362,13 @@ func (c *cluster) Cleanup() error {
 }
 
 func (c *cluster) Terminate() {
+<<<<<<< HEAD
 	for _, a := range c.Agents {
 		a.Terminate()
+=======
+	for _, m := range c.Members {
+		m.Agent.Terminate()
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 	for _, s := range c.Stressers {
 		s.Cancel()
@@ -246,10 +380,17 @@ func (c *cluster) Status() ClusterStatus {
 		AgentStatuses: make(map[string]client.Status),
 	}
 
+<<<<<<< HEAD
 	for i, a := range c.Agents {
 		s, err := a.Status()
 		// TODO: add a.Desc() as a key of the map
 		desc := c.agentEndpoints[i]
+=======
+	for _, m := range c.Members {
+		s, err := m.Agent.Status()
+		// TODO: add a.Desc() as a key of the map
+		desc := m.Endpoint
+>>>>>>> 12a5469... start on swarm services; move to glade
 		if err != nil {
 			cs.AgentStatuses[desc] = client.Status{State: "unknown"}
 			plog.Printf("failed to get the status of agent [%s]", desc)
@@ -259,6 +400,7 @@ func (c *cluster) Status() ClusterStatus {
 	return cs
 }
 
+<<<<<<< HEAD
 // setHealthKey sets health key on all given urls.
 func setHealthKey(us []string) error {
 	for _, u := range us {
@@ -317,6 +459,18 @@ func (c *cluster) getRevisionHash() (map[string]int64, map[string]int64, error) 
 		}
 		revs[u] = resp.Header.Revision
 		hashes[u] = int64(resp.Hash)
+=======
+func (c *cluster) getRevisionHash() (map[string]int64, map[string]int64, error) {
+	revs := make(map[string]int64)
+	hashes := make(map[string]int64)
+	for _, m := range c.Members {
+		rev, hash, err := m.RevHash()
+		if err != nil {
+			return nil, nil, err
+		}
+		revs[m.ClientURL] = rev
+		hashes[m.ClientURL] = hash
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 	return revs, hashes, nil
 }
@@ -326,8 +480,14 @@ func (c *cluster) compactKV(rev int64, timeout time.Duration) (err error) {
 		return nil
 	}
 
+<<<<<<< HEAD
 	for i, u := range c.GRPCURLs {
 		conn, derr := grpc.Dial(u, grpc.WithInsecure(), grpc.WithTimeout(5*time.Second))
+=======
+	for i, m := range c.Members {
+		u := m.ClientURL
+		conn, derr := m.dialGRPC()
+>>>>>>> 12a5469... start on swarm services; move to glade
 		if derr != nil {
 			plog.Printf("[compact kv #%d] dial error %v (endpoint %s)", i, derr, u)
 			err = derr
@@ -360,6 +520,7 @@ func (c *cluster) checkCompact(rev int64) error {
 	if rev == 0 {
 		return nil
 	}
+<<<<<<< HEAD
 	for _, u := range c.GRPCURLs {
 		cli, err := clientv3.New(clientv3.Config{
 			Endpoints:   []string{u},
@@ -381,12 +542,18 @@ func (c *cluster) checkCompact(rev int64) error {
 		}
 		if wr.CompactRevision != rev {
 			return fmt.Errorf("got compact revision %v, wanted %v (endpoint %s)", wr.CompactRevision, rev, u)
+=======
+	for _, m := range c.Members {
+		if err := m.CheckCompact(rev); err != nil {
+			return err
+>>>>>>> 12a5469... start on swarm services; move to glade
 		}
 	}
 	return nil
 }
 
 func (c *cluster) defrag() error {
+<<<<<<< HEAD
 	for _, u := range c.GRPCURLs {
 		plog.Printf("defragmenting %s\n", u)
 		conn, err := grpc.Dial(u, grpc.WithInsecure(), grpc.WithTimeout(5*time.Second))
@@ -399,6 +566,12 @@ func (c *cluster) defrag() error {
 		}
 		conn.Close()
 		plog.Printf("defragmented %s\n", u)
+=======
+	for _, m := range c.Members {
+		if err := m.Defrag(); err != nil {
+			return err
+		}
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 	return nil
 }

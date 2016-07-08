@@ -722,6 +722,7 @@ func (ep *endpoint) sbLeave(sb *sandbox, force bool, options ...EndpointOption) 
 	return nil
 }
 
+<<<<<<< HEAD
 func (n *network) validateForceDelete(locator string) error {
 	if n.Scope() == datastore.LocalScope {
 		return nil
@@ -734,6 +735,8 @@ func (n *network) validateForceDelete(locator string) error {
 	return nil
 }
 
+=======
+>>>>>>> 12a5469... start on swarm services; move to glade
 func (ep *endpoint) Delete(force bool) error {
 	var err error
 	n, err := ep.getNetworkFromStore()
@@ -750,6 +753,7 @@ func (ep *endpoint) Delete(force bool) error {
 	epid := ep.id
 	name := ep.name
 	sbid := ep.sandboxID
+<<<<<<< HEAD
 	locator := ep.locator
 	ep.Unlock()
 
@@ -759,6 +763,10 @@ func (ep *endpoint) Delete(force bool) error {
 		}
 	}
 
+=======
+	ep.Unlock()
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 	sb, _ := n.getController().SandboxByID(sbid)
 	if sb != nil && !force {
 		return &ActiveContainerError{name: name, id: epid}

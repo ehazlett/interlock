@@ -246,7 +246,11 @@ func (buh *blobUploadHandler) PutBlobUploadComplete(w http.ResponseWriter, r *ht
 			case distribution.ErrBlobInvalidLength, distribution.ErrBlobDigestUnsupported:
 				buh.Errors = append(buh.Errors, v2.ErrorCodeBlobUploadInvalid.WithDetail(err))
 			default:
+<<<<<<< HEAD
 				ctxu.GetLogger(buh).Errorf("unknown error completing upload: %#v", err)
+=======
+				ctxu.GetLogger(buh).Errorf("unknown error completing upload: %v", err)
+>>>>>>> 12a5469... start on swarm services; move to glade
 				buh.Errors = append(buh.Errors, errcode.ErrorCodeUnknown.WithDetail(err))
 			}
 

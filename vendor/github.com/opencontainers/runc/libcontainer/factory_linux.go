@@ -217,6 +217,7 @@ func (l *LinuxFactory) Load(id string) (Container, error) {
 		fds:              state.ExternalDescriptors,
 	}
 	c := &linuxContainer{
+<<<<<<< HEAD
 		initProcess:   r,
 		id:            id,
 		config:        &state.Config,
@@ -226,6 +227,18 @@ func (l *LinuxFactory) Load(id string) (Container, error) {
 		cgroupManager: l.NewCgroupsManager(state.Config.Cgroups, state.CgroupPaths),
 		root:          containerRoot,
 		created:       state.Created,
+=======
+		initProcess:          r,
+		initProcessStartTime: state.InitProcessStartTime,
+		id:                   id,
+		config:               &state.Config,
+		initPath:             l.InitPath,
+		initArgs:             l.InitArgs,
+		criuPath:             l.CriuPath,
+		cgroupManager:        l.NewCgroupsManager(state.Config.Cgroups, state.CgroupPaths),
+		root:                 containerRoot,
+		created:              state.Created,
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 	c.state = &loadedState{c: c}
 	if err := c.refreshState(); err != nil {

@@ -26,8 +26,13 @@ import (
 // NewLeaseCommand returns the cobra command for "lease".
 func NewLeaseCommand() *cobra.Command {
 	lc := &cobra.Command{
+<<<<<<< HEAD
 		Use:   "lease",
 		Short: "lease is used to manage leases.",
+=======
+		Use:   "lease <subcommand>",
+		Short: "Lease related commands",
+>>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	lc.AddCommand(NewLeaseGrantCommand())
@@ -41,7 +46,11 @@ func NewLeaseCommand() *cobra.Command {
 func NewLeaseGrantCommand() *cobra.Command {
 	lc := &cobra.Command{
 		Use:   "grant <ttl>",
+<<<<<<< HEAD
 		Short: "grant is used to create leases.",
+=======
+		Short: "Creates leases",
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 		Run: leaseGrantCommandFunc,
 	}
@@ -73,7 +82,11 @@ func leaseGrantCommandFunc(cmd *cobra.Command, args []string) {
 func NewLeaseRevokeCommand() *cobra.Command {
 	lc := &cobra.Command{
 		Use:   "revoke <leaseID>",
+<<<<<<< HEAD
 		Short: "revoke is used to revoke leases.",
+=======
+		Short: "Revokes leases",
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 		Run: leaseRevokeCommandFunc,
 	}
@@ -105,7 +118,11 @@ func leaseRevokeCommandFunc(cmd *cobra.Command, args []string) {
 func NewLeaseKeepAliveCommand() *cobra.Command {
 	lc := &cobra.Command{
 		Use:   "keep-alive <leaseID>",
+<<<<<<< HEAD
 		Short: "keep-alive is used to keep leases alive.",
+=======
+		Short: "Keeps leases alive (renew)",
+>>>>>>> 12a5469... start on swarm services; move to glade
 
 		Run: leaseKeepAliveCommandFunc,
 	}

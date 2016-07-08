@@ -3,8 +3,15 @@ package controlapi
 import (
 	"net"
 
+<<<<<<< HEAD
 	"github.com/docker/swarmkit/api"
 	"github.com/docker/swarmkit/identity"
+=======
+	"github.com/docker/libnetwork/ipamapi"
+	"github.com/docker/swarmkit/api"
+	"github.com/docker/swarmkit/identity"
+	"github.com/docker/swarmkit/manager/allocator/networkallocator"
+>>>>>>> 12a5469... start on swarm services; move to glade
 	"github.com/docker/swarmkit/manager/state/store"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -57,6 +64,13 @@ func validateIPAM(ipam *api.IPAMOptions) error {
 		return err
 	}
 
+<<<<<<< HEAD
+=======
+	if ipam.Driver != nil && ipam.Driver.Name != ipamapi.DefaultIPAM {
+		return grpc.Errorf(codes.InvalidArgument, "invalid IPAM specified")
+	}
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 	for _, ipamConf := range ipam.Configs {
 		if err := validateIPAMConfiguration(ipamConf); err != nil {
 			return err
@@ -79,6 +93,13 @@ func validateNetworkSpec(spec *api.NetworkSpec) error {
 		return err
 	}
 
+<<<<<<< HEAD
+=======
+	if spec.DriverConfig != nil && spec.DriverConfig.Name != networkallocator.DefaultDriver {
+		return grpc.Errorf(codes.InvalidArgument, "invalid driver specified")
+	}
+
+>>>>>>> 12a5469... start on swarm services; move to glade
 	if err := validateIPAM(spec.IPAM); err != nil {
 		return err
 	}
