@@ -11,7 +11,9 @@ func TestHostname(t *testing.T) {
 	testHostname := "foo"
 
 	cfg := &ctypes.Config{
-		Hostname: testHostname,
+		Labels: map[string]string{
+			ext.InterlockHostnameLabel: testHostname,
+		},
 	}
 
 	hostname := Hostname(cfg.Labels)
