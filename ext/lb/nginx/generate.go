@@ -57,6 +57,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container, se
 				return nil, err
 			}
 
+			log().Debugf("checking container: id=%s", cntID)
 			id = cntID
 
 			hostname = cInfo.Config.Hostname
@@ -98,6 +99,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container, se
 				}
 			}
 		case swarmtypes.Service:
+			log().Debugf("checking service: id=%s", t.ID)
 			labels = t.Spec.Labels
 			id = t.ID
 			publishedPort := uint32(0)
@@ -121,31 +123,41 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container, se
 					}
 				}
 			} else {
-				publishedPort = t.Endpoint.Spec.Ports[0].PublishedPort
+				publishedPort = t.Endpoint.Ports[0].PublishedPort
 			}
 
 			// get the node IP
 			ip := ""
 
 			// HACK?: get the local node gateway addr to use as the ip to resolve for the interlock container to access the published port
-			network, err := p.client.NetworkInspect(context.Background(), "docker_gwbridge")
+			network, err := p.client.NetworkInspect(context.Background(), "ingress")
 			if err != nil {
 				log().Error(err)
 				continue
 			}
 
 			// TODO: what do we do if the IPAM has more than a single definition?
-			ipAddr, _, err := net.ParseCIDR(network.IPAM.Config[0].Gateway)
-			if err != nil {
-				log().Error(err)
+			// the gateway appears to change between IP and CIDR -- need to debug to report issue
+			if c, ok := network.Containers["ingress-sbox"]; ok {
+				log().Debugf("ingress-sbox ip: %s", c.IPv4Address)
+				ipv4Addr := c.IPv4Address
+				if strings.IndexAny(ipv4Addr, "/") > -1 {
+					ipAddr, _, err := net.ParseCIDR(ipv4Addr)
+					if err != nil {
+						log().Error(err)
+						continue
+					}
+
+					ip = ipAddr.String()
+				}
+
+				// check for override backend address
+				if v := p.cfg.BackendOverrideAddress; v != "" {
+					ip = v
+				}
+			} else {
+				log().Errorf("unable to detect node ip: %s", err)
 				continue
-			}
-
-			ip = ipAddr.String()
-
-			// check for override backend address
-			if v := p.cfg.BackendOverrideAddress; v != "" {
-				ip = v
 			}
 
 			addr = fmt.Sprintf("%s:%d", ip, publishedPort)
