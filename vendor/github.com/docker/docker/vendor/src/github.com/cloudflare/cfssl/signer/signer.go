@@ -26,12 +26,9 @@ import (
 // MaxPathLen is the default path length for a new CA certificate.
 var MaxPathLen = 2
 
-<<<<<<< HEAD
-=======
 // MaxPathLenZero indicates whether a new CA certificate has pathlen=0
 var MaxPathLenZero = false
 
->>>>>>> 12a5469... start on swarm services; move to glade
 // Subject contains the information that should be used to override the
 // subject information when signing a certificate.
 type Subject struct {
@@ -56,15 +53,6 @@ type Extension struct {
 // Extensions requested in the CSR are ignored, except for those processed by
 // ParseCertificateRequest (mainly subjectAltName).
 type SignRequest struct {
-<<<<<<< HEAD
-	Hosts      []string    `json:"hosts"`
-	Request    string      `json:"certificate_request"`
-	Subject    *Subject    `json:"subject,omitempty"`
-	Profile    string      `json:"profile"`
-	Label      string      `json:"label"`
-	Serial     *big.Int    `json:"serial,omitempty"`
-	Extensions []Extension `json:"extensions,omitempty"`
-=======
 	Hosts       []string    `json:"hosts"`
 	Request     string      `json:"certificate_request"`
 	Subject     *Subject    `json:"subject,omitempty"`
@@ -73,7 +61,6 @@ type SignRequest struct {
 	Label       string      `json:"label"`
 	Serial      *big.Int    `json:"serial,omitempty"`
 	Extensions  []Extension `json:"extensions,omitempty"`
->>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // appendIf appends to a if s is not an empty string.
@@ -174,36 +161,19 @@ func DefaultSigAlgo(priv crypto.Signer) x509.SignatureAlgorithm {
 // ParseCertificateRequest takes an incoming certificate request and
 // builds a certificate template from it.
 func ParseCertificateRequest(s Signer, csrBytes []byte) (template *x509.Certificate, err error) {
-<<<<<<< HEAD
-	csr, err := x509.ParseCertificateRequest(csrBytes)
-=======
 	csrv, err := x509.ParseCertificateRequest(csrBytes)
->>>>>>> 12a5469... start on swarm services; move to glade
 	if err != nil {
 		err = cferr.Wrap(cferr.CSRError, cferr.ParseFailed, err)
 		return
 	}
 
-<<<<<<< HEAD
-	err = helpers.CheckSignature(csr, csr.SignatureAlgorithm, csr.RawTBSCertificateRequest, csr.Signature)
-=======
 	err = helpers.CheckSignature(csrv, csrv.SignatureAlgorithm, csrv.RawTBSCertificateRequest, csrv.Signature)
->>>>>>> 12a5469... start on swarm services; move to glade
 	if err != nil {
 		err = cferr.Wrap(cferr.CSRError, cferr.KeyMismatch, err)
 		return
 	}
 
 	template = &x509.Certificate{
-<<<<<<< HEAD
-		Subject:            csr.Subject,
-		PublicKeyAlgorithm: csr.PublicKeyAlgorithm,
-		PublicKey:          csr.PublicKey,
-		SignatureAlgorithm: s.SigAlgo(),
-		DNSNames:           csr.DNSNames,
-		IPAddresses:        csr.IPAddresses,
-		EmailAddresses:     csr.EmailAddresses,
-=======
 		Subject:            csrv.Subject,
 		PublicKeyAlgorithm: csrv.PublicKeyAlgorithm,
 		PublicKey:          csrv.PublicKey,
@@ -231,7 +201,6 @@ func ParseCertificateRequest(s Signer, csrBytes []byte) (template *x509.Certific
 			template.MaxPathLen = constraints.MaxPathLen
 			template.MaxPathLenZero = template.MaxPathLen == 0
 		}
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	return
@@ -277,10 +246,7 @@ func FillTemplate(template *x509.Certificate, defaultProfile, profile *config.Si
 		notBefore       time.Time
 		notAfter        time.Time
 		crlURL, ocspURL string
-<<<<<<< HEAD
-=======
 		issuerURL       = profile.IssuerURL
->>>>>>> 12a5469... start on swarm services; move to glade
 	)
 
 	// The third value returned from Usages is a list of unknown key usages.
@@ -288,11 +254,7 @@ func FillTemplate(template *x509.Certificate, defaultProfile, profile *config.Si
 	// here.
 	ku, eku, _ = profile.Usages()
 	if profile.IssuerURL == nil {
-<<<<<<< HEAD
-		profile.IssuerURL = defaultProfile.IssuerURL
-=======
 		issuerURL = defaultProfile.IssuerURL
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	if ku == 0 && len(eku) == 0 {
@@ -342,13 +304,8 @@ func FillTemplate(template *x509.Certificate, defaultProfile, profile *config.Si
 		template.CRLDistributionPoints = []string{crlURL}
 	}
 
-<<<<<<< HEAD
-	if len(profile.IssuerURL) != 0 {
-		template.IssuingCertificateURL = profile.IssuerURL
-=======
 	if len(issuerURL) != 0 {
 		template.IssuingCertificateURL = issuerURL
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 	if len(profile.Policies) != 0 {
 		err = addPolicies(template, profile.Policies)

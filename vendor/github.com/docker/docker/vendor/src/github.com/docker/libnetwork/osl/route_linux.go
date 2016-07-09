@@ -83,12 +83,6 @@ func (n *networkNamespace) programGateway(gw net.IP, isAdd bool) error {
 		return fmt.Errorf("route for the gateway %s could not be found: %v", gw, err)
 	}
 
-<<<<<<< HEAD
-	if isAdd {
-		return n.nlHandle.RouteAdd(&netlink.Route{
-			Scope:     netlink.SCOPE_UNIVERSE,
-			LinkIndex: gwRoutes[0].LinkIndex,
-=======
 	var linkIndex int
 	for _, gwRoute := range gwRoutes {
 		if gwRoute.Gw == nil {
@@ -105,18 +99,13 @@ func (n *networkNamespace) programGateway(gw net.IP, isAdd bool) error {
 		return n.nlHandle.RouteAdd(&netlink.Route{
 			Scope:     netlink.SCOPE_UNIVERSE,
 			LinkIndex: linkIndex,
->>>>>>> 12a5469... start on swarm services; move to glade
 			Gw:        gw,
 		})
 	}
 
 	return n.nlHandle.RouteDel(&netlink.Route{
 		Scope:     netlink.SCOPE_UNIVERSE,
-<<<<<<< HEAD
-		LinkIndex: gwRoutes[0].LinkIndex,
-=======
 		LinkIndex: linkIndex,
->>>>>>> 12a5469... start on swarm services; move to glade
 		Gw:        gw,
 	})
 }

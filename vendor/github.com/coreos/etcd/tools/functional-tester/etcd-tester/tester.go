@@ -41,82 +41,6 @@ func (tt *tester) runLoop() {
 		tt.status.Failures = append(tt.status.Failures, f.Desc())
 	}
 
-<<<<<<< HEAD
-	var (
-		round          int
-		prevCompactRev int64
-	)
-	for {
-		tt.status.setRound(round)
-		tt.status.setCase(-1) // -1 so that logPrefix doesn't print out 'case'
-		roundTotalCounter.Inc()
-
-		var failed bool
-		for j, f := range tt.failures {
-			caseTotalCounter.WithLabelValues(f.Desc()).Inc()
-			tt.status.setCase(j)
-
-			if err := tt.cluster.WaitHealth(); err != nil {
-				plog.Printf("%s wait full health error: %v", tt.logPrefix(), err)
-				if err := tt.cleanup(); err != nil {
-					return
-				}
-				failed = true
-				break
-			}
-
-			plog.Printf("%s injecting failure %q", tt.logPrefix(), f.Desc())
-			if err := f.Inject(tt.cluster, round); err != nil {
-				plog.Printf("%s injection error: %v", tt.logPrefix(), err)
-				if err := tt.cleanup(); err != nil {
-					return
-				}
-				failed = true
-				break
-			}
-			plog.Printf("%s injected failure", tt.logPrefix())
-
-			plog.Printf("%s recovering failure %q", tt.logPrefix(), f.Desc())
-			if err := f.Recover(tt.cluster, round); err != nil {
-				plog.Printf("%s recovery error: %v", tt.logPrefix(), err)
-				if err := tt.cleanup(); err != nil {
-					return
-				}
-				failed = true
-				break
-			}
-			plog.Printf("%s recovered failure", tt.logPrefix())
-
-			if tt.cluster.v2Only {
-				plog.Printf("%s succeed!", tt.logPrefix())
-				continue
-			}
-
-			if !tt.consistencyCheck {
-				if err := tt.updateRevision(); err != nil {
-					plog.Warningf("%s functional-tester returning with tt.updateRevision error (%v)", tt.logPrefix(), err)
-					return
-				}
-				continue
-			}
-
-			var err error
-			failed, err = tt.checkConsistency()
-			if err != nil {
-				plog.Warningf("%s functional-tester returning with tt.checkConsistency error (%v)", tt.logPrefix(), err)
-				return
-			}
-			if failed {
-				break
-			}
-			plog.Printf("%s succeed!", tt.logPrefix())
-		}
-
-		// -1 so that logPrefix doesn't print out 'case'
-		tt.status.setCase(-1)
-
-		if failed {
-=======
 	var prevCompactRev int64
 	for round := 0; round < tt.limit || tt.limit == -1; round++ {
 		tt.status.setRound(round)
@@ -126,7 +50,6 @@ func (tt *tester) runLoop() {
 			if err != nil || tt.cleanup() != nil {
 				return
 			}
->>>>>>> 12a5469... start on swarm services; move to glade
 			continue
 		}
 
@@ -151,15 +74,6 @@ func (tt *tester) runLoop() {
 				return
 			}
 		}
-<<<<<<< HEAD
-
-		round++
-		if round == tt.limit {
-			plog.Printf("%s functional-tester is finished", tt.logPrefix())
-			break
-		}
-	}
-=======
 	}
 
 	plog.Printf("%s functional-tester is finished", tt.logPrefix())
@@ -216,7 +130,6 @@ func (tt *tester) doRound(round int) (bool, error) {
 		plog.Printf("%s succeed!", tt.logPrefix())
 	}
 	return true, nil
->>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 func (tt *tester) updateRevision() error {
@@ -331,11 +244,7 @@ func (tt *tester) cleanup() error {
 		return err
 	}
 
-<<<<<<< HEAD
-	if err := tt.cluster.Bootstrap(); err != nil {
-=======
 	if err := tt.cluster.Reset(); err != nil {
->>>>>>> 12a5469... start on swarm services; move to glade
 		plog.Warningf("%s cleanup Bootstrap error: %v", tt.logPrefix(), err)
 		return err
 	}

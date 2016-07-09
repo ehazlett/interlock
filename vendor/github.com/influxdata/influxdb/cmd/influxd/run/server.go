@@ -16,11 +16,6 @@ import (
 	"github.com/influxdata/influxdb/influxql"
 	"github.com/influxdata/influxdb/models"
 	"github.com/influxdata/influxdb/monitor"
-<<<<<<< HEAD
-	"github.com/influxdata/influxdb/services/meta"
-	"github.com/influxdata/influxdb/services/snapshotter"
-	"github.com/influxdata/influxdb/services/subscriber"
-=======
 	"github.com/influxdata/influxdb/services/admin"
 	"github.com/influxdata/influxdb/services/collectd"
 	"github.com/influxdata/influxdb/services/continuous_querier"
@@ -33,7 +28,6 @@ import (
 	"github.com/influxdata/influxdb/services/snapshotter"
 	"github.com/influxdata/influxdb/services/subscriber"
 	"github.com/influxdata/influxdb/services/udp"
->>>>>>> 12a5469... start on swarm services; move to glade
 	"github.com/influxdata/influxdb/tcp"
 	"github.com/influxdata/influxdb/tsdb"
 	client "github.com/influxdata/usage-client/v1"
@@ -153,11 +147,6 @@ func NewServer(c *Config, buildInfo *BuildInfo) (*Server, error) {
 
 		MetaClient: meta.NewClient(c.Meta),
 
-<<<<<<< HEAD
-		Monitor: monitor.New(c.Monitor),
-
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 		reportingDisabled: c.ReportingDisabled,
 
 		httpAPIAddr: c.HTTPD.BindAddress,
@@ -167,10 +156,7 @@ func NewServer(c *Config, buildInfo *BuildInfo) (*Server, error) {
 		config:    c,
 		logOutput: os.Stderr,
 	}
-<<<<<<< HEAD
-=======
 	s.Monitor = monitor.New(s, c.Monitor)
->>>>>>> 12a5469... start on swarm services; move to glade
 
 	if err := s.MetaClient.Open(); err != nil {
 		return nil, err
@@ -216,8 +202,6 @@ func NewServer(c *Config, buildInfo *BuildInfo) (*Server, error) {
 	return s, nil
 }
 
-<<<<<<< HEAD
-=======
 func (s *Server) Statistics(tags map[string]string) []models.Statistic {
 	var statistics []models.Statistic
 	statistics = append(statistics, s.QueryExecutor.Statistics(tags)...)
@@ -232,7 +216,6 @@ func (s *Server) Statistics(tags map[string]string) []models.Statistic {
 	return statistics
 }
 
->>>>>>> 12a5469... start on swarm services; move to glade
 func (s *Server) appendSnapshotterService() {
 	srv := snapshotter.NewService()
 	srv.TSDBStore = s.TSDBStore
@@ -248,8 +231,6 @@ func (s *Server) SetLogOutput(w io.Writer) {
 	s.logOutput = w
 }
 
-<<<<<<< HEAD
-=======
 func (s *Server) appendMonitorService() {
 	s.Services = append(s.Services, s.Monitor)
 }
@@ -370,7 +351,6 @@ func (s *Server) appendContinuousQueryService(c continuous_querier.Config) {
 	s.Services = append(s.Services, srv)
 }
 
->>>>>>> 12a5469... start on swarm services; move to glade
 // Err returns an error channel that multiplexes all out of band errors received from all services.
 func (s *Server) Err() <-chan error { return s.err }
 
@@ -649,8 +629,6 @@ type monitorPointsWriter coordinator.PointsWriter
 func (pw *monitorPointsWriter) WritePoints(database, retentionPolicy string, points models.Points) error {
 	return (*coordinator.PointsWriter)(pw).WritePoints(database, retentionPolicy, models.ConsistencyLevelAny, points)
 }
-<<<<<<< HEAD
-=======
 
 func raftDBExists(dir string) error {
 	// Check to see if there is a raft db, if so, error out with a message
@@ -661,4 +639,3 @@ func raftDBExists(dir string) error {
 	}
 	return nil
 }
->>>>>>> 12a5469... start on swarm services; move to glade

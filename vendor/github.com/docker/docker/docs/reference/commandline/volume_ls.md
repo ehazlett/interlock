@@ -10,18 +10,6 @@ parent = "smn_cli"
 
 # volume ls
 
-<<<<<<< HEAD
-    Usage: docker volume ls [OPTIONS]
-
-    List volumes
-
-      -f, --filter=[]      Filter output based on these conditions:
-                           - dangling=<boolean> a volume if referenced or not
-                           - driver=<string> a volume's driver name
-                           - name=<string> a volume's name
-      --help               Print usage
-      -q, --quiet          Only display volume names
-=======
 ```markdown
 Usage:  docker volume ls [OPTIONS]
 
@@ -38,7 +26,6 @@ Options:
       --help           Print usage
   -q, --quiet          Only display volume names
 ```
->>>>>>> 12a5469... start on swarm services; move to glade
 
 Lists all the volumes Docker knows about. You can filter using the `-f` or `--filter` flag. Refer to the [filtering](#filtering) section for more information about available filter options.
 

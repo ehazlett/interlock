@@ -15,10 +15,7 @@ import (
 type registeredNode struct {
 	SessionID  string
 	Heartbeat  *heartbeat.Heartbeat
-<<<<<<< HEAD
-=======
 	Registered time.Time
->>>>>>> 12a5469... start on swarm services; move to glade
 	Node       *api.Node
 	Disconnect chan struct{} // signal to disconnect
 	mu         sync.Mutex
@@ -45,27 +42,17 @@ func (rn *registeredNode) checkSessionID(sessionID string) error {
 type nodeStore struct {
 	periodChooser         *periodChooser
 	gracePeriodMultiplier time.Duration
-<<<<<<< HEAD
-=======
 	rateLimitPeriod       time.Duration
->>>>>>> 12a5469... start on swarm services; move to glade
 	nodes                 map[string]*registeredNode
 	mu                    sync.RWMutex
 }
 
-<<<<<<< HEAD
-func newNodeStore(hbPeriod, hbEpsilon time.Duration, graceMultiplier int) *nodeStore {
-=======
 func newNodeStore(hbPeriod, hbEpsilon time.Duration, graceMultiplier int, rateLimitPeriod time.Duration) *nodeStore {
->>>>>>> 12a5469... start on swarm services; move to glade
 	return &nodeStore{
 		nodes:                 make(map[string]*registeredNode),
 		periodChooser:         newPeriodChooser(hbPeriod, hbEpsilon),
 		gracePeriodMultiplier: time.Duration(graceMultiplier),
-<<<<<<< HEAD
-=======
 		rateLimitPeriod:       rateLimitPeriod,
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 }
 
@@ -93,8 +80,6 @@ func (s *nodeStore) AddUnknown(n *api.Node, expireFunc func()) error {
 	return nil
 }
 
-<<<<<<< HEAD
-=======
 // CheckRateLimit returs error if node with specified id is allowed to re-register
 // again.
 func (s *nodeStore) CheckRateLimit(id string) error {
@@ -108,7 +93,6 @@ func (s *nodeStore) CheckRateLimit(id string) error {
 	return nil
 }
 
->>>>>>> 12a5469... start on swarm services; move to glade
 // Add adds new node and returns it, it replaces existing without notification.
 func (s *nodeStore) Add(n *api.Node, expireFunc func()) *registeredNode {
 	s.mu.Lock()
@@ -120,10 +104,7 @@ func (s *nodeStore) Add(n *api.Node, expireFunc func()) *registeredNode {
 	rn := &registeredNode{
 		SessionID:  identity.NewID(), // session ID is local to the dispatcher.
 		Node:       n,
-<<<<<<< HEAD
-=======
 		Registered: time.Now(),
->>>>>>> 12a5469... start on swarm services; move to glade
 		Disconnect: make(chan struct{}),
 	}
 	s.nodes[n.ID] = rn

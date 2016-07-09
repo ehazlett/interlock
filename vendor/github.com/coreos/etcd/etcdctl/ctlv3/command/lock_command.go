@@ -29,11 +29,7 @@ import (
 func NewLockCommand() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "lock <lockname>",
-<<<<<<< HEAD
-		Short: "lock acquires a named lock",
-=======
 		Short: "Acquires a named lock",
->>>>>>> 12a5469... start on swarm services; move to glade
 		Run:   lockCommandFunc,
 	}
 	return c

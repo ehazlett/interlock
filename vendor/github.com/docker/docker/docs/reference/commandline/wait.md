@@ -10,13 +10,6 @@ parent = "smn_cli"
 
 # wait
 
-<<<<<<< HEAD
-    Usage: docker wait [OPTIONS] CONTAINER [CONTAINER...]
-
-    Block until a container stops, then print its exit code.
-
-      --help          Print usage
-=======
 ```markdown
 Usage:  docker wait CONTAINER [CONTAINER...]
 
@@ -25,4 +18,3 @@ Block until a container stops, then print its exit code
 Options:
       --help   Print usage
 ```
->>>>>>> 12a5469... start on swarm services; move to glade

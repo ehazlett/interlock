@@ -12,15 +12,9 @@ parent = "smn_cli"
 # service inspect
 
 ```Markdown
-<<<<<<< HEAD
-Usage:	docker service inspect [OPTIONS] SERVICE [SERVICE...]
-
-Inspect a service
-=======
 Usage:  docker service inspect [OPTIONS] SERVICE [SERVICE...]
 
 Display detailed information on one or more services
->>>>>>> 12a5469... start on swarm services; move to glade
 
 Options:
   -f, --format string   Format the output using the given go template

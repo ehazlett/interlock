@@ -56,12 +56,9 @@ func (aa *authApplierV3) Put(txnID int64, r *pb.PutRequest) (*pb.PutResponse, er
 	if !aa.as.IsPutPermitted(aa.user, r.Key) {
 		return nil, auth.ErrPermissionDenied
 	}
-<<<<<<< HEAD
-=======
 	if r.PrevKv && !aa.as.IsRangePermitted(aa.user, r.Key, nil) {
 		return nil, auth.ErrPermissionDenied
 	}
->>>>>>> 12a5469... start on swarm services; move to glade
 	return aa.applierV3.Put(txnID, r)
 }
 
@@ -76,13 +73,10 @@ func (aa *authApplierV3) DeleteRange(txnID int64, r *pb.DeleteRangeRequest) (*pb
 	if !aa.as.IsDeleteRangePermitted(aa.user, r.Key, r.RangeEnd) {
 		return nil, auth.ErrPermissionDenied
 	}
-<<<<<<< HEAD
-=======
 	if r.PrevKv && !aa.as.IsRangePermitted(aa.user, r.Key, r.RangeEnd) {
 		return nil, auth.ErrPermissionDenied
 	}
 
->>>>>>> 12a5469... start on swarm services; move to glade
 	return aa.applierV3.DeleteRange(txnID, r)
 }
 
@@ -112,13 +106,10 @@ func (aa *authApplierV3) checkTxnReqsPermission(reqs []*pb.RequestOp) bool {
 				continue
 			}
 
-<<<<<<< HEAD
-=======
 			if tv.RequestDeleteRange.PrevKv && !aa.as.IsRangePermitted(aa.user, tv.RequestDeleteRange.Key, tv.RequestDeleteRange.RangeEnd) {
 				return false
 			}
 
->>>>>>> 12a5469... start on swarm services; move to glade
 			if !aa.as.IsDeleteRangePermitted(aa.user, tv.RequestDeleteRange.Key, tv.RequestDeleteRange.RangeEnd) {
 				return false
 			}

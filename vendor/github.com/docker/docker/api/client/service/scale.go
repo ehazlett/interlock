@@ -9,10 +9,7 @@ import (
 
 	"github.com/docker/docker/api/client"
 	"github.com/docker/docker/cli"
-<<<<<<< HEAD
-=======
 	"github.com/docker/engine-api/types"
->>>>>>> 12a5469... start on swarm services; move to glade
 	"github.com/spf13/cobra"
 )
 
@@ -81,11 +78,7 @@ func runServiceScale(dockerCli *client.DockerCli, serviceID string, scale string
 	}
 	serviceMode.Replicated.Replicas = &uintScale
 
-<<<<<<< HEAD
-	err = client.ServiceUpdate(ctx, service.ID, service.Version, service.Spec)
-=======
 	err = client.ServiceUpdate(ctx, service.ID, service.Version, service.Spec, types.ServiceUpdateOptions{})
->>>>>>> 12a5469... start on swarm services; move to glade
 	if err != nil {
 		return err
 	}

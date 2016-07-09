@@ -16,11 +16,7 @@ import (
 )
 
 const (
-<<<<<<< HEAD
-	psTaskItemFmt = "%s\t%s\t%s\t%s\t%s %s\t%s\t%s\n"
-=======
 	psTaskItemFmt = "%s\t%s\t%s\t%s\t%s %s ago\t%s\t%s\n"
->>>>>>> 12a5469... start on swarm services; move to glade
 )
 
 type tasksBySlot []swarm.Task
@@ -73,11 +69,7 @@ func Print(dockerCli *client.DockerCli, ctx context.Context, tasks []swarm.Task,
 			serviceValue,
 			task.Spec.ContainerSpec.Image,
 			client.PrettyPrint(task.Status.State),
-<<<<<<< HEAD
-			units.HumanDuration(time.Since(task.Status.Timestamp)),
-=======
 			strings.ToLower(units.HumanDuration(time.Since(task.Status.Timestamp))),
->>>>>>> 12a5469... start on swarm services; move to glade
 			client.PrettyPrint(task.DesiredState),
 			nodeValue,
 		)

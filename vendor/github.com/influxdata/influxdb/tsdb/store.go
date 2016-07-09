@@ -69,8 +69,6 @@ func (s *Store) SetLogOutput(w io.Writer) {
 	}
 }
 
-<<<<<<< HEAD
-=======
 func (s *Store) Statistics(tags map[string]string) []models.Statistic {
 	var statistics []models.Statistic
 
@@ -90,7 +88,6 @@ func (s *Store) Statistics(tags map[string]string) []models.Statistic {
 	return statistics
 }
 
->>>>>>> 12a5469... start on swarm services; move to glade
 // Path returns the store's root path.
 func (s *Store) Path() string { return s.path }
 

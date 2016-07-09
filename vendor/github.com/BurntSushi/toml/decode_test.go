@@ -77,52 +77,32 @@ cauchy = "cat 2"
 func TestDecodeEmbedded(t *testing.T) {
 	type Dog struct{ Name string }
 	type Age int
-<<<<<<< HEAD
-
-	tests := map[string]struct {
-=======
 	type cat struct{ Name string }
 
 	for _, test := range []struct {
 		label       string
->>>>>>> 12a5469... start on swarm services; move to glade
 		input       string
 		decodeInto  interface{}
 		wantDecoded interface{}
 	}{
-<<<<<<< HEAD
-		"embedded struct": {
-=======
 		{
 			label:       "embedded struct",
->>>>>>> 12a5469... start on swarm services; move to glade
 			input:       `Name = "milton"`,
 			decodeInto:  &struct{ Dog }{},
 			wantDecoded: &struct{ Dog }{Dog{"milton"}},
 		},
-<<<<<<< HEAD
-		"embedded non-nil pointer to struct": {
-=======
 		{
 			label:       "embedded non-nil pointer to struct",
->>>>>>> 12a5469... start on swarm services; move to glade
 			input:       `Name = "milton"`,
 			decodeInto:  &struct{ *Dog }{},
 			wantDecoded: &struct{ *Dog }{&Dog{"milton"}},
 		},
-<<<<<<< HEAD
-		"embedded nil pointer to struct": {
-=======
 		{
 			label:       "embedded nil pointer to struct",
->>>>>>> 12a5469... start on swarm services; move to glade
 			input:       ``,
 			decodeInto:  &struct{ *Dog }{},
 			wantDecoded: &struct{ *Dog }{nil},
 		},
-<<<<<<< HEAD
-		"embedded int": {
-=======
 		{
 			label:       "unexported embedded struct",
 			input:       `Name = "socks"`,
@@ -131,29 +111,18 @@ func TestDecodeEmbedded(t *testing.T) {
 		},
 		{
 			label:       "embedded int",
->>>>>>> 12a5469... start on swarm services; move to glade
 			input:       `Age = -5`,
 			decodeInto:  &struct{ Age }{},
 			wantDecoded: &struct{ Age }{-5},
 		},
-<<<<<<< HEAD
-	}
-
-	for label, test := range tests {
-=======
 	} {
->>>>>>> 12a5469... start on swarm services; move to glade
 		_, err := Decode(test.input, test.decodeInto)
 		if err != nil {
 			t.Fatal(err)
 		}
 		if !reflect.DeepEqual(test.wantDecoded, test.decodeInto) {
 			t.Errorf("%s: want decoded == %+v, got %+v",
-<<<<<<< HEAD
-				label, test.wantDecoded, test.decodeInto)
-=======
 				test.label, test.wantDecoded, test.decodeInto)
->>>>>>> 12a5469... start on swarm services; move to glade
 		}
 	}
 }
@@ -572,11 +541,7 @@ func TestDecodeFloats(t *testing.T) {
 			continue
 		}
 		if x.N != tt.want {
-<<<<<<< HEAD
-			t.Errorf("Decode(%q): got %d; want %d", input, x.N, tt.want)
-=======
 			t.Errorf("Decode(%q): got %f; want %f", input, x.N, tt.want)
->>>>>>> 12a5469... start on swarm services; move to glade
 		}
 	}
 }
@@ -618,11 +583,7 @@ func TestDecodeBadValues(t *testing.T) {
 		v    interface{}
 		want string
 	}{
-<<<<<<< HEAD
-		{3, "non-pointer type"},
-=======
 		{3, "non-pointer int"},
->>>>>>> 12a5469... start on swarm services; move to glade
 		{(*int)(nil), "nil"},
 	} {
 		_, err := Decode(`x = 3`, tt.v)

@@ -10,11 +10,7 @@ type Executor interface {
 	// Describe returns the underlying node description.
 	Describe(ctx context.Context) (*api.NodeDescription, error)
 
-<<<<<<< HEAD
-	// Configure uses the node object state to propogate node
-=======
 	// Configure uses the node object state to propagate node
->>>>>>> 12a5469... start on swarm services; move to glade
 	// state to the underlying executor.
 	Configure(ctx context.Context, node *api.Node) error
 

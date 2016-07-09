@@ -32,14 +32,6 @@
 	Email = "aaron.lehmann@docker.com"
 	GitHub = "aaronlehmann"
 
-<<<<<<< HEAD
-	[people.brianbland]
-	Name = "Brian Bland"
-	Email = "brian.bland@docker.com"
-	GitHub = "BrianBland"
-
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 	[people.dmcgowan]
 	Name = "Derek McGowan"
 	Email = "derek@mcgstyle.net"

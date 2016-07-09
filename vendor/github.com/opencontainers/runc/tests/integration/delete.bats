@@ -31,8 +31,6 @@ function teardown() {
   runc state test_busybox
   [ "$status" -ne 0 ]
 }
-<<<<<<< HEAD
-=======
 
 @test "runc delete --force" {
   # run busybox detached
@@ -50,4 +48,3 @@ function teardown() {
   runc state test_busybox
   [ "$status" -ne 0 ]
 }
->>>>>>> 12a5469... start on swarm services; move to glade

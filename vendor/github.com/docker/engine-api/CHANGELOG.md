@@ -125,11 +125,7 @@ Items starting with DEPRECATE are important deprecation notices. For more inform
 
 ### Types
 
-<<<<<<< HEAD
-- Add warnings to the volume list reponse.
-=======
 - Add warnings to the volume list response.
->>>>>>> 12a5469... start on swarm services; move to glade
 - Fix image build options:
 	* use 0 as default value for shmSize.
 

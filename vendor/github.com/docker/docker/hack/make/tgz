@@ -18,10 +18,7 @@ for d in "$CROSS/"*/*; do
 
 	BINARY_NAME="${DOCKER_CLIENT_BINARY_NAME}-$VERSION"
 	DAEMON_BINARY_NAME="${DOCKER_DAEMON_BINARY_NAME}-$VERSION"
-<<<<<<< HEAD
-=======
 	PROXY_BINARY_NAME="${DOCKER_PROXY_BINARY_NAME}-$VERSION"
->>>>>>> 12a5469... start on swarm services; move to glade
 	BINARY_EXTENSION="$(export GOOS && binary_extension)"
 	if [ "$GOOS" = 'windows' ]; then
 		# if windows use a zip, not tgz
@@ -33,10 +30,7 @@ for d in "$CROSS/"*/*; do
 	fi
 	BINARY_FULLNAME="$BINARY_NAME$BINARY_EXTENSION"
 	DAEMON_BINARY_FULLNAME="$DAEMON_BINARY_NAME$BINARY_EXTENSION"
-<<<<<<< HEAD
-=======
 	PROXY_BINARY_FULLNAME="$PROXY_BINARY_NAME$BINARY_EXTENSION"
->>>>>>> 12a5469... start on swarm services; move to glade
 	mkdir -p "$DEST/$GOOS/$GOARCH"
 	TGZ="$DEST/$GOOS/$GOARCH/$BINARY_NAME$BUNDLE_EXTENSION"
 
@@ -55,12 +49,9 @@ for d in "$CROSS/"*/*; do
 	if [ -f "$d/$DAEMON_BINARY_FULLNAME" ]; then
 		cp -L "$d/$DAEMON_BINARY_FULLNAME" "$TAR_PATH/${DOCKER_DAEMON_BINARY_NAME}${BINARY_EXTENSION}"
 	fi
-<<<<<<< HEAD
-=======
 	if [ -f "$d/$PROXY_BINARY_FULLNAME" ]; then
 		cp -L "$d/$PROXY_BINARY_FULLNAME" "$TAR_PATH/${DOCKER_PROXY_BINARY_NAME}${BINARY_EXTENSION}"
 	fi
->>>>>>> 12a5469... start on swarm services; move to glade
 
 	# copy over all the containerd binaries
 	copy_containerd $TAR_PATH

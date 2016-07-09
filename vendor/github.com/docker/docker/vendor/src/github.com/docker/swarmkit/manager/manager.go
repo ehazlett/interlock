@@ -19,10 +19,7 @@ import (
 	"github.com/docker/swarmkit/manager/allocator"
 	"github.com/docker/swarmkit/manager/controlapi"
 	"github.com/docker/swarmkit/manager/dispatcher"
-<<<<<<< HEAD
-=======
 	"github.com/docker/swarmkit/manager/health"
->>>>>>> 12a5469... start on swarm services; move to glade
 	"github.com/docker/swarmkit/manager/keymanager"
 	"github.com/docker/swarmkit/manager/orchestrator"
 	"github.com/docker/swarmkit/manager/raftpicker"
@@ -43,13 +40,10 @@ const (
 type Config struct {
 	SecurityConfig *ca.SecurityConfig
 
-<<<<<<< HEAD
-=======
 	// ExternalCAs is a list of initial CAs to which a manager node
 	// will make certificate signing requests for node certificates.
 	ExternalCAs []*api.ExternalCA
 
->>>>>>> 12a5469... start on swarm services; move to glade
 	ProtoAddr map[string]string
 	// ProtoListener will be used for grpc serving if it's not nil,
 	// ProtoAddr fields will be used to create listeners otherwise.
@@ -94,12 +88,7 @@ type Manager struct {
 	localserver            *grpc.Server
 	RaftNode               *raft.Node
 
-<<<<<<< HEAD
-	mu   sync.Mutex
-	once sync.Once
-=======
 	mu sync.Mutex
->>>>>>> 12a5469... start on swarm services; move to glade
 
 	stopped chan struct{}
 }
@@ -217,17 +206,7 @@ func New(config *Config) (*Manager, error) {
 		ForceNewCluster: config.ForceNewCluster,
 		TLSCredentials:  config.SecurityConfig.ClientTLSCreds,
 	}
-<<<<<<< HEAD
-	RaftNode, err := raft.NewNode(context.TODO(), newNodeOpts)
-	if err != nil {
-		for _, lis := range listeners {
-			lis.Close()
-		}
-		return nil, fmt.Errorf("can't create raft node: %v", err)
-	}
-=======
 	RaftNode := raft.NewNode(context.TODO(), newNodeOpts)
->>>>>>> 12a5469... start on swarm services; move to glade
 
 	opts := []grpc.ServerOption{
 		grpc.Creds(config.SecurityConfig.ServerTLSCreds)}
@@ -294,13 +273,10 @@ func (m *Manager) Run(parent context.Context) error {
 				raftCfg.HeartbeatTick = uint32(m.RaftNode.Config.HeartbeatTick)
 
 				clusterID := m.config.SecurityConfig.ClientTLSCreds.Organization()
-<<<<<<< HEAD
-=======
 
 				initialCAConfig := ca.DefaultCAConfig()
 				initialCAConfig.ExternalCAs = m.config.ExternalCAs
 
->>>>>>> 12a5469... start on swarm services; move to glade
 				s.Update(func(tx store.Tx) error {
 					// Add a default cluster object to the
 					// store. Don't check the error because
@@ -320,11 +296,7 @@ func (m *Manager) Run(parent context.Context) error {
 								HeartbeatPeriod: ptypes.DurationProto(dispatcher.DefaultHeartBeatPeriod),
 							},
 							Raft:     raftCfg,
-<<<<<<< HEAD
-							CAConfig: ca.DefaultCAConfig(),
-=======
 							CAConfig: initialCAConfig,
->>>>>>> 12a5469... start on swarm services; move to glade
 						},
 						RootCA: api.RootCA{
 							CAKey:      rootCA.Key,
@@ -357,11 +329,7 @@ func (m *Manager) Run(parent context.Context) error {
 					log.G(ctx).WithError(err).Error("root key-encrypting-key rotation failed")
 				}
 
-<<<<<<< HEAD
-				m.replicatedOrchestrator = orchestrator.New(s)
-=======
 				m.replicatedOrchestrator = orchestrator.NewReplicatedOrchestrator(s)
->>>>>>> 12a5469... start on swarm services; move to glade
 				m.globalOrchestrator = orchestrator.NewGlobalOrchestrator(s)
 				m.taskReaper = orchestrator.NewTaskReaper(s)
 				m.scheduler = scheduler.New(s)
@@ -455,17 +423,6 @@ func (m *Manager) Run(parent context.Context) error {
 		}
 	}()
 
-<<<<<<< HEAD
-	go func() {
-		err := m.RaftNode.Run(ctx)
-		if err != nil {
-			log.G(ctx).Error(err)
-			m.Stop(ctx)
-		}
-	}()
-
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 	proxyOpts := []grpc.DialOption{
 		grpc.WithBackoffMaxDelay(2 * time.Second),
 		grpc.WithTransportCredentials(m.config.SecurityConfig.ClientTLSCreds),
@@ -480,20 +437,14 @@ func (m *Manager) Run(parent context.Context) error {
 	}
 
 	baseControlAPI := controlapi.NewServer(m.RaftNode.MemoryStore(), m.RaftNode)
-<<<<<<< HEAD
-=======
 	healthServer := health.NewHealthServer()
->>>>>>> 12a5469... start on swarm services; move to glade
 
 	authenticatedControlAPI := api.NewAuthenticatedWrapperControlServer(baseControlAPI, authorize)
 	authenticatedDispatcherAPI := api.NewAuthenticatedWrapperDispatcherServer(m.Dispatcher, authorize)
 	authenticatedCAAPI := api.NewAuthenticatedWrapperCAServer(m.caserver, authorize)
 	authenticatedNodeCAAPI := api.NewAuthenticatedWrapperNodeCAServer(m.caserver, authorize)
 	authenticatedRaftAPI := api.NewAuthenticatedWrapperRaftServer(m.RaftNode, authorize)
-<<<<<<< HEAD
-=======
 	authenticatedHealthAPI := api.NewAuthenticatedWrapperHealthServer(healthServer, authorize)
->>>>>>> 12a5469... start on swarm services; move to glade
 	authenticatedRaftMembershipAPI := api.NewAuthenticatedWrapperRaftMembershipServer(m.RaftNode, authorize)
 
 	proxyDispatcherAPI := api.NewRaftProxyDispatcherServer(authenticatedDispatcherAPI, cs, m.RaftNode, ca.WithMetadataForwardTLSInfo)
@@ -515,10 +466,7 @@ func (m *Manager) Run(parent context.Context) error {
 	api.RegisterCAServer(m.server, proxyCAAPI)
 	api.RegisterNodeCAServer(m.server, proxyNodeCAAPI)
 	api.RegisterRaftServer(m.server, authenticatedRaftAPI)
-<<<<<<< HEAD
-=======
 	api.RegisterHealthServer(m.server, authenticatedHealthAPI)
->>>>>>> 12a5469... start on swarm services; move to glade
 	api.RegisterRaftMembershipServer(m.server, proxyRaftMembershipAPI)
 	api.RegisterControlServer(m.localserver, localProxyControlAPI)
 	api.RegisterControlServer(m.server, authenticatedControlAPI)
@@ -541,8 +489,6 @@ func (m *Manager) Run(parent context.Context) error {
 		}(proto, l)
 	}
 
-<<<<<<< HEAD
-=======
 	// Set the raft server as serving for the health server
 	healthServer.SetServingStatus("Raft", api.HealthCheckResponse_SERVING)
 
@@ -561,7 +507,6 @@ func (m *Manager) Run(parent context.Context) error {
 		}
 	}()
 
->>>>>>> 12a5469... start on swarm services; move to glade
 	if err := raft.WaitForLeader(ctx, m.RaftNode); err != nil {
 		m.server.Stop()
 		return err

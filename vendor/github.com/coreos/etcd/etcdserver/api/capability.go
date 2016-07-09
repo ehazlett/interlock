@@ -19,10 +19,7 @@ import (
 	"time"
 
 	"github.com/coreos/etcd/etcdserver"
-<<<<<<< HEAD
-=======
 	"github.com/coreos/etcd/version"
->>>>>>> 12a5469... start on swarm services; move to glade
 	"github.com/coreos/go-semver/semver"
 	"github.com/coreos/pkg/capnslog"
 )
@@ -75,11 +72,7 @@ func runCapabilityLoop(s *etcdserver.EtcdServer) {
 				enableMapMu.Lock()
 				enabledMap = capabilityMaps[pv.String()]
 				enableMapMu.Unlock()
-<<<<<<< HEAD
-				plog.Infof("enabled capabilities for version %s", pv)
-=======
 				plog.Infof("enabled capabilities for version %s", version.Cluster(pv.String()))
->>>>>>> 12a5469... start on swarm services; move to glade
 			}
 		}
 

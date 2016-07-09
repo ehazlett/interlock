@@ -10,15 +10,6 @@ parent = "smn_cli"
 
 # network disconnect
 
-<<<<<<< HEAD
-    Usage:  docker network disconnect [OPTIONS] NETWORK CONTAINER
-
-
-    Disconnects a container from a network
-
-      -f, --force        Force the container to disconnect from a network
-      --help             Print usage
-=======
 ```markdown
 Usage:  docker network disconnect [OPTIONS] NETWORK CONTAINER
 
@@ -28,7 +19,6 @@ Options:
   -f, --force   Force the container to disconnect from a network
       --help    Print usage
 ```
->>>>>>> 12a5469... start on swarm services; move to glade
 
 Disconnects a container from a network. The container must be running to disconnect it from the network.
 

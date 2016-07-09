@@ -2314,8 +2314,6 @@ cpu value=35 1278010025000000000
 	}
 }
 
-<<<<<<< HEAD
-=======
 func TestServer_Query_MathWithFill(t *testing.T) {
 	t.Parallel()
 	s := OpenServer(NewConfig())
@@ -2353,7 +2351,6 @@ func TestServer_Query_MathWithFill(t *testing.T) {
 	}
 }
 
->>>>>>> 12a5469... start on swarm services; move to glade
 // mergeMany ensures that when merging many series together and some of them have a different number
 // of points than others in a group by interval the results are correct
 func TestServer_Query_MergeMany(t *testing.T) {

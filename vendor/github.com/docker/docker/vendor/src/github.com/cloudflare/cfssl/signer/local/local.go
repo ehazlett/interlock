@@ -96,15 +96,11 @@ func NewSignerFromFile(caFile, caKeyFile string, policy *config.Signing) (*Signe
 }
 
 func (s *Signer) sign(template *x509.Certificate, profile *config.SigningProfile) (cert []byte, err error) {
-<<<<<<< HEAD
-	err = signer.FillTemplate(template, s.policy.Default, profile)
-=======
 	var distPoints = template.CRLDistributionPoints
 	err = signer.FillTemplate(template, s.policy.Default, profile)
 	if distPoints != nil && len(distPoints) > 0 {
 		template.CRLDistributionPoints = distPoints
 	}
->>>>>>> 12a5469... start on swarm services; move to glade
 	if err != nil {
 		return
 	}
@@ -119,13 +115,7 @@ func (s *Signer) sign(template *x509.Certificate, profile *config.SigningProfile
 		template.EmailAddresses = nil
 		s.ca = template
 		initRoot = true
-<<<<<<< HEAD
-		template.MaxPathLen = signer.MaxPathLen
 	} else if template.IsCA {
-		template.MaxPathLen = 1
-=======
-	} else if template.IsCA {
->>>>>>> 12a5469... start on swarm services; move to glade
 		template.DNSNames = nil
 		template.EmailAddresses = nil
 	}
@@ -215,11 +205,7 @@ func (s *Signer) Sign(req signer.SignRequest) (cert []byte, err error) {
 		return nil, cferr.New(cferr.CSRError, cferr.DecodeFailed)
 	}
 
-<<<<<<< HEAD
-	if block.Type != "CERTIFICATE REQUEST" {
-=======
 	if block.Type != "NEW CERTIFICATE REQUEST" && block.Type != "CERTIFICATE REQUEST" {
->>>>>>> 12a5469... start on swarm services; move to glade
 		return nil, cferr.Wrap(cferr.CSRError,
 			cferr.BadRequest, errors.New("not a certificate or csr"))
 	}
@@ -259,8 +245,6 @@ func (s *Signer) Sign(req signer.SignRequest) (cert []byte, err error) {
 		}
 	}
 
-<<<<<<< HEAD
-=======
 	if req.CRLOverride != "" {
 		safeTemplate.CRLDistributionPoints = []string{req.CRLOverride}
 	}
@@ -281,7 +265,6 @@ func (s *Signer) Sign(req signer.SignRequest) (cert []byte, err error) {
 		}
 	}
 
->>>>>>> 12a5469... start on swarm services; move to glade
 	OverrideHosts(&safeTemplate, req.Hosts)
 	safeTemplate.Subject = PopulateSubjectFromCSR(req.Subject, safeTemplate.Subject)
 

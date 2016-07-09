@@ -5,12 +5,9 @@ BINARY_NAME="dockerd-$VERSION"
 BINARY_EXTENSION="$(binary_extension)"
 BINARY_FULLNAME="$BINARY_NAME$BINARY_EXTENSION"
 
-<<<<<<< HEAD
-=======
 PROXY_NAME="docker-proxy-$VERSION"
 PROXY_FULLNAME="$PROXY_NAME$BINARY_EXTENSION"
 
->>>>>>> 12a5469... start on swarm services; move to glade
 CLIENTBIN_NAME="docker-$VERSION"
 CLIENTBIN_FULLNAME="$CLIENTBIN_NAME$BINARY_EXTENSION"
 
@@ -35,8 +32,6 @@ go build -compiler=gccgo \
 echo "Created binary: $DEST/$BINARY_FULLNAME"
 ln -sf "$BINARY_FULLNAME" "$DEST/dockerd$BINARY_EXTENSION"
 
-<<<<<<< HEAD
-=======
 go build -compiler=gccgo \
 	-o "$DEST/$PROXY_FULLNAME" \
 	"${BUILDFLAGS[@]}" \
@@ -52,7 +47,6 @@ go build -compiler=gccgo \
 echo "Created binary: $DEST/$PROXY_FULLNAME"
 ln -sf "$PROXY_FULLNAME" "$DEST/docker-proxy$BINARY_EXTENSION"
 
->>>>>>> 12a5469... start on swarm services; move to glade
 copy_containerd "$DEST" "hash"
 hash_files "$DEST/$BINARY_FULLNAME"
 

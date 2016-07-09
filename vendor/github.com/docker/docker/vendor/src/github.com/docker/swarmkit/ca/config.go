@@ -45,12 +45,8 @@ const (
 type SecurityConfig struct {
 	mu sync.Mutex
 
-<<<<<<< HEAD
-	rootCA *RootCA
-=======
 	rootCA     *RootCA
 	externalCA *ExternalCA
->>>>>>> 12a5469... start on swarm services; move to glade
 
 	ServerTLSCreds *MutableTLSCreds
 	ClientTLSCreds *MutableTLSCreds
@@ -65,10 +61,6 @@ type CertificateUpdate struct {
 
 // NewSecurityConfig initializes and returns a new SecurityConfig.
 func NewSecurityConfig(rootCA *RootCA, clientTLSCreds, serverTLSCreds *MutableTLSCreds) *SecurityConfig {
-<<<<<<< HEAD
-	return &SecurityConfig{
-		rootCA:         rootCA,
-=======
 	// Make a new TLS config for the external CA client without a
 	// ServerName value set.
 	clientTLSConfig := clientTLSCreds.Config()
@@ -82,7 +74,6 @@ func NewSecurityConfig(rootCA *RootCA, clientTLSCreds, serverTLSCreds *MutableTL
 	return &SecurityConfig{
 		rootCA:         rootCA,
 		externalCA:     NewExternalCA(rootCA, externalCATLSConfig),
->>>>>>> 12a5469... start on swarm services; move to glade
 		ClientTLSCreds: clientTLSCreds,
 		ServerTLSCreds: serverTLSCreds,
 	}
@@ -185,10 +176,6 @@ func LoadOrCreateSecurityConfig(ctx context.Context, baseCertDir, caHash, secret
 			return nil, err
 		}
 
-<<<<<<< HEAD
-		// Get the remote CA certificate, verify integrity with the hash provided
-		rootCA, err = GetRemoteCA(ctx, d, picker)
-=======
 		// Get the remote CA certificate, verify integrity with the
 		// hash provided. Retry up to 5 times, in case the manager we
 		// first try to contact is not responding properly (it may have
@@ -201,7 +188,6 @@ func LoadOrCreateSecurityConfig(ctx context.Context, baseCertDir, caHash, secret
 			}
 			log.Warningf("failed to retrieve remote root CA certificate: %v", err)
 		}
->>>>>>> 12a5469... start on swarm services; move to glade
 		if err != nil {
 			return nil, err
 		}
@@ -216,15 +202,9 @@ func LoadOrCreateSecurityConfig(ctx context.Context, baseCertDir, caHash, secret
 		return nil, err
 	}
 
-<<<<<<< HEAD
-	// At this point we've successfully loaded the CA details from disk, or successfully
-	// downloaded them remotely.
-	// The next step is to try to load our certificates.
-=======
 	// At this point we've successfully loaded the CA details from disk, or
 	// successfully downloaded them remotely. The next step is to try to
 	// load our certificates.
->>>>>>> 12a5469... start on swarm services; move to glade
 	clientTLSCreds, serverTLSCreds, err = LoadTLSCreds(rootCA, paths.Node)
 	if err != nil {
 		log.Debugf("no valid local TLS credentials found: %v", err)
@@ -246,12 +226,9 @@ func LoadOrCreateSecurityConfig(ctx context.Context, baseCertDir, caHash, secret
 				}
 			}
 			tlsKeyPair, err = rootCA.IssueAndSaveNewCertificates(paths.Node, cn, proposedRole, org)
-<<<<<<< HEAD
-=======
 			if err != nil {
 				return nil, err
 			}
->>>>>>> 12a5469... start on swarm services; move to glade
 		} else {
 			// There was an error loading our Credentials, let's get a new certificate issued
 			// Last argument is nil because at this point we don't have any valid TLS creds
@@ -259,10 +236,6 @@ func LoadOrCreateSecurityConfig(ctx context.Context, baseCertDir, caHash, secret
 			if err != nil {
 				return nil, err
 			}
-<<<<<<< HEAD
-
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 		}
 		// Create the Server TLS Credentials for this node. These will not be used by agents.
 		serverTLSCreds, err = rootCA.NewServerTLSCredentials(tlsKeyPair)
@@ -287,16 +260,7 @@ func LoadOrCreateSecurityConfig(ctx context.Context, baseCertDir, caHash, secret
 		log.Debugf("loaded local TLS credentials: %s.", paths.Node.Cert)
 	}
 
-<<<<<<< HEAD
-	return &SecurityConfig{
-		rootCA: &rootCA,
-
-		ServerTLSCreds: serverTLSCreds,
-		ClientTLSCreds: clientTLSCreds,
-	}, nil
-=======
 	return NewSecurityConfig(&rootCA, clientTLSCreds, serverTLSCreds), nil
->>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // RenewTLSConfig will continuously monitor for the necessity of renewing the local certificates, either by
@@ -372,8 +336,6 @@ func RenewTLSConfig(ctx context.Context, s *SecurityConfig, baseCertDir string, 
 				updates <- CertificateUpdate{Err: err}
 			}
 
-<<<<<<< HEAD
-=======
 			// Update the external CA to use the new client TLS
 			// config using a copy without a serverName specified.
 			s.externalCA.UpdateTLSConfig(&tls.Config{
@@ -382,7 +344,6 @@ func RenewTLSConfig(ctx context.Context, s *SecurityConfig, baseCertDir string, 
 				MinVersion:   tls.VersionTLS12,
 			})
 
->>>>>>> 12a5469... start on swarm services; move to glade
 			err = s.ServerTLSCreds.LoadNewTLSConfig(serverTLSConfig)
 			if err != nil {
 				log.Debugf("failed to update the server TLS credentials: %v", err)
@@ -471,11 +432,7 @@ func LoadTLSCreds(rootCA RootCA, paths CertPaths) (*MutableTLSCreds, *MutableTLS
 		}
 
 		keyPair, newErr = tls.X509KeyPair(cert, key)
-<<<<<<< HEAD
-		if err != nil {
-=======
 		if newErr != nil {
->>>>>>> 12a5469... start on swarm services; move to glade
 			return nil, nil, err
 		}
 	}

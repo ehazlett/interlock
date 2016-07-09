@@ -7,17 +7,10 @@ import (
 )
 
 // ContainerUpdate updates configuration of the container
-<<<<<<< HEAD
-func (daemon *Daemon) ContainerUpdate(name string, hostConfig *container.HostConfig) ([]string, error) {
-	var warnings []string
-
-	warnings, err := daemon.verifyContainerSettings(hostConfig, nil, true)
-=======
 func (daemon *Daemon) ContainerUpdate(name string, hostConfig *container.HostConfig, validateHostname bool) ([]string, error) {
 	var warnings []string
 
 	warnings, err := daemon.verifyContainerSettings(hostConfig, nil, true, validateHostname)
->>>>>>> 12a5469... start on swarm services; move to glade
 	if err != nil {
 		return warnings, err
 	}

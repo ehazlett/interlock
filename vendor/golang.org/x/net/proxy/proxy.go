@@ -4,15 +4,7 @@
 
 // Package proxy provides support for a variety of protocols to proxy network
 // data.
-<<<<<<< HEAD
-<<<<<<< HEAD
 package proxy // import "golang.org/x/net/proxy"
-=======
-package proxy
->>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
-=======
-package proxy // import "golang.org/x/net/proxy"
->>>>>>> 12a5469... start on swarm services; move to glade
 
 import (
 	"errors"

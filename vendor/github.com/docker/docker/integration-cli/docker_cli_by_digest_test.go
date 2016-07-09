@@ -314,8 +314,6 @@ func (s *DockerRegistrySuite) TestListImagesWithDigests(c *check.C) {
 	c.Assert(busyboxRe.MatchString(out), checker.True, check.Commentf("expected %q: %s", busyboxRe.String(), out))
 }
 
-<<<<<<< HEAD
-=======
 func (s *DockerRegistrySuite) TestListDanglingImagesWithDigests(c *check.C) {
 	// setup image1
 	digest1, err := setupImageWithTag(c, "dangle1")
@@ -389,7 +387,6 @@ func (s *DockerRegistrySuite) TestListDanglingImagesWithDigests(c *check.C) {
 	c.Assert(reWithDigest2.MatchString(out), checker.False, check.Commentf("unexpected %q: %s", reWithDigest2.String(), out))
 }
 
->>>>>>> 12a5469... start on swarm services; move to glade
 func (s *DockerRegistrySuite) TestInspectImageWithDigests(c *check.C) {
 	digest, err := setupImage(c)
 	c.Assert(err, check.IsNil, check.Commentf("error setting up image"))

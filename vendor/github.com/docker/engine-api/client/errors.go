@@ -120,10 +120,6 @@ func IsErrUnauthorized(err error) bool {
 	_, ok := err.(unauthorizedError)
 	return ok
 }
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 
 // nodeNotFoundError implements an error returned when a node is not found.
 type nodeNotFoundError struct {
@@ -205,8 +201,3 @@ func IsErrPluginPermissionDenied(err error) bool {
 	_, ok := err.(pluginPermissionDenied)
 	return ok
 }
-<<<<<<< HEAD
-=======
->>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
-=======
->>>>>>> 12a5469... start on swarm services; move to glade

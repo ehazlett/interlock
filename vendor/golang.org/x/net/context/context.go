@@ -201,10 +201,6 @@ func TODO() Context {
 // A CancelFunc does not wait for the work to stop.
 // After the first call, subsequent calls to a CancelFunc do nothing.
 type CancelFunc func()
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 
 // WithCancel returns a copy of parent with a new Done channel. The returned
 // context's Done channel is closed when the returned cancel function is called
@@ -449,8 +445,3 @@ func (c *valueCtx) Value(key interface{}) interface{} {
 	}
 	return c.Context.Value(key)
 }
-<<<<<<< HEAD
-=======
->>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
-=======
->>>>>>> 12a5469... start on swarm services; move to glade

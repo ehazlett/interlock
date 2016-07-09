@@ -10,16 +10,6 @@ parent = "smn_cli"
 
 # history
 
-<<<<<<< HEAD
-    Usage: docker history [OPTIONS] IMAGE
-
-    Show the history of an image
-
-      -H, --human=true     Print sizes and dates in human readable format
-      --help               Print usage
-      --no-trunc           Don't truncate output
-      -q, --quiet          Only show numeric IDs
-=======
 ```markdown
 Usage:  docker history [OPTIONS] IMAGE
 
@@ -31,7 +21,6 @@ Options:
       --no-trunc   Don't truncate output
   -q, --quiet      Only show numeric IDs
 ```
->>>>>>> 12a5469... start on swarm services; move to glade
 
 To see how the `docker:latest` image was built:
 

@@ -3,11 +3,7 @@ layout: "docs"
 page_title: "Service Definition"
 sidebar_current: "docs-agent-services"
 description: |-
-<<<<<<< HEAD
-  One of the main goals of service discovery is to provide a catalog of available services. To that end, the agent provides a simple service definition format to declare the availability of a service and to potentially associate it with a health check. A health check is considered to be application level if it associated with a service. A service is defined in a configuration file or added at runtime over the HTTP interface.
-=======
   One of the main goals of service discovery is to provide a catalog of available services. To that end, the agent provides a simple service definition format to declare the availability of a service and to potentially associate it with a health check. A health check is considered to be application level if it is associated with a service. A service is defined in a configuration file or added at runtime over the HTTP interface.
->>>>>>> 12a5469... start on swarm services; move to glade
 ---
 
 # Services
@@ -15,11 +11,7 @@ description: |-
 One of the main goals of service discovery is to provide a catalog of available
 services. To that end, the agent provides a simple service definition format
 to declare the availability of a service and to potentially associate it with
-<<<<<<< HEAD
-a health check. A health check is considered to be application level if it
-=======
 a health check. A health check is considered to be application level if it is
->>>>>>> 12a5469... start on swarm services; move to glade
 associated with a service. A service is defined in a configuration file
 or added at runtime over the HTTP interface.
 

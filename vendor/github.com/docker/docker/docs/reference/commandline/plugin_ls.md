@@ -11,16 +11,6 @@ parent = "smn_cli"
 
 # plugin ls (experimental)
 
-<<<<<<< HEAD
-    Usage: docker plugin ls
-
-    List plugins
-
-      --help   Print usage
-
-    Aliases:
-      ls, list
-=======
 ```markdown
 Usage:  docker plugin ls
 
@@ -32,7 +22,6 @@ Aliases:
 Options:
       --help   Print usage
 ```
->>>>>>> 12a5469... start on swarm services; move to glade
 
 Lists all the plugins that are currently installed. You can install plugins
 using the [`docker plugin install`](plugin_install.md) command.

@@ -10,15 +10,6 @@ parent = "smn_cli"
 
 # rmi
 
-<<<<<<< HEAD
-    Usage: docker rmi [OPTIONS] IMAGE [IMAGE...]
-
-    Remove one or more images
-
-      -f, --force          Force removal of the image
-      --help               Print usage
-      --no-prune           Do not delete untagged parents
-=======
 ```markdown
 Usage:  docker rmi [OPTIONS] IMAGE [IMAGE...]
 
@@ -29,7 +20,6 @@ Options:
       --help       Print usage
       --no-prune   Do not delete untagged parents
 ```
->>>>>>> 12a5469... start on swarm services; move to glade
 
 You can remove an image using its short or long ID, its tag, or its digest. If
 an image has one or more tag referencing it, you must remove all of them before

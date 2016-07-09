@@ -272,11 +272,7 @@ func (p *Picker) PickAddr() (string, error) {
 	p.mu.Lock()
 	p.peer = peer
 	p.mu.Unlock()
-<<<<<<< HEAD
-	return p.peer.Addr, err
-=======
 	return peer.Addr, err
->>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // State returns the connectivity state of the underlying connections.

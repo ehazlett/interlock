@@ -8,10 +8,7 @@ all: cfssl ca req
 cfssl:
 	go get -u -tags nopkcs11 github.com/cloudflare/cfssl/cmd/cfssl
 	go get -u github.com/cloudflare/cfssl/cmd/cfssljson
-<<<<<<< HEAD
-=======
 	go get -u github.com/mattn/goreman
->>>>>>> 12a5469... start on swarm services; move to glade
 
 ca:
 	mkdir -p certs

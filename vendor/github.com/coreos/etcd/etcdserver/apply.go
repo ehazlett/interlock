@@ -159,8 +159,6 @@ func (a *applierV3backend) Put(txnID int64, p *pb.PutRequest) (*pb.PutResponse, 
 		rev int64
 		err error
 	)
-<<<<<<< HEAD
-=======
 
 	var rr *mvcc.RangeResult
 	if p.PrevKv {
@@ -177,7 +175,6 @@ func (a *applierV3backend) Put(txnID int64, p *pb.PutRequest) (*pb.PutResponse, 
 		}
 	}
 
->>>>>>> 12a5469... start on swarm services; move to glade
 	if txnID != noTxn {
 		rev, err = a.s.KV().TxnPut(txnID, p.Key, p.Value, lease.LeaseID(p.Lease))
 		if err != nil {
@@ -193,12 +190,9 @@ func (a *applierV3backend) Put(txnID int64, p *pb.PutRequest) (*pb.PutResponse, 
 		rev = a.s.KV().Put(p.Key, p.Value, leaseID)
 	}
 	resp.Header.Revision = rev
-<<<<<<< HEAD
-=======
 	if rr != nil && len(rr.KVs) != 0 {
 		resp.PrevKv = &rr.KVs[0]
 	}
->>>>>>> 12a5469... start on swarm services; move to glade
 	return resp, nil
 }
 
@@ -216,8 +210,6 @@ func (a *applierV3backend) DeleteRange(txnID int64, dr *pb.DeleteRangeRequest) (
 		dr.RangeEnd = []byte{}
 	}
 
-<<<<<<< HEAD
-=======
 	var rr *mvcc.RangeResult
 	if dr.PrevKv {
 		if txnID != noTxn {
@@ -233,7 +225,6 @@ func (a *applierV3backend) DeleteRange(txnID int64, dr *pb.DeleteRangeRequest) (
 		}
 	}
 
->>>>>>> 12a5469... start on swarm services; move to glade
 	if txnID != noTxn {
 		n, rev, err = a.s.KV().TxnDeleteRange(txnID, dr.Key, dr.RangeEnd)
 		if err != nil {
@@ -244,14 +235,11 @@ func (a *applierV3backend) DeleteRange(txnID int64, dr *pb.DeleteRangeRequest) (
 	}
 
 	resp.Deleted = n
-<<<<<<< HEAD
-=======
 	if rr != nil {
 		for i := range rr.KVs {
 			resp.PrevKvs = append(resp.PrevKvs, &rr.KVs[i])
 		}
 	}
->>>>>>> 12a5469... start on swarm services; move to glade
 	resp.Header.Revision = rev
 	return resp, nil
 }

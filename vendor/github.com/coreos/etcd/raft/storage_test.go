@@ -22,25 +22,11 @@ import (
 	pb "github.com/coreos/etcd/raft/raftpb"
 )
 
-<<<<<<< HEAD
-// TODO(xiangli): Test panic cases
-
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 func TestStorageTerm(t *testing.T) {
 	ents := []pb.Entry{{Index: 3, Term: 3}, {Index: 4, Term: 4}, {Index: 5, Term: 5}}
 	tests := []struct {
 		i uint64
 
-<<<<<<< HEAD
-		werr  error
-		wterm uint64
-	}{
-		{2, ErrCompacted, 0},
-		{3, nil, 3},
-		{4, nil, 4},
-		{5, nil, 5},
-=======
 		werr   error
 		wterm  uint64
 		wpanic bool
@@ -50,20 +36,10 @@ func TestStorageTerm(t *testing.T) {
 		{4, nil, 4, false},
 		{5, nil, 5, false},
 		{6, nil, 0, true},
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	for i, tt := range tests {
 		s := &MemoryStorage{ents: ents}
-<<<<<<< HEAD
-		term, err := s.Term(tt.i)
-		if err != tt.werr {
-			t.Errorf("#%d: err = %v, want %v", i, err, tt.werr)
-		}
-		if term != tt.wterm {
-			t.Errorf("#%d: term = %d, want %d", i, term, tt.wterm)
-		}
-=======
 
 		func() {
 			defer func() {
@@ -82,7 +58,6 @@ func TestStorageTerm(t *testing.T) {
 				t.Errorf("#%d: term = %d, want %d", i, term, tt.wterm)
 			}
 		}()
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 }
 

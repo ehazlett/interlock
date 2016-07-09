@@ -1,11 +1,8 @@
 package ca
 
 import (
-<<<<<<< HEAD
-=======
 	"crypto/subtle"
 	"errors"
->>>>>>> 12a5469... start on swarm services; move to glade
 	"fmt"
 	"strings"
 	"sync"
@@ -260,11 +257,7 @@ func (s *Server) IssueNodeCertificate(ctx context.Context, request *api.IssueNod
 }
 
 // checkSecretValidity verifies if a secret string matches the secret hash stored in the
-<<<<<<< HEAD
-// Acceptance Policy. It currently only supports bcrypted hashes.
-=======
 // Acceptance Policy. It currently only supports bcrypted hashes and plaintext.
->>>>>>> 12a5469... start on swarm services; move to glade
 func checkSecretValidity(policy *api.AcceptancePolicy_RoleAdmissionPolicy, secret string) error {
 	if policy == nil || secret == "" {
 		return fmt.Errorf("invalid policy or secret")
@@ -273,14 +266,11 @@ func checkSecretValidity(policy *api.AcceptancePolicy_RoleAdmissionPolicy, secre
 	switch strings.ToLower(policy.Secret.Alg) {
 	case "bcrypt":
 		return bcrypt.CompareHashAndPassword(policy.Secret.Data, []byte(secret))
-<<<<<<< HEAD
-=======
 	case "plaintext":
 		if subtle.ConstantTimeCompare(policy.Secret.Data, []byte(secret)) == 1 {
 			return nil
 		}
 		return errors.New("incorrect secret")
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	return fmt.Errorf("hash algorithm not supported: %s", policy.Secret.Alg)
@@ -372,11 +362,7 @@ func (s *Server) Run(ctx context.Context) error {
 	s.mu.Lock()
 	if s.isRunning() {
 		s.mu.Unlock()
-<<<<<<< HEAD
-		return fmt.Errorf("CA signer is stopped")
-=======
 		return fmt.Errorf("CA signer is already running")
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 	s.wg.Add(1)
 	defer s.wg.Done()
@@ -464,20 +450,14 @@ func (s *Server) Run(ctx context.Context) error {
 func (s *Server) Stop() error {
 	s.mu.Lock()
 	if !s.isRunning() {
-<<<<<<< HEAD
-=======
 		s.mu.Unlock()
->>>>>>> 12a5469... start on swarm services; move to glade
 		return fmt.Errorf("CA signer is already stopped")
 	}
 	s.cancel()
 	s.mu.Unlock()
 	// wait for all handlers to finish their CA deals,
 	s.wg.Wait()
-<<<<<<< HEAD
-=======
 	s.started = make(chan struct{})
->>>>>>> 12a5469... start on swarm services; move to glade
 	return nil
 }
 
@@ -559,8 +539,6 @@ func (s *Server) updateCluster(ctx context.Context, cluster *api.Cluster) {
 			}).Debugf("Root CA updated successfully")
 		}
 	}
-<<<<<<< HEAD
-=======
 
 	// Update our security config with the list of External CA URLs
 	// from the new cluster state.
@@ -576,7 +554,6 @@ func (s *Server) updateCluster(ctx context.Context, cluster *api.Cluster) {
 	}
 
 	s.securityConfig.externalCA.UpdateURLs(cfsslURLs...)
->>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // evaluateAndSignNodeCert implements the logic of which certificates to sign
@@ -602,18 +579,8 @@ func (s *Server) evaluateAndSignNodeCert(ctx context.Context, node *api.Node) {
 
 // signNodeCert does the bulk of the work for signing a certificate
 func (s *Server) signNodeCert(ctx context.Context, node *api.Node) {
-<<<<<<< HEAD
-	if !s.securityConfig.RootCA().CanSign() {
-		log.G(ctx).WithFields(logrus.Fields{
-			"node.id": node.ID,
-			"method":  "(*Server).signNodeCert",
-		}).Errorf("no valid signer found")
-		return
-	}
-=======
 	rootCA := s.securityConfig.RootCA()
 	externalCA := s.securityConfig.externalCA
->>>>>>> 12a5469... start on swarm services; move to glade
 
 	node = node.Copy()
 	nodeID := node.ID
@@ -628,9 +595,6 @@ func (s *Server) signNodeCert(ctx context.Context, node *api.Node) {
 	}
 
 	// Attempt to sign the CSR
-<<<<<<< HEAD
-	cert, err := s.securityConfig.RootCA().ParseValidateAndSignCSR(node.Certificate.CSR, node.Certificate.CN, role, s.securityConfig.ClientTLSCreds.Organization())
-=======
 	var (
 		rawCSR = node.Certificate.CSR
 		cn     = node.Certificate.CN
@@ -645,7 +609,6 @@ func (s *Server) signNodeCert(ctx context.Context, node *api.Node) {
 		cert, err = rootCA.ParseValidateAndSignCSR(rawCSR, cn, ou, org)
 	}
 
->>>>>>> 12a5469... start on swarm services; move to glade
 	if err != nil {
 		log.G(ctx).WithFields(logrus.Fields{
 			"node.id": node.ID,

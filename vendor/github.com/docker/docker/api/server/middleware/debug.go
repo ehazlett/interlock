@@ -5,10 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-<<<<<<< HEAD
-=======
 	"strings"
->>>>>>> 12a5469... start on swarm services; move to glade
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/api/server/httputils"
@@ -44,13 +41,7 @@ func DebugRequestMiddleware(handler func(ctx context.Context, w http.ResponseWri
 
 		var postForm map[string]interface{}
 		if err := json.Unmarshal(b, &postForm); err == nil {
-<<<<<<< HEAD
-			if _, exists := postForm["password"]; exists {
-				postForm["password"] = "*****"
-			}
-=======
 			maskSecretKeys(postForm)
->>>>>>> 12a5469... start on swarm services; move to glade
 			formStr, errMarshal := json.Marshal(postForm)
 			if errMarshal == nil {
 				logrus.Debugf("form data: %s", string(formStr))
@@ -62,8 +53,6 @@ func DebugRequestMiddleware(handler func(ctx context.Context, w http.ResponseWri
 		return handler(ctx, w, r, vars)
 	}
 }
-<<<<<<< HEAD
-=======
 
 func maskSecretKeys(inp interface{}) {
 	if arr, ok := inp.([]interface{}); ok {
@@ -85,4 +74,3 @@ func maskSecretKeys(inp interface{}) {
 		}
 	}
 }
->>>>>>> 12a5469... start on swarm services; move to glade

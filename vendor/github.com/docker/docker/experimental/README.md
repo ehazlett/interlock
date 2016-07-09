@@ -73,11 +73,7 @@ to build a Docker binary with the experimental features enabled:
 
  * [External graphdriver plugins](plugins_graphdriver.md)
  * [Macvlan and Ipvlan Network Drivers](vlan-networks.md)
-<<<<<<< HEAD
- * [Docker stacks](docker-stacks.md)
-=======
  * [Docker Stacks and Distributed Application Bundles](docker-stacks-and-bundles.md)
->>>>>>> 12a5469... start on swarm services; move to glade
 
 ## How to comment on an experimental feature
 

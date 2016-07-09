@@ -19,11 +19,7 @@ func newInspectCommand(dockerCli *client.DockerCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "inspect [OPTIONS] NETWORK [NETWORK...]",
-<<<<<<< HEAD
-		Short: "Displays detailed information on one or more networks",
-=======
 		Short: "Display detailed information on one or more networks",
->>>>>>> 12a5469... start on swarm services; move to glade
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.names = args

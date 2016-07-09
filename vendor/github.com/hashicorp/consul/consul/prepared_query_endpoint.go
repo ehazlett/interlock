@@ -368,12 +368,6 @@ func (p *PreparedQuery) Execute(args *structs.PreparedQueryExecuteRequest,
 	// Shuffle the results in case coordinates are not available if they
 	// requested an RTT sort.
 	reply.Nodes.Shuffle()
-<<<<<<< HEAD
-	if err := p.srv.sortNodesByDistanceFrom(args.Source, reply.Nodes); err != nil {
-		return err
-	}
-
-=======
 
 	// Build the query source. This can be provided by the client, or by
 	// the prepared query. Client-specified takes priority.
@@ -413,7 +407,6 @@ func (p *PreparedQuery) Execute(args *structs.PreparedQueryExecuteRequest,
 		}
 	}
 
->>>>>>> 12a5469... start on swarm services; move to glade
 	// Apply the limit if given.
 	if args.Limit > 0 && len(reply.Nodes) > args.Limit {
 		reply.Nodes = reply.Nodes[:args.Limit]

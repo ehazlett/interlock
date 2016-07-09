@@ -81,13 +81,10 @@ func (n *networkRouter) postNetworkCreate(ctx context.Context, w http.ResponseWr
 		return err
 	}
 
-<<<<<<< HEAD
-=======
 	if _, err := n.clusterProvider.GetNetwork(create.Name); err == nil {
 		return libnetwork.NetworkNameError(create.Name)
 	}
 
->>>>>>> 12a5469... start on swarm services; move to glade
 	nw, err := n.backend.CreateNetwork(create)
 	if err != nil {
 		if _, ok := err.(libnetwork.ManagerRedirectError); !ok {

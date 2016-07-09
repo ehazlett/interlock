@@ -1,11 +1,8 @@
 package monitor // import "github.com/influxdata/influxdb/monitor"
 
 import (
-<<<<<<< HEAD
-=======
 	"bytes"
 	"errors"
->>>>>>> 12a5469... start on swarm services; move to glade
 	"expvar"
 	"fmt"
 	"io"
@@ -38,16 +35,10 @@ type Monitor struct {
 
 	wg sync.WaitGroup
 
-<<<<<<< HEAD
-	mu                sync.Mutex
-	globalTags        map[string]string
-	diagRegistrations map[string]diagnostics.Client
-=======
 	mu                sync.RWMutex
 	globalTags        map[string]string
 	diagRegistrations map[string]diagnostics.Client
 	reporter          Reporter
->>>>>>> 12a5469... start on swarm services; move to glade
 	done              chan struct{}
 	storeCreated      bool
 	storeEnabled      bool
@@ -76,18 +67,11 @@ type PointsWriter interface {
 }
 
 // New returns a new instance of the monitor system.
-<<<<<<< HEAD
-func New(c Config) *Monitor {
-	return &Monitor{
-		globalTags:           make(map[string]string),
-		diagRegistrations:    make(map[string]diagnostics.Client),
-=======
 func New(r Reporter, c Config) *Monitor {
 	return &Monitor{
 		globalTags:           make(map[string]string),
 		diagRegistrations:    make(map[string]diagnostics.Client),
 		reporter:             r,
->>>>>>> 12a5469... start on swarm services; move to glade
 		storeEnabled:         c.StoreEnabled,
 		storeDatabase:        c.StoreDatabase,
 		storeInterval:        time.Duration(c.StoreInterval),
@@ -226,15 +210,10 @@ func (m *Monitor) Statistics(tags map[string]string) ([]*Statistic, error) {
 		}
 
 		statistic := &Statistic{
-<<<<<<< HEAD
-			Tags:   make(map[string]string),
-			Values: make(map[string]interface{}),
-=======
 			Statistic: models.Statistic{
 				Tags:   make(map[string]string),
 				Values: make(map[string]interface{}),
 			},
->>>>>>> 12a5469... start on swarm services; move to glade
 		}
 
 		// Add any supplied tags.
@@ -299,17 +278,11 @@ func (m *Monitor) Statistics(tags map[string]string) ([]*Statistic, error) {
 
 	// Add Go memstats.
 	statistic := &Statistic{
-<<<<<<< HEAD
-		Name:   "runtime",
-		Tags:   make(map[string]string),
-		Values: make(map[string]interface{}),
-=======
 		Statistic: models.Statistic{
 			Name:   "runtime",
 			Tags:   make(map[string]string),
 			Values: make(map[string]interface{}),
 		},
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	// Add any supplied tags to Go memstats
@@ -338,11 +311,6 @@ func (m *Monitor) Statistics(tags map[string]string) ([]*Statistic, error) {
 	}
 	statistics = append(statistics, statistic)
 
-<<<<<<< HEAD
-	return statistics, nil
-}
-
-=======
 	statistics = m.gatherStatistics(statistics, tags)
 	sort.Sort(Statistics(statistics))
 
@@ -359,7 +327,6 @@ func (m *Monitor) gatherStatistics(statistics []*Statistic, tags map[string]stri
 	return statistics
 }
 
->>>>>>> 12a5469... start on swarm services; move to glade
 // Diagnostics fetches diagnostic information for each registered
 // diagnostic client. It skips any clients that return an error when
 // retrieving their diagnostics.
@@ -400,8 +367,6 @@ func (m *Monitor) createInternalStorage() {
 	m.storeCreated = true
 }
 
-<<<<<<< HEAD
-=======
 // waitUntilInterval waits until we are on an even interval for the duration.
 func (m *Monitor) waitUntilInterval(d time.Duration) error {
 	now := time.Now()
@@ -417,7 +382,6 @@ func (m *Monitor) waitUntilInterval(d time.Duration) error {
 	}
 }
 
->>>>>>> 12a5469... start on swarm services; move to glade
 // storeStatistics writes the statistics to an InfluxDB system.
 func (m *Monitor) storeStatistics() {
 	defer m.wg.Done()
@@ -427,37 +391,6 @@ func (m *Monitor) storeStatistics() {
 	hostname, _ := os.Hostname()
 	m.SetGlobalTag("hostname", hostname)
 
-<<<<<<< HEAD
-	m.mu.Lock()
-	tick := time.NewTicker(m.storeInterval)
-	m.mu.Unlock()
-
-	defer tick.Stop()
-	for {
-		select {
-		case <-tick.C:
-			func() {
-				m.mu.Lock()
-				defer m.mu.Unlock()
-
-				m.createInternalStorage()
-
-				stats, err := m.Statistics(m.globalTags)
-				if err != nil {
-					m.Logger.Printf("failed to retrieve registered statistics: %s", err)
-					return
-				}
-
-				points := make(models.Points, 0, len(stats))
-				for _, s := range stats {
-					pt, err := models.NewPoint(s.Name, s.Tags, s.Values, time.Now().Truncate(time.Second))
-					if err != nil {
-						m.Logger.Printf("Dropping point %v: %v", s.Name, err)
-						return
-					}
-					points = append(points, pt)
-				}
-=======
 	// Wait until an even interval to start recording monitor statistics.
 	// If we are interrupted before the interval for some reason, exit early.
 	if err := m.waitUntilInterval(m.storeInterval); err != nil {
@@ -496,7 +429,6 @@ func (m *Monitor) storeStatistics() {
 			func() {
 				m.mu.RLock()
 				defer m.mu.RUnlock()
->>>>>>> 12a5469... start on swarm services; move to glade
 
 				if err := m.PointsWriter.WritePoints(m.storeDatabase, m.storeRetentionPolicy, points); err != nil {
 					m.Logger.Printf("failed to store statistics: %s", err)
@@ -511,13 +443,7 @@ func (m *Monitor) storeStatistics() {
 
 // Statistic represents the information returned by a single monitor client.
 type Statistic struct {
-<<<<<<< HEAD
-	Name   string                 `json:"name"`
-	Tags   map[string]string      `json:"tags"`
-	Values map[string]interface{} `json:"values"`
-=======
 	models.Statistic
->>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // valueNames returns a sorted list of the value names, if any.
@@ -530,8 +456,6 @@ func (s *Statistic) ValueNames() []string {
 	return a
 }
 
-<<<<<<< HEAD
-=======
 type Statistics []*Statistic
 
 func (a Statistics) Len() int { return len(a) }
@@ -543,7 +467,6 @@ func (a Statistics) Less(i, j int) bool {
 }
 func (a Statistics) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 
->>>>>>> 12a5469... start on swarm services; move to glade
 // DiagnosticsFromMap returns a Diagnostics from a map.
 func DiagnosticsFromMap(m map[string]interface{}) *diagnostics.Diagnostics {
 	// Display columns in deterministic order.

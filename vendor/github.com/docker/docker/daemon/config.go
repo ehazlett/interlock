@@ -271,11 +271,7 @@ func getConflictFreeConfiguration(configFile string, flags *flag.FlagSet) (*Conf
 		}
 
 		// Override flag values to make sure the values set in the config file with nullable values, like `false`,
-<<<<<<< HEAD
-		// are not overriden by default truthy values from the flags that were not explicitly set.
-=======
 		// are not overridden by default truthy values from the flags that were not explicitly set.
->>>>>>> 12a5469... start on swarm services; move to glade
 		// See https://github.com/docker/docker/issues/20289 for an example.
 		//
 		// TODO: Rewrite configuration logic to avoid same issue with other nullable values, like numbers.

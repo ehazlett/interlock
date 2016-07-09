@@ -2,26 +2,16 @@ package influxql
 
 import (
 	"errors"
-<<<<<<< HEAD
-	"expvar"
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"runtime/debug"
 	"sync"
-<<<<<<< HEAD
-	"time"
-
-	"github.com/influxdata/influxdb"
-=======
 	"sync/atomic"
 	"time"
 
 	"github.com/influxdata/influxdb/models"
->>>>>>> 12a5469... start on swarm services; move to glade
 )
 
 var (
@@ -129,11 +119,7 @@ type QueryExecutor struct {
 	Logger *log.Logger
 
 	// expvar-based stats.
-<<<<<<< HEAD
-	statMap *expvar.Map
-=======
 	stats *QueryStatistics
->>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // NewQueryExecutor returns a new instance of QueryExecutor.
@@ -141,12 +127,6 @@ func NewQueryExecutor() *QueryExecutor {
 	return &QueryExecutor{
 		TaskManager: NewTaskManager(),
 		Logger:      log.New(ioutil.Discard, "[query] ", log.LstdFlags),
-<<<<<<< HEAD
-		statMap:     influxdb.NewStatistics("queryExecutor", "queryExecutor", nil),
-	}
-}
-
-=======
 		stats:       &QueryStatistics{},
 	}
 }
@@ -169,7 +149,6 @@ func (e *QueryExecutor) Statistics(tags map[string]string) []models.Statistic {
 	}}
 }
 
->>>>>>> 12a5469... start on swarm services; move to glade
 // Close kills all running queries and prevents new queries from being attached.
 func (e *QueryExecutor) Close() error {
 	return e.TaskManager.Close()
@@ -193,17 +172,10 @@ func (e *QueryExecutor) executeQuery(query *Query, opt ExecutionOptions, closing
 	defer close(results)
 	defer e.recover(query, results)
 
-<<<<<<< HEAD
-	e.statMap.Add(statQueriesActive, 1)
-	defer func(start time.Time) {
-		e.statMap.Add(statQueriesActive, -1)
-		e.statMap.Add(statQueryExecutionDuration, time.Since(start).Nanoseconds())
-=======
 	atomic.AddInt64(&e.stats.ActiveQueries, 1)
 	defer func(start time.Time) {
 		atomic.AddInt64(&e.stats.ActiveQueries, -1)
 		atomic.AddInt64(&e.stats.QueryExecutionDuration, time.Since(start).Nanoseconds())
->>>>>>> 12a5469... start on swarm services; move to glade
 	}(time.Now())
 
 	qid, task, err := e.TaskManager.AttachQuery(query, opt.Database, closing)

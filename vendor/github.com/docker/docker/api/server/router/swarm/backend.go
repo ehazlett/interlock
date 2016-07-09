@@ -14,13 +14,8 @@ type Backend interface {
 	Update(uint64, types.Spec) error
 	GetServices(basictypes.ServiceListOptions) ([]types.Service, error)
 	GetService(string) (types.Service, error)
-<<<<<<< HEAD
-	CreateService(types.ServiceSpec) (string, error)
-	UpdateService(string, uint64, types.ServiceSpec) error
-=======
 	CreateService(types.ServiceSpec, string) (string, error)
 	UpdateService(string, uint64, types.ServiceSpec, string) error
->>>>>>> 12a5469... start on swarm services; move to glade
 	RemoveService(string) error
 	GetNodes(basictypes.NodeListOptions) ([]types.Node, error)
 	GetNode(string) (types.Node, error)

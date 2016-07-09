@@ -671,14 +671,11 @@
           "format": "byte",
           "description": "key is the first key to delete in the range."
         },
-<<<<<<< HEAD
-=======
         "prev_kv": {
           "type": "boolean",
           "format": "boolean",
           "description": "If prev_kv is set, etcd gets the previous key-value pairs before deleting it.\nThe previous key-value pairs will be returned in the delte response."
         },
->>>>>>> 12a5469... start on swarm services; move to glade
         "range_end": {
           "type": "string",
           "format": "byte",
@@ -696,8 +693,6 @@
         },
         "header": {
           "$ref": "#/definitions/etcdserverpbResponseHeader"
-<<<<<<< HEAD
-=======
         },
         "prev_kvs": {
           "type": "array",
@@ -705,7 +700,6 @@
             "$ref": "#/definitions/mvccpbKeyValue"
           },
           "description": "if prev_kv is set in the request, the previous key-value pairs will be returned."
->>>>>>> 12a5469... start on swarm services; move to glade
         }
       }
     },
@@ -939,14 +933,11 @@
           "format": "int64",
           "description": "lease is the lease ID to associate with the key in the key-value store. A lease\nvalue of 0 indicates no lease."
         },
-<<<<<<< HEAD
-=======
         "prev_kv": {
           "type": "boolean",
           "format": "boolean",
           "description": "If prev_kv is set, etcd gets the previous key-value pair before changing it.\nThe previous key-value pair will be returned in the put response."
         },
->>>>>>> 12a5469... start on swarm services; move to glade
         "value": {
           "type": "string",
           "format": "byte",
@@ -959,13 +950,10 @@
       "properties": {
         "header": {
           "$ref": "#/definitions/etcdserverpbResponseHeader"
-<<<<<<< HEAD
-=======
         },
         "prev_kv": {
           "$ref": "#/definitions/mvccpbKeyValue",
           "description": "if prev_kv is set in the request, the previous key-value pair will be returned."
->>>>>>> 12a5469... start on swarm services; move to glade
         }
       }
     },
@@ -1225,14 +1213,11 @@
           "format": "byte",
           "description": "key is the key to register for watching."
         },
-<<<<<<< HEAD
-=======
         "prev_kv": {
           "type": "boolean",
           "format": "boolean",
           "description": "If prev_kv is set, created watcher gets the previous KV before the event happens.\nIf the previous KV is already compacted, nothing will be returned."
         },
->>>>>>> 12a5469... start on swarm services; move to glade
         "progress_notify": {
           "type": "boolean",
           "format": "boolean",
@@ -1302,13 +1287,10 @@
           "$ref": "#/definitions/mvccpbKeyValue",
           "description": "kv holds the KeyValue for the event.\nA PUT event contains current kv pair.\nA PUT event with kv.Version=1 indicates the creation of a key.\nA DELETE/EXPIRE event contains the deleted key with\nits modification revision set to the revision of deletion."
         },
-<<<<<<< HEAD
-=======
         "prev_kv": {
           "$ref": "#/definitions/mvccpbKeyValue",
           "description": "prev_kv holds the key-value pair before the event happens."
         },
->>>>>>> 12a5469... start on swarm services; move to glade
         "type": {
           "$ref": "#/definitions/EventEventType",
           "description": "type is the kind of event. If type is a PUT, it indicates\nnew data has been stored to the key. If type is a DELETE,\nit indicates the key was deleted."

@@ -1,0 +1,124 @@
+hash: 90fc7553fa1658284c3cc774fdb984790b405250c9029dd885c78df300339e33
+updated: 2016-07-08T23:33:43.999607844-04:00
+imports:
+- name: github.com/beorn7/perks
+  version: 3ac7bf7a47d159a033b107610db8a1b6575507a4
+  subpackages:
+  - quantile
+- name: github.com/BurntSushi/toml
+  version: ffaa107fbd880f6d18cd6fec9b511668dcad8639
+- name: github.com/codegangsta/cli
+  version: 1efa31f08b9333f1bd4882d61f9d668a70cd902e
+- name: github.com/coreos/etcd
+  version: 474eb1b44b097c0e53374d7467fc6f02d06990fc
+  subpackages:
+  - client
+  - pkg/pathutil
+  - pkg/types
+- name: github.com/docker/distribution
+  version: 4e17ab5d319ac5b70b2769442947567a83386fbc
+  subpackages:
+  - reference
+  - digest
+- name: github.com/docker/docker
+  version: 3ab080a4bd105d630bc1d67808bdc04bc4b4698e
+  subpackages:
+  - pkg/tlsconfig
+- name: github.com/docker/engine-api
+  version: 98348ad6f9c89bb10f31ac32cd1b12cbadd292b6
+  subpackages:
+  - client
+  - types
+  - types/container
+  - types/events
+  - types/filters
+  - types/network
+  - types/swarm
+  - client/transport
+  - client/transport/cancellable
+  - types/reference
+  - types/registry
+  - types/time
+  - types/versions
+  - types/blkiodev
+  - types/strslice
+- name: github.com/docker/go-connections
+  version: 990a1a1a70b0da4c4cb70e117971a4f0babfbf1a
+  subpackages:
+  - nat
+  - sockets
+  - tlsconfig
+- name: github.com/docker/go-units
+  version: f2d77a61e3c169b43402a0a1e84f06daf29b8190
+- name: github.com/docker/libkv
+  version: 35d3e2084c650109e7bcc7282655b1bc8ba924ff
+  subpackages:
+  - store
+  - store/consul
+  - store/etcd
+- name: github.com/ehazlett/ttlcache
+  version: 9f221f68554a95645a171d5f9504be8fc100a881
+- name: github.com/golang/protobuf
+  version: 3852dcfda249c2097355a6aabb199a28d97b30df
+  subpackages:
+  - proto
+- name: github.com/hashicorp/consul
+  version: 64e3033d3c7f80af3f925f4665a9bc1af75d6153
+  subpackages:
+  - api
+- name: github.com/hashicorp/go-cleanhttp
+  version: 875fb671b3ddc66f8e2f0acc33829c8cb989a38d
+- name: github.com/hashicorp/serf
+  version: 6c4672d66fc6312ddde18399262943e21175d831
+  subpackages:
+  - coordinate
+  - serf
+- name: github.com/influxdata/influxdb
+  version: 11d141ae1fadfcac2a36e23d4aa38b36271a5daf
+  subpackages:
+  - client/v2
+  - models
+  - pkg/escape
+- name: github.com/matttproud/golang_protobuf_extensions
+  version: c12348ce28de40eed0136aa2b644d0ee0650e56c
+  subpackages:
+  - pbutil
+- name: github.com/Microsoft/go-winio
+  version: ce2922f643c8fd76b46cadc7f404a06282678b34
+- name: github.com/opencontainers/runc
+  version: 9d7831e41d3ef428b67685eeb27f2b4a22a92391
+  subpackages:
+  - libcontainer/user
+- name: github.com/prometheus/client_golang
+  version: 9f1ed1ed4a5f754c9b626e5cf8ec1ea7d622e017
+  subpackages:
+  - prometheus
+- name: github.com/prometheus/client_model
+  version: fa8ad6fec33561be4280a8f0514318c79d7f6cb6
+  subpackages:
+  - go
+- name: github.com/prometheus/common
+  version: 4402f4e5ea79ec15f3c574773b6a5198fbea215f
+  subpackages:
+  - expfmt
+  - internal/bitbucket.org/ww/goautoneg
+  - model
+- name: github.com/prometheus/procfs
+  version: abf152e5f3e97f2fafac028d2cc06c1feb87ffa5
+- name: github.com/Sirupsen/logrus
+  version: f3cfb454f4c209e6668c95216c4744b8fddb2356
+- name: github.com/ugorji/go
+  version: b94837a2404ab90efe9289e77a70694c355739cb
+  subpackages:
+  - codec
+- name: golang.org/x/net
+  version: 4876518f9e71663000c348837735820161a42df7
+  subpackages:
+  - context
+  - proxy
+- name: golang.org/x/sys
+  version: 20457ee8ea8546920d3f4e19e405da45250dc5a5
+  subpackages:
+  - unix
+  - windows
+testImports: []

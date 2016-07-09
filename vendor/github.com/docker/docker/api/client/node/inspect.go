@@ -27,11 +27,7 @@ func newInspectCommand(dockerCli *client.DockerCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "inspect [OPTIONS] self|NODE [NODE...]",
-<<<<<<< HEAD
-		Short: "Inspect a node in the swarm",
-=======
 		Short: "Display detailed information on one or more nodes",
->>>>>>> 12a5469... start on swarm services; move to glade
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.nodeIds = args
@@ -49,19 +45,11 @@ func runInspect(dockerCli *client.DockerCli, opts inspectOptions) error {
 	client := dockerCli.Client()
 	ctx := context.Background()
 	getRef := func(ref string) (interface{}, []byte, error) {
-<<<<<<< HEAD
-		nodeRef, err := nodeReference(client, ctx, ref)
-		if err != nil {
-			return nil, nil, err
-		}
-		node, err := client.NodeInspect(ctx, nodeRef)
-=======
 		nodeRef, err := Reference(client, ctx, ref)
 		if err != nil {
 			return nil, nil, err
 		}
 		node, _, err := client.NodeInspectWithRaw(ctx, nodeRef)
->>>>>>> 12a5469... start on swarm services; move to glade
 		return node, nil, err
 	}
 

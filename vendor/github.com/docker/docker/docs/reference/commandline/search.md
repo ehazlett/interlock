@@ -10,19 +10,6 @@ parent = "smn_cli"
 
 # search
 
-<<<<<<< HEAD
-    Usage: docker search [OPTIONS] TERM
-
-    Search the Docker Hub for images
-
-      --filter=[]          Filter output based on these conditions:
-                           - is-automated=(true|false)
-                           - is-official=(true|false)
-                           - stars=<number> - image has at least 'number' stars
-      --help               Print usage
-      --limit=25           Maximum returned search results
-      --no-trunc           Don't truncate output
-=======
 ```markdown
 Usage:  docker search [OPTIONS] TERM
 
@@ -37,7 +24,6 @@ Options:
       --limit int      Max number of search results (default 25)
       --no-trunc       Don't truncate output
 ```
->>>>>>> 12a5469... start on swarm services; move to glade
 
 Search [Docker Hub](https://hub.docker.com) for images
 
@@ -66,11 +52,7 @@ This example displays images with a name containing 'busybox':
     ofayau/busybox-libc32            Busybox with 32 bits (and 64 bits) libs         1                    [OK]
     peelsky/zulu-openjdk-busybox                                                     1                    [OK]
     skomma/busybox-data              Docker image suitable for data volume cont...   1                    [OK]
-<<<<<<< HEAD
-    elektritter/busybox-teamspeak    Leightweight teamspeak3 container based on...   1                    [OK]
-=======
     elektritter/busybox-teamspeak    Lightweight teamspeak3 container based on...    1                    [OK]
->>>>>>> 12a5469... start on swarm services; move to glade
     socketplane/busybox                                                              1                    [OK]
     oveits/docker-nginx-busybox      This is a tiny NginX docker image based on...   0                    [OK]
     ggtools/busybox-ubuntu           Busybox ubuntu version with extra goodies       0                    [OK]

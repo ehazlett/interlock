@@ -99,12 +99,9 @@ func Init(base string, opt []string, uidMaps, gidMaps []idtools.IDMap) (graphdri
 		return nil, fmt.Errorf("BUG: zfs get all -t filesystem -rHp '%s' should contain '%s'", options.fsName, options.fsName)
 	}
 
-<<<<<<< HEAD
-=======
 	if err := mount.MakePrivate(base); err != nil {
 		return nil, err
 	}
->>>>>>> 12a5469... start on swarm services; move to glade
 	d := &Driver{
 		dataset:          rootDataset,
 		options:          options,

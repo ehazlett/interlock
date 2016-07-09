@@ -1,11 +1,8 @@
 package swarm
 
 import (
-<<<<<<< HEAD
-=======
 	"encoding/csv"
 	"errors"
->>>>>>> 12a5469... start on swarm services; move to glade
 	"fmt"
 	"strings"
 	"time"
@@ -28,10 +25,7 @@ const (
 	flagListenAddr          = "listen-addr"
 	flagSecret              = "secret"
 	flagTaskHistoryLimit    = "task-history-limit"
-<<<<<<< HEAD
-=======
 	flagExternalCA          = "external-ca"
->>>>>>> 12a5469... start on swarm services; move to glade
 )
 
 var (
@@ -47,10 +41,7 @@ type swarmOptions struct {
 	taskHistoryLimit    int64
 	dispatcherHeartbeat time.Duration
 	nodeCertExpiry      time.Duration
-<<<<<<< HEAD
-=======
 	externalCA          ExternalCAOption
->>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // NodeAddrOption is a pflag.Value for listen and remote addresses
@@ -155,14 +146,6 @@ func NewAutoAcceptOption() AutoAcceptOption {
 	return AutoAcceptOption{values: make(map[string]bool)}
 }
 
-<<<<<<< HEAD
-func addSwarmFlags(flags *pflag.FlagSet, opts *swarmOptions) {
-	flags.Var(&opts.autoAccept, flagAutoAccept, "Auto acceptance policy (worker, manager or none)")
-	flags.StringVar(&opts.secret, flagSecret, "", "Set secret value needed to accept nodes into cluster")
-	flags.Int64Var(&opts.taskHistoryLimit, flagTaskHistoryLimit, 10, "Task history retention limit")
-	flags.DurationVar(&opts.dispatcherHeartbeat, flagDispatcherHeartbeat, time.Duration(5*time.Second), "Dispatcher heartbeat period")
-	flags.DurationVar(&opts.nodeCertExpiry, flagCertExpiry, time.Duration(90*24*time.Hour), "Validity period for node certificates")
-=======
 // ExternalCAOption is a Value type for parsing external CA specifications.
 type ExternalCAOption struct {
 	values []*swarm.ExternalCA
@@ -259,7 +242,6 @@ func addSwarmFlags(flags *pflag.FlagSet, opts *swarmOptions) {
 	flags.DurationVar(&opts.dispatcherHeartbeat, flagDispatcherHeartbeat, time.Duration(5*time.Second), "Dispatcher heartbeat period")
 	flags.DurationVar(&opts.nodeCertExpiry, flagCertExpiry, time.Duration(90*24*time.Hour), "Validity period for node certificates")
 	flags.Var(&opts.externalCA, flagExternalCA, "Specifications of one or more certificate signing endpoints")
->>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 func (opts *swarmOptions) ToSpec() swarm.Spec {
@@ -272,9 +254,6 @@ func (opts *swarmOptions) ToSpec() swarm.Spec {
 	spec.Orchestration.TaskHistoryRetentionLimit = opts.taskHistoryLimit
 	spec.Dispatcher.HeartbeatPeriod = uint64(opts.dispatcherHeartbeat.Nanoseconds())
 	spec.CAConfig.NodeCertExpiry = opts.nodeCertExpiry
-<<<<<<< HEAD
-=======
 	spec.CAConfig.ExternalCAs = opts.externalCA.Value()
->>>>>>> 12a5469... start on swarm services; move to glade
 	return spec
 }

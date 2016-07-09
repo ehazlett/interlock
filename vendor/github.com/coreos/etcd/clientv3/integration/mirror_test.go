@@ -15,13 +15,9 @@
 package integration
 
 import (
-<<<<<<< HEAD
-	"reflect"
-=======
 	"fmt"
 	"reflect"
 	"sync"
->>>>>>> 12a5469... start on swarm services; move to glade
 	"testing"
 	"time"
 
@@ -75,8 +71,6 @@ func TestMirrorSync(t *testing.T) {
 		t.Fatal("failed to receive update in one second")
 	}
 }
-<<<<<<< HEAD
-=======
 
 func TestMirrorSyncBase(t *testing.T) {
 	cluster := integration.NewClusterV3(nil, &integration.ClusterConfig{Size: 1})
@@ -129,4 +123,3 @@ func TestMirrorSyncBase(t *testing.T) {
 		t.Errorf("unexpected kv count: %d", count)
 	}
 }
->>>>>>> 12a5469... start on swarm services; move to glade

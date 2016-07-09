@@ -145,21 +145,6 @@ func (m *Main) Run(args ...string) error {
 func ParseCommandName(args []string) (string, []string) {
 	// Retrieve command name as first argument.
 	var name string
-<<<<<<< HEAD
-	if len(args) > 0 && !strings.HasPrefix(args[0], "-") {
-		name = args[0]
-	}
-
-	// Special case -h immediately following binary name
-	if len(args) > 0 && args[0] == "-h" {
-		name = "help"
-	}
-
-	// If command is "help" and has an argument then rewrite args to use "-h".
-	if name == "help" && len(args) > 1 {
-		args[0], args[1] = args[1], "-h"
-		name = args[0]
-=======
 	if len(args) > 0 {
 		if !strings.HasPrefix(args[0], "-") {
 			name = args[0]
@@ -172,7 +157,6 @@ func ParseCommandName(args []string) (string, []string) {
 	// If command is "help" and has an argument then rewrite args to use "-h".
 	if name == "help" && len(args) > 2 && !strings.HasPrefix(args[1], "-") {
 		return args[1], []string{"-h"}
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	// If a named command is specified then return it with its arguments.
@@ -211,13 +195,7 @@ func (cmd *VersionCommand) Run(args ...string) error {
 	return nil
 }
 
-<<<<<<< HEAD
-var versionUsage = `usage: influxd version
-
-Displays the InfluxDB version, build branch and git commit hash.
-=======
 var versionUsage = `Displays the InfluxDB version, build branch and git commit hash.
 
 Usage: influxd version
->>>>>>> 12a5469... start on swarm services; move to glade
 `

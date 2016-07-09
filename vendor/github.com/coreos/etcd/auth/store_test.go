@@ -20,18 +20,12 @@ import (
 
 	pb "github.com/coreos/etcd/etcdserver/etcdserverpb"
 	"github.com/coreos/etcd/mvcc/backend"
-<<<<<<< HEAD
-	"golang.org/x/net/context"
-)
-
-=======
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/net/context"
 )
 
 func init() { BcryptCost = bcrypt.MinCost }
 
->>>>>>> 12a5469... start on swarm services; move to glade
 func TestUserAdd(t *testing.T) {
 	b, tPath := backend.NewDefaultTmpBackend()
 	defer func() {

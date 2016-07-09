@@ -57,13 +57,10 @@ func runInstall(dockerCli *client.DockerCli, opts pluginOptions) error {
 	ctx := context.Background()
 
 	repoInfo, err := registry.ParseRepositoryInfo(named)
-<<<<<<< HEAD
-=======
 	if err != nil {
 		return err
 	}
 
->>>>>>> 12a5469... start on swarm services; move to glade
 	authConfig := dockerCli.ResolveAuthConfig(ctx, repoInfo.Index)
 
 	encodedAuth, err := client.EncodeAuthToBase64(authConfig)

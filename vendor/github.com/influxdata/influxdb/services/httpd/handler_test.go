@@ -13,10 +13,6 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-<<<<<<< HEAD
-	"github.com/influxdata/influxdb"
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 	"github.com/influxdata/influxdb/influxql"
 	"github.com/influxdata/influxdb/models"
 	"github.com/influxdata/influxdb/services/httpd"
@@ -278,21 +274,6 @@ func TestHandler_Query_ErrInvalidQuery(t *testing.T) {
 	}
 }
 
-<<<<<<< HEAD
-// Ensure the handler returns a status 401 if the user is not authorized.
-// func TestHandler_Query_ErrUnauthorized(t *testing.T) {
-// 	h := NewHandler(false)
-// 	h.QueryExecutor.AuthorizeFn = func(u *meta.UserInfo, q *influxql.Query, db string) error {
-// 		return errors.New("marker")
-// 	}
-
-// 	w := httptest.NewRecorder()
-// 	h.ServeHTTP(w, MustNewJSONRequest("GET", "/query?u=bar&db=foo&q=SHOW+SERIES+FROM+bar", nil))
-// 	if w.Code != http.StatusUnauthorized {
-// 		t.Fatalf("unexpected status: %d", w.Code)
-// 	}
-// }
-=======
 // Ensure the handler returns an appropriate 401 or 403 status when authentication or authorization fails.
 func TestHandler_Query_ErrAuthorize(t *testing.T) {
 	h := NewHandler(true)
@@ -367,7 +348,6 @@ func TestHandler_Query_ErrAuthorize(t *testing.T) {
 		}
 	}
 }
->>>>>>> 12a5469... start on swarm services; move to glade
 
 // Ensure the handler returns a status 200 if an error is returned in the result.
 func TestHandler_Query_ErrResult(t *testing.T) {
@@ -507,21 +487,12 @@ type Handler struct {
 
 // NewHandler returns a new instance of Handler.
 func NewHandler(requireAuthentication bool) *Handler {
-<<<<<<< HEAD
-	statMap := influxdb.NewStatistics("httpd", "httpd", nil)
-
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 	config := httpd.NewConfig()
 	config.AuthEnabled = requireAuthentication
 	config.SharedSecret = "super secret key"
 
 	h := &Handler{
-<<<<<<< HEAD
-		Handler: httpd.NewHandler(config, statMap),
-=======
 		Handler: httpd.NewHandler(config),
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 	h.Handler.MetaClient = &h.MetaClient
 	h.Handler.QueryExecutor = influxql.NewQueryExecutor()

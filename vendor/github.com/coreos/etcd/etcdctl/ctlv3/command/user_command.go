@@ -31,11 +31,7 @@ var (
 func NewUserCommand() *cobra.Command {
 	ac := &cobra.Command{
 		Use:   "user <subcommand>",
-<<<<<<< HEAD
-		Short: "user related command",
-=======
 		Short: "User related commands",
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	ac.AddCommand(newUserAddCommand())
@@ -56,19 +52,11 @@ var (
 func newUserAddCommand() *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "add <user name>",
-<<<<<<< HEAD
-		Short: "add a new user",
-		Run:   userAddCommandFunc,
-	}
-
-	cmd.Flags().BoolVar(&passwordInteractive, "interactive", true, "read password from stdin instead of interactive terminal")
-=======
 		Short: "Adds a new user",
 		Run:   userAddCommandFunc,
 	}
 
 	cmd.Flags().BoolVar(&passwordInteractive, "interactive", true, "Read password from stdin instead of interactive terminal")
->>>>>>> 12a5469... start on swarm services; move to glade
 
 	return &cmd
 }
@@ -76,11 +64,7 @@ func newUserAddCommand() *cobra.Command {
 func newUserDeleteCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "delete <user name>",
-<<<<<<< HEAD
-		Short: "delete a user",
-=======
 		Short: "Deletes a user",
->>>>>>> 12a5469... start on swarm services; move to glade
 		Run:   userDeleteCommandFunc,
 	}
 }
@@ -88,19 +72,11 @@ func newUserDeleteCommand() *cobra.Command {
 func newUserGetCommand() *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "get <user name>",
-<<<<<<< HEAD
-		Short: "get detailed information of a user",
-		Run:   userGetCommandFunc,
-	}
-
-	cmd.Flags().BoolVar(&userShowDetail, "detail", false, "show permissions of roles granted to the user")
-=======
 		Short: "Gets detailed information of a user",
 		Run:   userGetCommandFunc,
 	}
 
 	cmd.Flags().BoolVar(&userShowDetail, "detail", false, "Show permissions of roles granted to the user")
->>>>>>> 12a5469... start on swarm services; move to glade
 
 	return &cmd
 }
@@ -108,11 +84,7 @@ func newUserGetCommand() *cobra.Command {
 func newUserListCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "list",
-<<<<<<< HEAD
-		Short: "list up all users",
-=======
 		Short: "Lists all users",
->>>>>>> 12a5469... start on swarm services; move to glade
 		Run:   userListCommandFunc,
 	}
 }
@@ -120,19 +92,11 @@ func newUserListCommand() *cobra.Command {
 func newUserChangePasswordCommand() *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "passwd <user name>",
-<<<<<<< HEAD
-		Short: "change password of user",
-		Run:   userChangePasswordCommandFunc,
-	}
-
-	cmd.Flags().BoolVar(&passwordInteractive, "interactive", true, "if true, read password from stdin instead of interactive terminal")
-=======
 		Short: "Changes password of user",
 		Run:   userChangePasswordCommandFunc,
 	}
 
 	cmd.Flags().BoolVar(&passwordInteractive, "interactive", true, "If true, read password from stdin instead of interactive terminal")
->>>>>>> 12a5469... start on swarm services; move to glade
 
 	return &cmd
 }
@@ -140,11 +104,7 @@ func newUserChangePasswordCommand() *cobra.Command {
 func newUserGrantRoleCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "grant-role <user name> <role name>",
-<<<<<<< HEAD
-		Short: "grant a role to a user",
-=======
 		Short: "Grants a role to a user",
->>>>>>> 12a5469... start on swarm services; move to glade
 		Run:   userGrantRoleCommandFunc,
 	}
 }
@@ -152,11 +112,7 @@ func newUserGrantRoleCommand() *cobra.Command {
 func newUserRevokeRoleCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "revoke-role <user name> <role name>",
-<<<<<<< HEAD
-		Short: "revoke a role from a user",
-=======
 		Short: "Revokes a role from a user",
->>>>>>> 12a5469... start on swarm services; move to glade
 		Run:   userRevokeRoleCommandFunc,
 	}
 }

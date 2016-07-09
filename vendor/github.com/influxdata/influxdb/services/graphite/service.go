@@ -2,10 +2,6 @@ package graphite // import "github.com/influxdata/influxdb/services/graphite"
 
 import (
 	"bufio"
-<<<<<<< HEAD
-	"expvar"
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 	"fmt"
 	"io"
 	"log"
@@ -14,15 +10,9 @@ import (
 	"os"
 	"strings"
 	"sync"
-<<<<<<< HEAD
-	"time"
-
-	"github.com/influxdata/influxdb"
-=======
 	"sync/atomic"
 	"time"
 
->>>>>>> 12a5469... start on swarm services; move to glade
 	"github.com/influxdata/influxdb/models"
 	"github.com/influxdata/influxdb/monitor/diagnostics"
 	"github.com/influxdata/influxdb/services/meta"
@@ -69,15 +59,10 @@ type Service struct {
 	batcher *tsdb.PointBatcher
 	parser  *Parser
 
-<<<<<<< HEAD
-	logger           *log.Logger
-	statMap          *expvar.Map
-=======
 	logger   *log.Logger
 	stats    *Statistics
 	statTags models.Tags
 
->>>>>>> 12a5469... start on swarm services; move to glade
 	tcpConnectionsMu sync.Mutex
 	tcpConnections   map[string]*tcpConnection
 	diagsKey         string
@@ -120,11 +105,8 @@ func NewService(c Config) (*Service, error) {
 		udpReadBuffer:   d.UDPReadBuffer,
 		batchTimeout:    time.Duration(d.BatchTimeout),
 		logger:          log.New(os.Stderr, fmt.Sprintf("[graphite] %s ", d.BindAddress), log.LstdFlags),
-<<<<<<< HEAD
-=======
 		stats:           &Statistics{},
 		statTags:        map[string]string{"proto": d.Protocol, "bind": d.BindAddress},
->>>>>>> 12a5469... start on swarm services; move to glade
 		tcpConnections:  make(map[string]*tcpConnection),
 		done:            make(chan struct{}),
 		diagsKey:        strings.Join([]string{"graphite", d.Protocol, d.BindAddress}, ":"),
@@ -150,14 +132,6 @@ func (s *Service) Open() error {
 
 	s.logger.Printf("Starting graphite service, batch size %d, batch timeout %s", s.batchSize, s.batchTimeout)
 
-<<<<<<< HEAD
-	// Configure expvar monitoring. It's OK to do this even if the service fails to open and
-	// should be done before any data could arrive for the service.
-	tags := map[string]string{"proto": s.protocol, "bind": s.bindAddress}
-	s.statMap = influxdb.NewStatistics(s.diagsKey, "graphite", tags)
-
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 	// Register diagnostics if a Monitor service is available.
 	if s.Monitor != nil {
 		s.Monitor.RegisterDiagnosticsClient(s.diagsKey, s)
@@ -243,8 +217,6 @@ func (s *Service) SetLogOutput(w io.Writer) {
 	s.logger = log.New(w, "[graphite] ", log.LstdFlags)
 }
 
-<<<<<<< HEAD
-=======
 // Statistics maintains statistics for the graphite service.
 type Statistics struct {
 	PointsReceived      int64
@@ -277,7 +249,6 @@ func (s *Service) Statistics(tags map[string]string) []models.Statistic {
 	}}
 }
 
->>>>>>> 12a5469... start on swarm services; move to glade
 // Addr returns the address the Service binds to.
 func (s *Service) Addr() net.Addr {
 	return s.addr
@@ -316,17 +287,10 @@ func (s *Service) openTCPServer() (net.Addr, error) {
 func (s *Service) handleTCPConnection(conn net.Conn) {
 	defer s.wg.Done()
 	defer conn.Close()
-<<<<<<< HEAD
-	defer s.statMap.Add(statConnectionsActive, -1)
-	defer s.untrackConnection(conn)
-	s.statMap.Add(statConnectionsActive, 1)
-	s.statMap.Add(statConnectionsHandled, 1)
-=======
 	defer atomic.AddInt64(&s.stats.ActiveConnections, -1)
 	defer s.untrackConnection(conn)
 	atomic.AddInt64(&s.stats.ActiveConnections, 1)
 	atomic.AddInt64(&s.stats.HandledConnections, 1)
->>>>>>> 12a5469... start on swarm services; move to glade
 	s.trackConnection(conn)
 
 	reader := bufio.NewReader(conn)
@@ -341,13 +305,8 @@ func (s *Service) handleTCPConnection(conn net.Conn) {
 		// Trim the buffer, even though there should be no padding
 		line := strings.TrimSpace(string(buf))
 
-<<<<<<< HEAD
-		s.statMap.Add(statPointsReceived, 1)
-		s.statMap.Add(statBytesReceived, int64(len(buf)))
-=======
 		atomic.AddInt64(&s.stats.PointsReceived, 1)
 		atomic.AddInt64(&s.stats.BytesReceived, int64(len(buf)))
->>>>>>> 12a5469... start on swarm services; move to glade
 		s.handleLine(line)
 	}
 }
@@ -401,13 +360,8 @@ func (s *Service) openUDPServer() (net.Addr, error) {
 			for _, line := range lines {
 				s.handleLine(line)
 			}
-<<<<<<< HEAD
-			s.statMap.Add(statPointsReceived, int64(len(lines)))
-			s.statMap.Add(statBytesReceived, int64(n))
-=======
 			atomic.AddInt64(&s.stats.PointsReceived, int64(len(lines)))
 			atomic.AddInt64(&s.stats.BytesReceived, int64(n))
->>>>>>> 12a5469... start on swarm services; move to glade
 		}
 	}()
 	return s.udpConn.LocalAddr(), nil
@@ -425,20 +379,12 @@ func (s *Service) handleLine(line string) {
 		case *UnsupportedValueError:
 			// Graphite ignores NaN values with no error.
 			if math.IsNaN(err.Value) {
-<<<<<<< HEAD
-				s.statMap.Add(statPointsNaNFail, 1)
-=======
 				atomic.AddInt64(&s.stats.PointsNaNFail, 1)
->>>>>>> 12a5469... start on swarm services; move to glade
 				return
 			}
 		}
 		s.logger.Printf("unable to parse line: %s: %s", line, err)
-<<<<<<< HEAD
-		s.statMap.Add(statPointsParseFail, 1)
-=======
 		atomic.AddInt64(&s.stats.PointsParseFail, 1)
->>>>>>> 12a5469... start on swarm services; move to glade
 		return
 	}
 
@@ -452,19 +398,11 @@ func (s *Service) processBatches(batcher *tsdb.PointBatcher) {
 		select {
 		case batch := <-batcher.Out():
 			if err := s.PointsWriter.WritePoints(s.database, s.retentionPolicy, models.ConsistencyLevelAny, batch); err == nil {
-<<<<<<< HEAD
-				s.statMap.Add(statBatchesTransmitted, 1)
-				s.statMap.Add(statPointsTransmitted, int64(len(batch)))
-			} else {
-				s.logger.Printf("failed to write point batch to database %q: %s", s.database, err)
-				s.statMap.Add(statBatchesTransmitFail, 1)
-=======
 				atomic.AddInt64(&s.stats.BatchesTransmitted, 1)
 				atomic.AddInt64(&s.stats.PointsTransmitted, int64(len(batch)))
 			} else {
 				s.logger.Printf("failed to write point batch to database %q: %s", s.database, err)
 				atomic.AddInt64(&s.stats.BatchesTransmitFail, 1)
->>>>>>> 12a5469... start on swarm services; move to glade
 			}
 
 		case <-s.done:

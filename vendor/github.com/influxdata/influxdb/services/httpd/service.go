@@ -2,10 +2,6 @@ package httpd // import "github.com/influxdata/influxdb/services/httpd"
 
 import (
 	"crypto/tls"
-<<<<<<< HEAD
-	"expvar"
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 	"fmt"
 	"io"
 	"log"
@@ -15,11 +11,7 @@ import (
 	"strings"
 	"time"
 
-<<<<<<< HEAD
-	"github.com/influxdata/influxdb"
-=======
 	"github.com/influxdata/influxdb/models"
->>>>>>> 12a5469... start on swarm services; move to glade
 )
 
 // statistics gathered by the httpd package.
@@ -56,25 +48,11 @@ type Service struct {
 
 	Handler *Handler
 
-<<<<<<< HEAD
-	Logger  *log.Logger
-	statMap *expvar.Map
-=======
 	Logger *log.Logger
->>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // NewService returns a new instance of Service.
 func NewService(c Config) *Service {
-<<<<<<< HEAD
-	// Configure expvar monitoring. It's OK to do this even if the service fails to open and
-	// should be done before any data could arrive for the service.
-	key := strings.Join([]string{"httpd", c.BindAddress}, ":")
-	tags := map[string]string{"bind": c.BindAddress}
-	statMap := influxdb.NewStatistics(key, "httpd", tags)
-
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 	s := &Service{
 		addr:    c.BindAddress,
 		https:   c.HTTPSEnabled,
@@ -82,11 +60,7 @@ func NewService(c Config) *Service {
 		key:     c.HTTPSPrivateKey,
 		limit:   c.MaxConnectionLimit,
 		err:     make(chan error),
-<<<<<<< HEAD
-		Handler: NewHandler(c, statMap),
-=======
 		Handler: NewHandler(c),
->>>>>>> 12a5469... start on swarm services; move to glade
 		Logger:  log.New(os.Stderr, "[httpd] ", log.LstdFlags),
 	}
 	if s.key == "" {
@@ -177,14 +151,11 @@ func (s *Service) Addr() net.Addr {
 	return nil
 }
 
-<<<<<<< HEAD
-=======
 // Statistics returns statistics for periodic monitoring.
 func (s *Service) Statistics(tags map[string]string) []models.Statistic {
 	return s.Handler.Statistics(models.Tags{"bind": s.addr}.Merge(tags))
 }
 
->>>>>>> 12a5469... start on swarm services; move to glade
 // serve serves the handler from the listener.
 func (s *Service) serve() {
 	// The listener was closed so exit

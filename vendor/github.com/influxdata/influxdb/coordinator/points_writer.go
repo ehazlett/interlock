@@ -2,18 +2,11 @@ package coordinator
 
 import (
 	"errors"
-<<<<<<< HEAD
-	"expvar"
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 	"io"
 	"log"
 	"os"
 	"sync"
-<<<<<<< HEAD
-=======
 	"sync/atomic"
->>>>>>> 12a5469... start on swarm services; move to glade
 	"time"
 
 	"github.com/influxdata/influxdb"
@@ -28,10 +21,7 @@ const (
 	statPointWriteReq      = "pointReq"
 	statPointWriteReqLocal = "pointReqLocal"
 	statWriteOK            = "writeOk"
-<<<<<<< HEAD
-=======
 	statWriteDrop          = "writeDrop"
->>>>>>> 12a5469... start on swarm services; move to glade
 	statWriteTimeout       = "writeTimeout"
 	statWriteErr           = "writeError"
 	statSubWriteOK         = "subWriteOk"
@@ -80,11 +70,7 @@ type PointsWriter struct {
 	}
 	subPoints chan<- *WritePointsRequest
 
-<<<<<<< HEAD
-	statMap *expvar.Map
-=======
 	stats *WriteStatistics
->>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // WritePointsRequest represents a request to write point data to the cluster
@@ -111,11 +97,7 @@ func NewPointsWriter() *PointsWriter {
 		closing:      make(chan struct{}),
 		WriteTimeout: DefaultWriteTimeout,
 		Logger:       log.New(os.Stderr, "[write] ", log.LstdFlags),
-<<<<<<< HEAD
-		statMap:      influxdb.NewStatistics("write", "write", nil),
-=======
 		stats:        &WriteStatistics{},
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 }
 
@@ -177,8 +159,6 @@ func (w *PointsWriter) SetLogOutput(lw io.Writer) {
 	w.Logger = log.New(lw, "[write] ", log.LstdFlags)
 }
 
-<<<<<<< HEAD
-=======
 // WriteStatistics keeps statistics related to the PointsWriter.
 type WriteStatistics struct {
 	WriteReq           int64
@@ -211,7 +191,6 @@ func (w *PointsWriter) Statistics(tags map[string]string) []models.Statistic {
 	}}
 }
 
->>>>>>> 12a5469... start on swarm services; move to glade
 // MapShards maps the points contained in wp to a ShardMapping.  If a point
 // maps to a shard group or shard that does not currently exist, it will be
 // created before returning the mapping.
@@ -223,14 +202,6 @@ func (w *PointsWriter) MapShards(wp *WritePointsRequest) (*ShardMapping, error) 
 	rp, err := w.MetaClient.RetentionPolicy(wp.Database, wp.RetentionPolicy)
 	if err != nil {
 		return nil, err
-<<<<<<< HEAD
-	}
-	if rp == nil {
-		return nil, influxdb.ErrRetentionPolicyNotFound(wp.RetentionPolicy)
-	}
-
-	for _, p := range wp.Points {
-=======
 	} else if rp == nil {
 		return nil, influxdb.ErrRetentionPolicyNotFound(wp.RetentionPolicy)
 	}
@@ -250,7 +221,6 @@ func (w *PointsWriter) MapShards(wp *WritePointsRequest) (*ShardMapping, error) 
 		if p.Time().Before(min) {
 			continue
 		}
->>>>>>> 12a5469... start on swarm services; move to glade
 		timeRanges[p.Time().Truncate(rp.ShardGroupDuration)] = nil
 	}
 
@@ -265,15 +235,11 @@ func (w *PointsWriter) MapShards(wp *WritePointsRequest) (*ShardMapping, error) 
 
 	mapping := NewShardMapping()
 	for _, p := range wp.Points {
-<<<<<<< HEAD
-		sg := timeRanges[p.Time().Truncate(rp.ShardGroupDuration)]
-=======
 		sg, ok := timeRanges[p.Time().Truncate(rp.ShardGroupDuration)]
 		if !ok {
 			atomic.AddInt64(&w.stats.WriteDropped, 1)
 			continue
 		}
->>>>>>> 12a5469... start on swarm services; move to glade
 		sh := sg.ShardFor(p.HashID())
 		mapping.MapPoint(&sh, p)
 	}
@@ -288,13 +254,8 @@ func (w *PointsWriter) WritePointsInto(p *IntoWriteRequest) error {
 
 // WritePoints writes across multiple local and remote data nodes according the consistency level.
 func (w *PointsWriter) WritePoints(database, retentionPolicy string, consistencyLevel models.ConsistencyLevel, points []models.Point) error {
-<<<<<<< HEAD
-	w.statMap.Add(statWriteReq, 1)
-	w.statMap.Add(statPointWriteReq, int64(len(points)))
-=======
 	atomic.AddInt64(&w.stats.WriteReq, 1)
 	atomic.AddInt64(&w.stats.PointWriteReq, int64(len(points)))
->>>>>>> 12a5469... start on swarm services; move to glade
 
 	if retentionPolicy == "" {
 		db := w.MetaClient.Database(database)
@@ -329,15 +290,9 @@ func (w *PointsWriter) WritePoints(database, retentionPolicy string, consistency
 	}
 	w.mu.RUnlock()
 	if ok {
-<<<<<<< HEAD
-		w.statMap.Add(statSubWriteOK, 1)
-	} else {
-		w.statMap.Add(statSubWriteDrop, 1)
-=======
 		atomic.AddInt64(&w.stats.SubWriteOK, 1)
 	} else {
 		atomic.AddInt64(&w.stats.SubWriteDrop, 1)
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	timeout := time.NewTimer(w.WriteTimeout)
@@ -347,11 +302,7 @@ func (w *PointsWriter) WritePoints(database, retentionPolicy string, consistency
 		case <-w.closing:
 			return ErrWriteFailed
 		case <-timeout.C:
-<<<<<<< HEAD
-			w.statMap.Add(statWriteTimeout, 1)
-=======
 			atomic.AddInt64(&w.stats.WriteTimeout, 1)
->>>>>>> 12a5469... start on swarm services; move to glade
 			// return timeout error to caller
 			return ErrTimeout
 		case err := <-ch:
@@ -365,19 +316,11 @@ func (w *PointsWriter) WritePoints(database, retentionPolicy string, consistency
 
 // writeToShards writes points to a shard.
 func (w *PointsWriter) writeToShard(shard *meta.ShardInfo, database, retentionPolicy string, points []models.Point) error {
-<<<<<<< HEAD
-	w.statMap.Add(statPointWriteReqLocal, int64(len(points)))
-
-	err := w.TSDBStore.WriteToShard(shard.ID, points)
-	if err == nil {
-		w.statMap.Add(statWriteOK, 1)
-=======
 	atomic.AddInt64(&w.stats.PointWriteReqLocal, int64(len(points)))
 
 	err := w.TSDBStore.WriteToShard(shard.ID, points)
 	if err == nil {
 		atomic.AddInt64(&w.stats.WriteOK, 1)
->>>>>>> 12a5469... start on swarm services; move to glade
 		return nil
 	}
 
@@ -387,30 +330,18 @@ func (w *PointsWriter) writeToShard(shard *meta.ShardInfo, database, retentionPo
 		err = w.TSDBStore.CreateShard(database, retentionPolicy, shard.ID, true)
 		if err != nil {
 			w.Logger.Printf("write failed for shard %d: %v", shard.ID, err)
-<<<<<<< HEAD
-			w.statMap.Add(statWriteErr, 1)
-=======
 
 			atomic.AddInt64(&w.stats.WriteErr, 1)
->>>>>>> 12a5469... start on swarm services; move to glade
 			return err
 		}
 	}
 	err = w.TSDBStore.WriteToShard(shard.ID, points)
 	if err != nil {
 		w.Logger.Printf("write failed for shard %d: %v", shard.ID, err)
-<<<<<<< HEAD
-		w.statMap.Add(statWriteErr, 1)
-		return err
-	}
-
-	w.statMap.Add(statWriteOK, 1)
-=======
 		atomic.AddInt64(&w.stats.WriteErr, 1)
 		return err
 	}
 
 	atomic.AddInt64(&w.stats.WriteOK, 1)
->>>>>>> 12a5469... start on swarm services; move to glade
 	return nil
 }

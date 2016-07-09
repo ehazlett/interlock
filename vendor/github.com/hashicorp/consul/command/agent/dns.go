@@ -598,8 +598,6 @@ func (d *DNSServer) preparedQueryLookup(network, datacenter, query string, req, 
 			Token:      d.agent.config.ACLToken,
 			AllowStale: d.config.AllowStale,
 		},
-<<<<<<< HEAD
-=======
 
 		// Always pass the local agent through. In the DNS interface, there
 		// is no provision for passing additional query parameters, so we
@@ -609,7 +607,6 @@ func (d *DNSServer) preparedQueryLookup(network, datacenter, query string, req, 
 			Datacenter: d.agent.config.Datacenter,
 			Node:       d.agent.config.NodeName,
 		},
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	// TODO (slackpad) - What's a safe limit we can set here? It seems like

@@ -28,17 +28,10 @@ var compactPhysical bool
 func NewCompactionCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "compaction <revision>",
-<<<<<<< HEAD
-		Short: "Compaction compacts the event history in etcd.",
-		Run:   compactionCommandFunc,
-	}
-	cmd.Flags().BoolVar(&compactPhysical, "physical", false, "'true' to wait for compaction to physically remove all old revisions.")
-=======
 		Short: "Compacts the event history in etcd",
 		Run:   compactionCommandFunc,
 	}
 	cmd.Flags().BoolVar(&compactPhysical, "physical", false, "'true' to wait for compaction to physically remove all old revisions")
->>>>>>> 12a5469... start on swarm services; move to glade
 	return cmd
 }
 

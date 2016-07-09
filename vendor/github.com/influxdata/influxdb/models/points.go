@@ -1,12 +1,4 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
 package models // import "github.com/influxdata/influxdb/models"
-=======
-package models
->>>>>>> 71ddfc9... add support for influxdb backend for beacon
-=======
-package models // import "github.com/influxdata/influxdb/models"
->>>>>>> 12a5469... start on swarm services; move to glade
 
 import (
 	"bytes"
@@ -556,21 +548,6 @@ func less(buf []byte, indices []int, i, j int) bool {
 	return bytes.Compare(a, b) < 0
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-func isFieldEscapeChar(b byte) bool {
-	for c := range escape.Codes {
-		if c == b {
-			return true
-		}
-	}
-	return false
-}
-
->>>>>>> 71ddfc9... add support for influxdb backend for beacon
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 // scanFields scans buf, starting at i for the fields section of a point.  It returns
 // the ending position and the byte slice of the fields within buf
 func scanFields(buf []byte, i int) (int, []byte, error) {
@@ -1617,28 +1594,3 @@ func (p Fields) MarshalBinary() []byte {
 	}
 	return b
 }
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-
-type indexedSlice struct {
-	indices []int
-	b       []byte
-}
-
-func (s *indexedSlice) Less(i, j int) bool {
-	_, a := scanTo(s.b, s.indices[i], '=')
-	_, b := scanTo(s.b, s.indices[j], '=')
-	return bytes.Compare(a, b) < 0
-}
-
-func (s *indexedSlice) Swap(i, j int) {
-	s.indices[i], s.indices[j] = s.indices[j], s.indices[i]
-}
-
-func (s *indexedSlice) Len() int {
-	return len(s.indices)
-}
->>>>>>> 71ddfc9... add support for influxdb backend for beacon
-=======
->>>>>>> 12a5469... start on swarm services; move to glade

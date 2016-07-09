@@ -294,11 +294,7 @@ func (d *driver) Type() string {
 // DiscoverNew is a notification for a new discovery event, such as a new node joining a cluster
 func (d *driver) DiscoverNew(dType discoverapi.DiscoveryType, data interface{}) error {
 	if dType != discoverapi.NodeDiscovery {
-<<<<<<< HEAD
-		return fmt.Errorf("Unknown discovery type : %v", dType)
-=======
 		return nil
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 	notif := &api.DiscoveryNotification{
 		DiscoveryType: dType,
@@ -310,11 +306,7 @@ func (d *driver) DiscoverNew(dType discoverapi.DiscoveryType, data interface{}) 
 // DiscoverDelete is a notification for a discovery delete event, such as a node leaving a cluster
 func (d *driver) DiscoverDelete(dType discoverapi.DiscoveryType, data interface{}) error {
 	if dType != discoverapi.NodeDiscovery {
-<<<<<<< HEAD
-		return fmt.Errorf("Unknown discovery type : %v", dType)
-=======
 		return nil
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 	notif := &api.DiscoveryNotification{
 		DiscoveryType: dType,

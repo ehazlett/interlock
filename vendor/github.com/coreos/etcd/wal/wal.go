@@ -129,17 +129,6 @@ func Create(dirpath string, metadata []byte) (*WAL, error) {
 		return nil, err
 	}
 
-<<<<<<< HEAD
-	if err := os.RemoveAll(dirpath); err != nil {
-		return nil, err
-	}
-	if err := os.Rename(tmpdirpath, dirpath); err != nil {
-		return nil, err
-	}
-
-	w.fp = newFilePipeline(w.dir, segmentSizeBytes)
-	return w, nil
-=======
 	// rename of directory with locked files doesn't work on windows; close
 	// the WAL to release the locks so the directory can be renamed
 	w.Close()
@@ -156,7 +145,6 @@ func Create(dirpath string, metadata []byte) (*WAL, error) {
 		return nil, err
 	}
 	return newWAL, nil
->>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // Open opens the WAL at the given snap.

@@ -1,11 +1,8 @@
 package orchestrator
 
 import (
-<<<<<<< HEAD
-=======
 	"sort"
 
->>>>>>> 12a5469... start on swarm services; move to glade
 	"github.com/docker/go-events"
 	"github.com/docker/swarmkit/api"
 	"github.com/docker/swarmkit/log"
@@ -73,8 +70,6 @@ func (r *ReplicatedOrchestrator) resolveService(ctx context.Context, task *api.T
 	return service
 }
 
-<<<<<<< HEAD
-=======
 type tasksByRunningState []*api.Task
 
 func (ts tasksByRunningState) Len() int      { return len(ts) }
@@ -105,7 +100,6 @@ func (ts tasksByIndex) Less(i, j int) bool {
 	return ts[i].index < ts[j].index
 }
 
->>>>>>> 12a5469... start on swarm services; move to glade
 func (r *ReplicatedOrchestrator) reconcile(ctx context.Context, service *api.Service) {
 	var (
 		tasks []*api.Task
@@ -135,11 +129,6 @@ func (r *ReplicatedOrchestrator) reconcile(ctx context.Context, service *api.Ser
 	deploy := service.Spec.GetMode().(*api.ServiceSpec_Replicated)
 	specifiedInstances := int(deploy.Replicated.Replicas)
 
-<<<<<<< HEAD
-	// TODO(aaronl): Add support for restart delays.
-
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 	switch {
 	case specifiedInstances > numTasks:
 		log.G(ctx).Debugf("Service %s was scaled up from %d to %d instances", service.ID, numTasks, specifiedInstances)
@@ -156,11 +145,6 @@ func (r *ReplicatedOrchestrator) reconcile(ctx context.Context, service *api.Ser
 	case specifiedInstances < numTasks:
 		// Update up to N tasks then remove the extra
 		log.G(ctx).Debugf("Service %s was scaled down from %d to %d instances", service.ID, numTasks, specifiedInstances)
-<<<<<<< HEAD
-		r.updater.Update(ctx, service, runningTasks[:specifiedInstances])
-		_, err = r.store.Batch(func(batch *store.Batch) error {
-			r.removeTasks(ctx, batch, service, runningTasks[specifiedInstances:])
-=======
 
 		// Preferentially remove tasks on the nodes that have the most
 		// copies of this service, to leave a more balanced result.
@@ -198,7 +182,6 @@ func (r *ReplicatedOrchestrator) reconcile(ctx context.Context, service *api.Ser
 		r.updater.Update(ctx, service, sortedTasks[:specifiedInstances])
 		_, err = r.store.Batch(func(batch *store.Batch) error {
 			r.removeTasks(ctx, batch, service, sortedTasks[specifiedInstances:])
->>>>>>> 12a5469... start on swarm services; move to glade
 			return nil
 		})
 		if err != nil {

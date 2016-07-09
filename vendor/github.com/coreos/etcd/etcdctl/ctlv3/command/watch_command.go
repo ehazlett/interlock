@@ -29,25 +29,13 @@ var (
 	watchRev         int64
 	watchPrefix      bool
 	watchInteractive bool
-<<<<<<< HEAD
-=======
 	watchPrevKey     bool
->>>>>>> 12a5469... start on swarm services; move to glade
 )
 
 // NewWatchCommand returns the cobra command for "watch".
 func NewWatchCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "watch [options] [key or prefix] [range_end]",
-<<<<<<< HEAD
-		Short: "Watch watches events stream on keys or prefixes.",
-		Run:   watchCommandFunc,
-	}
-
-	cmd.Flags().BoolVarP(&watchInteractive, "interactive", "i", false, "interactive mode")
-	cmd.Flags().BoolVar(&watchPrefix, "prefix", false, "watch on a prefix if prefix is set")
-	cmd.Flags().Int64Var(&watchRev, "rev", 0, "revision to start watching")
-=======
 		Short: "Watches events stream on keys or prefixes",
 		Run:   watchCommandFunc,
 	}
@@ -56,7 +44,6 @@ func NewWatchCommand() *cobra.Command {
 	cmd.Flags().BoolVar(&watchPrefix, "prefix", false, "Watch on a prefix if prefix is set")
 	cmd.Flags().Int64Var(&watchRev, "rev", 0, "Revision to start watching")
 	cmd.Flags().BoolVar(&watchPrevKey, "prev-kv", false, "get the previous key-value pair before the event happens")
->>>>>>> 12a5469... start on swarm services; move to glade
 
 	return cmd
 }
@@ -83,13 +70,10 @@ func watchCommandFunc(cmd *cobra.Command, args []string) {
 	if watchPrefix {
 		opts = append(opts, clientv3.WithPrefix())
 	}
-<<<<<<< HEAD
-=======
 	if watchPrevKey {
 		opts = append(opts, clientv3.WithPrevKV())
 	}
 
->>>>>>> 12a5469... start on swarm services; move to glade
 	c := mustClientFromCmd(cmd)
 	wc := c.Watch(context.TODO(), key, opts...)
 	printWatchCh(wc)

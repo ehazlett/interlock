@@ -4,10 +4,6 @@ go_import_path: github.com/coreos/etcd
 sudo: false
 
 go:
-<<<<<<< HEAD
-  - 1.5
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
   - 1.6
   - tip
 
@@ -25,13 +21,6 @@ matrix:
   allow_failures:
     - go: tip
   exclude:
-<<<<<<< HEAD
-  - go: 1.5
-    env: TARGET=arm
-  - go: 1.5
-    env: TARGET=ppc64le
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
   - go: 1.6
     env: TARGET=arm64
   - go: tip

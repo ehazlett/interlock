@@ -131,14 +131,11 @@ func (e nodeNotFoundError) Error() string {
 	return fmt.Sprintf("Error: No such node: %s", e.nodeID)
 }
 
-<<<<<<< HEAD
-=======
 // NoFound indicates that this error type is of NotFound
 func (e nodeNotFoundError) NotFound() bool {
 	return true
 }
 
->>>>>>> 12a5469... start on swarm services; move to glade
 // IsErrNodeNotFound returns true if the error is caused
 // when a node is not found.
 func IsErrNodeNotFound(err error) bool {
@@ -156,14 +153,11 @@ func (e serviceNotFoundError) Error() string {
 	return fmt.Sprintf("Error: No such service: %s", e.serviceID)
 }
 
-<<<<<<< HEAD
-=======
 // NoFound indicates that this error type is of NotFound
 func (e serviceNotFoundError) NotFound() bool {
 	return true
 }
 
->>>>>>> 12a5469... start on swarm services; move to glade
 // IsErrServiceNotFound returns true if the error is caused
 // when a service is not found.
 func IsErrServiceNotFound(err error) bool {
@@ -181,14 +175,11 @@ func (e taskNotFoundError) Error() string {
 	return fmt.Sprintf("Error: No such task: %s", e.taskID)
 }
 
-<<<<<<< HEAD
-=======
 // NoFound indicates that this error type is of NotFound
 func (e taskNotFoundError) NotFound() bool {
 	return true
 }
 
->>>>>>> 12a5469... start on swarm services; move to glade
 // IsErrTaskNotFound returns true if the error is caused
 // when a task is not found.
 func IsErrTaskNotFound(err error) bool {

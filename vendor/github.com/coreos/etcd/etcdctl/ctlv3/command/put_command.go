@@ -24,27 +24,17 @@ import (
 )
 
 var (
-<<<<<<< HEAD
-	leaseStr string
-=======
 	leaseStr  string
 	putPrevKV bool
->>>>>>> 12a5469... start on swarm services; move to glade
 )
 
 // NewPutCommand returns the cobra command for "put".
 func NewPutCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "put [options] <key> <value> (<value> can also be given from stdin)",
-<<<<<<< HEAD
-		Short: "Put puts the given key into the store.",
-		Long: `
-Put puts the given key into the store.
-=======
 		Short: "Puts the given key into the store",
 		Long: `
 Puts the given key into the store.
->>>>>>> 12a5469... start on swarm services; move to glade
 
 When <value> begins with '-', <value> is interpreted as a flag.
 Insert '--' for workaround:
@@ -60,10 +50,7 @@ will store the content of the file to <key>.
 		Run: putCommandFunc,
 	}
 	cmd.Flags().StringVar(&leaseStr, "lease", "0", "lease ID (in hexadecimal) to attach to the key")
-<<<<<<< HEAD
-=======
 	cmd.Flags().BoolVar(&putPrevKV, "prev-kv", false, "return changed key-value pairs")
->>>>>>> 12a5469... start on swarm services; move to glade
 	return cmd
 }
 
@@ -100,12 +87,9 @@ func getPutOp(cmd *cobra.Command, args []string) (string, string, []clientv3.OpO
 	if id != 0 {
 		opts = append(opts, clientv3.WithLease(clientv3.LeaseID(id)))
 	}
-<<<<<<< HEAD
-=======
 	if putPrevKV {
 		opts = append(opts, clientv3.WithPrevKV())
 	}
->>>>>>> 12a5469... start on swarm services; move to glade
 
 	return key, value, opts
 }

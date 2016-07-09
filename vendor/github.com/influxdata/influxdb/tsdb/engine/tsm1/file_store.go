@@ -1,10 +1,6 @@
 package tsm1
 
 import (
-<<<<<<< HEAD
-	"expvar"
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -16,17 +12,10 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-<<<<<<< HEAD
-	"time"
-
-	"github.com/influxdata/influxdb"
-	"github.com/influxdata/influxdb/tsdb"
-=======
 	"sync/atomic"
 	"time"
 
 	"github.com/influxdata/influxdb/models"
->>>>>>> 12a5469... start on swarm services; move to glade
 )
 
 type TSMFile interface {
@@ -109,10 +98,7 @@ type TSMFile interface {
 // Statistics gathered by the FileStore.
 const (
 	statFileStoreBytes = "diskBytes"
-<<<<<<< HEAD
-=======
 	statFileStoreCount = "numFiles"
->>>>>>> 12a5469... start on swarm services; move to glade
 )
 
 type FileStore struct {
@@ -127,11 +113,7 @@ type FileStore struct {
 	Logger       *log.Logger
 	traceLogging bool
 
-<<<<<<< HEAD
-	statMap *expvar.Map
-=======
 	stats *FileStoreStatistics
->>>>>>> 12a5469... start on swarm services; move to glade
 
 	currentTempDirID int
 }
@@ -158,23 +140,11 @@ func (f FileStat) ContainsKey(key string) bool {
 }
 
 func NewFileStore(dir string) *FileStore {
-<<<<<<< HEAD
-	db, rp := tsdb.DecodeStorePath(dir)
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 	return &FileStore{
 		dir:          dir,
 		lastModified: time.Now(),
 		Logger:       log.New(os.Stderr, "[filestore] ", log.LstdFlags),
-<<<<<<< HEAD
-		statMap: influxdb.NewStatistics(
-			"tsm1_filestore:"+dir,
-			"tsm1_filestore",
-			map[string]string{"path": dir, "database": db, "retentionPolicy": rp},
-		),
-=======
 		stats:        &FileStoreStatistics{},
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 }
 
@@ -184,8 +154,6 @@ func (f *FileStore) SetLogOutput(w io.Writer) {
 	f.Logger = log.New(w, "[filestore] ", log.LstdFlags)
 }
 
-<<<<<<< HEAD
-=======
 // FileStoreStatistics keeps statistics about the file store.
 type FileStoreStatistics struct {
 	DiskBytes int64
@@ -204,7 +172,6 @@ func (f *FileStore) Statistics(tags map[string]string) []models.Statistic {
 	}}
 }
 
->>>>>>> 12a5469... start on swarm services; move to glade
 // Returns the number of TSM files currently loaded
 func (f *FileStore) Count() int {
 	f.mu.RLock()
@@ -238,18 +205,11 @@ func (f *FileStore) Add(files ...TSMFile) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	for _, file := range files {
-<<<<<<< HEAD
-		f.statMap.Add(statFileStoreBytes, int64(file.Size()))
-	}
-	f.files = append(f.files, files...)
-	sort.Sort(tsmReaders(f.files))
-=======
 		atomic.AddInt64(&f.stats.DiskBytes, int64(file.Size()))
 	}
 	f.files = append(f.files, files...)
 	sort.Sort(tsmReaders(f.files))
 	atomic.StoreInt64(&f.stats.FileCount, int64(len(f.files)))
->>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // Remove removes the files with matching paths from the set of active files.  It does
@@ -271,19 +231,12 @@ func (f *FileStore) Remove(paths ...string) {
 			active = append(active, file)
 		} else {
 			// Removing the file, remove the file size from the total file store bytes
-<<<<<<< HEAD
-			f.statMap.Add(statFileStoreBytes, -int64(file.Size()))
-=======
 			atomic.AddInt64(&f.stats.DiskBytes, -int64(file.Size()))
->>>>>>> 12a5469... start on swarm services; move to glade
 		}
 	}
 	f.files = active
 	sort.Sort(tsmReaders(f.files))
-<<<<<<< HEAD
-=======
 	atomic.StoreInt64(&f.stats.FileCount, int64(len(f.files)))
->>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // WalkKeys calls fn for every key in every TSM file known to the FileStore.  If the key
@@ -407,11 +360,7 @@ func (f *FileStore) Open() error {
 
 		// Accumulate file store size stat
 		if fi, err := file.Stat(); err == nil {
-<<<<<<< HEAD
-			f.statMap.Add(statFileStoreBytes, fi.Size())
-=======
 			atomic.AddInt64(&f.stats.DiskBytes, fi.Size())
->>>>>>> 12a5469... start on swarm services; move to glade
 		}
 
 		go func(idx int, file *os.File) {
@@ -440,10 +389,7 @@ func (f *FileStore) Open() error {
 	close(readerC)
 
 	sort.Sort(tsmReaders(f.files))
-<<<<<<< HEAD
-=======
 	atomic.StoreInt64(&f.stats.FileCount, int64(len(f.files)))
->>>>>>> 12a5469... start on swarm services; move to glade
 	return nil
 }
 
@@ -456,10 +402,7 @@ func (f *FileStore) Close() error {
 	}
 
 	f.files = nil
-<<<<<<< HEAD
-=======
 	atomic.StoreInt64(&f.stats.FileCount, 0)
->>>>>>> 12a5469... start on swarm services; move to glade
 	return nil
 }
 
@@ -570,23 +513,14 @@ func (f *FileStore) Replace(oldFiles, newFiles []string) error {
 
 	f.files = active
 	sort.Sort(tsmReaders(f.files))
-<<<<<<< HEAD
-=======
 	atomic.StoreInt64(&f.stats.FileCount, int64(len(f.files)))
->>>>>>> 12a5469... start on swarm services; move to glade
 
 	// Recalculate the disk size stat
 	var totalSize int64
 	for _, file := range f.files {
 		totalSize += int64(file.Size())
 	}
-<<<<<<< HEAD
-	sizeStat := new(expvar.Int)
-	sizeStat.Set(totalSize)
-	f.statMap.Set(statFileStoreBytes, sizeStat)
-=======
 	atomic.StoreInt64(&f.stats.DiskBytes, totalSize)
->>>>>>> 12a5469... start on swarm services; move to glade
 
 	return nil
 }

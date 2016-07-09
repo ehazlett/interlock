@@ -5,10 +5,7 @@ import (
 
 	"github.com/docker/docker/api/client"
 	"github.com/docker/docker/cli"
-<<<<<<< HEAD
-=======
 	"github.com/docker/engine-api/types"
->>>>>>> 12a5469... start on swarm services; move to glade
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
 )
@@ -36,21 +33,14 @@ func newCreateCommand(dockerCli *client.DockerCli) *cobra.Command {
 }
 
 func runCreate(dockerCli *client.DockerCli, opts *serviceOptions) error {
-<<<<<<< HEAD
-	client := dockerCli.Client()
-=======
 	apiClient := dockerCli.Client()
 	createOpts := types.ServiceCreateOptions{}
->>>>>>> 12a5469... start on swarm services; move to glade
 
 	service, err := opts.ToService()
 	if err != nil {
 		return err
 	}
 
-<<<<<<< HEAD
-	response, err := client.ServiceCreate(context.Background(), service)
-=======
 	ctx := context.Background()
 
 	// only send auth if flag was set
@@ -64,7 +54,6 @@ func runCreate(dockerCli *client.DockerCli, opts *serviceOptions) error {
 	}
 
 	response, err := apiClient.ServiceCreate(ctx, service, createOpts)
->>>>>>> 12a5469... start on swarm services; move to glade
 	if err != nil {
 		return err
 	}

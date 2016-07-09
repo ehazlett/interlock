@@ -20,12 +20,6 @@ import (
 	"strings"
 	"testing"
 
-<<<<<<< HEAD
-	"github.com/coreos/etcd/integration"
-	"github.com/coreos/etcd/pkg/testutil"
-)
-
-=======
 	"github.com/coreos/etcd/auth"
 	"github.com/coreos/etcd/integration"
 	"github.com/coreos/etcd/pkg/testutil"
@@ -34,7 +28,6 @@ import (
 
 func init() { auth.BcryptCost = bcrypt.MinCost }
 
->>>>>>> 12a5469... start on swarm services; move to glade
 // TestMain sets up an etcd cluster if running the examples.
 func TestMain(m *testing.M) {
 	useCluster := true // default to running all tests

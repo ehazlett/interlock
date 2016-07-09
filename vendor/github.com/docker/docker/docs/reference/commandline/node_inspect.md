@@ -11,15 +11,6 @@ parent = "smn_cli"
 
 # node inspect
 
-<<<<<<< HEAD
-    Usage: docker node inspect [OPTIONS] self|NODE [NODE...]
-
-    Return low-level information on a volume
-
-      -f, --format=       Format the output using the given go template.
-      --help              Print usage
-      -p, --pretty        Print the information in a human friendly format.
-=======
 ```markdown
 Usage:  docker node inspect [OPTIONS] self|NODE [NODE...]
 
@@ -30,7 +21,6 @@ Options:
       --help            Print usage
   -p, --pretty          Print the information in a human friendly format.
 ```
->>>>>>> 12a5469... start on swarm services; move to glade
 
 Returns information about a node. By default, this command renders all results
 in a JSON array. You can specify an alternate format to execute a

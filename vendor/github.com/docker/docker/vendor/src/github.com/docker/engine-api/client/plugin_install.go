@@ -31,10 +31,7 @@ func (cli *Client) PluginInstall(ctx context.Context, name string, options types
 	}
 	var privileges types.PluginPrivileges
 	if err := json.NewDecoder(resp.body).Decode(&privileges); err != nil {
-<<<<<<< HEAD
-=======
 		ensureReaderClosed(resp)
->>>>>>> 12a5469... start on swarm services; move to glade
 		return err
 	}
 	ensureReaderClosed(resp)

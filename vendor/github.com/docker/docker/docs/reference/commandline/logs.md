@@ -10,18 +10,6 @@ parent = "smn_cli"
 
 # logs
 
-<<<<<<< HEAD
-    Usage: docker logs [OPTIONS] CONTAINER
-
-    Fetch the logs of a container
-
-      --details                 Show extra details provided to logs
-      -f, --follow              Follow log output
-      --help                    Print usage
-      --since=""                Show logs since timestamp
-      -t, --timestamps          Show timestamps
-      --tail="all"              Number of lines to show from the end of the logs
-=======
 ```markdown
 Usage:  docker logs [OPTIONS] CONTAINER
 
@@ -35,7 +23,6 @@ Options:
       --tail string    Number of lines to show from the end of the logs (default "all")
   -t, --timestamps     Show timestamps
 ```
->>>>>>> 12a5469... start on swarm services; move to glade
 
 > **Note**: this command is available only for containers with `json-file` and
 > `journald` logging drivers.

@@ -68,10 +68,7 @@ func newAgent(etcd, logDir string) (*Agent, error) {
 // start starts a new etcd process with the given args.
 func (a *Agent) start(args ...string) error {
 	a.cmd = exec.Command(a.cmd.Path, args...)
-<<<<<<< HEAD
-=======
 	a.cmd.Env = []string{"GOFAIL_HTTP=:2381"}
->>>>>>> 12a5469... start on swarm services; move to glade
 	a.cmd.Stdout = a.logfile
 	a.cmd.Stderr = a.logfile
 	err := a.cmd.Start()
@@ -123,20 +120,7 @@ func stopWithSig(cmd *exec.Cmd, sig os.Signal) error {
 
 // restart restarts the stopped etcd process.
 func (a *Agent) restart() error {
-<<<<<<< HEAD
-	a.cmd = exec.Command(a.cmd.Path, a.cmd.Args[1:]...)
-	a.cmd.Stdout = a.logfile
-	a.cmd.Stderr = a.logfile
-	err := a.cmd.Start()
-	if err != nil {
-		return err
-	}
-
-	a.state = stateStarted
-	return nil
-=======
 	return a.start(a.cmd.Args[1:]...)
->>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 func (a *Agent) cleanup() error {

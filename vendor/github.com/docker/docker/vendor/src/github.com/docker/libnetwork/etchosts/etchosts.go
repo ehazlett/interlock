@@ -119,22 +119,11 @@ func Add(path string, recs []Record) error {
 		return nil
 	}
 
-<<<<<<< HEAD
-	f, err := os.Open(path)
-=======
 	b, err := mergeRecords(path, recs)
->>>>>>> 12a5469... start on swarm services; move to glade
 	if err != nil {
 		return err
 	}
 
-<<<<<<< HEAD
-	content := bytes.NewBuffer(nil)
-
-	_, err = content.ReadFrom(f)
-	if err != nil {
-		return err
-=======
 	return ioutil.WriteFile(path, b, 0644)
 }
 
@@ -149,24 +138,15 @@ func mergeRecords(path string, recs []Record) ([]byte, error) {
 
 	if _, err := content.ReadFrom(f); err != nil {
 		return nil, err
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	for _, r := range recs {
 		if _, err := r.WriteTo(content); err != nil {
-<<<<<<< HEAD
-			return err
-		}
-	}
-
-	return ioutil.WriteFile(path, content.Bytes(), 0644)
-=======
 			return nil, err
 		}
 	}
 
 	return content.Bytes(), nil
->>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // Delete deletes an arbitrary number of Records already existing in /etc/hosts file

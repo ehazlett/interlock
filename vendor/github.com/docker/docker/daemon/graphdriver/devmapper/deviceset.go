@@ -901,18 +901,12 @@ func (devices *DeviceSet) loadMetadata(hash string) *devInfo {
 
 	jsonData, err := ioutil.ReadFile(devices.metadataFile(info))
 	if err != nil {
-<<<<<<< HEAD
-=======
 		logrus.Debugf("devmapper: Failed to read %s with err: %v", devices.metadataFile(info), err)
->>>>>>> 12a5469... start on swarm services; move to glade
 		return nil
 	}
 
 	if err := json.Unmarshal(jsonData, &info); err != nil {
-<<<<<<< HEAD
-=======
 		logrus.Debugf("devmapper: Failed to unmarshal devInfo from %s with err: %v", devices.metadataFile(info), err)
->>>>>>> 12a5469... start on swarm services; move to glade
 		return nil
 	}
 

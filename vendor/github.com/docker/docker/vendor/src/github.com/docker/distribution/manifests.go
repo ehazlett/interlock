@@ -61,15 +61,6 @@ type ManifestEnumerator interface {
 	Enumerate(ctx context.Context, ingester func(digest.Digest) error) error
 }
 
-<<<<<<< HEAD
-// SignaturesGetter provides an interface for getting the signatures of a schema1 manifest. If the digest
-// referred to is not a schema1 manifest, an error should be returned.
-type SignaturesGetter interface {
-	GetSignatures(ctx context.Context, manifestDigest digest.Digest) ([]digest.Digest, error)
-}
-
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 // Describable is an interface for descriptors
 type Describable interface {
 	Descriptor() Descriptor

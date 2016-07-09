@@ -71,8 +71,6 @@ $ etcd --snapshot-count=5000
 $ ETCD_SNAPSHOT_COUNT=5000 etcd
 ```
 
-<<<<<<< HEAD
-=======
 ## Network
 
 If the etcd leader serves a large number of concurrent client requests, it may delay processing follower peer requests due to network congestion. This manifests as send buffer error messages on the follower nodes:
@@ -92,5 +90,4 @@ tc filter add dev eth0 parent 1: protocol ip prio 2 u32 match ip sport 2739 0xff
 tc filter add dev eth0 parent 1: protocol ip prio 2 u32 match ip dport 2739 0xffff flowid 1:1
 ```
 
->>>>>>> 12a5469... start on swarm services; move to glade
 [ping]: https://en.wikipedia.org/wiki/Ping_(networking_utility)

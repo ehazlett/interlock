@@ -81,20 +81,13 @@ func (clnt *client) Create(containerID string, spec Spec, options ...CreateOptio
 	}
 
 	if spec.Windows.HvRuntime != nil {
-<<<<<<< HEAD
-=======
 		configuration.VolumePath = "" // Always empty for Hyper-V containers
->>>>>>> 12a5469... start on swarm services; move to glade
 		configuration.HvPartition = true
 		configuration.HvRuntime = &hcsshim.HvRuntime{
 			ImagePath: spec.Windows.HvRuntime.ImagePath,
 		}
 
-<<<<<<< HEAD
-		// Images with build verison < 14350 don't support running with clone, but
-=======
 		// Images with build version < 14350 don't support running with clone, but
->>>>>>> 12a5469... start on swarm services; move to glade
 		// Windows cannot automatically detect this. Explicitly block cloning in this
 		// case.
 		if build := buildFromVersion(spec.Platform.OSVersion); build > 0 && build < 14350 {

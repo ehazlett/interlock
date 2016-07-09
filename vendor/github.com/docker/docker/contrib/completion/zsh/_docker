@@ -138,11 +138,7 @@ __docker_containers_names() {
     __docker_get_containers all names "$@"
 }
 
-<<<<<<< HEAD
-__docker_plugins() {
-=======
 __docker_complete_info_plugins() {
->>>>>>> 12a5469... start on swarm services; move to glade
     [[ $PREFIX = -* ]] && return 1
     integer ret=1
     emulate -L zsh
@@ -303,8 +299,6 @@ __docker_complete_pid() {
     return ret
 }
 
-<<<<<<< HEAD
-=======
 __docker_complete_runtimes() {
     [[ $PREFIX = -*  ]] && return 1
     integer ret=1
@@ -316,7 +310,6 @@ __docker_complete_runtimes() {
     _describe -t runtimes-opts "runtimes options" runtimes_opts && ret=0
 }
 
->>>>>>> 12a5469... start on swarm services; move to glade
 __docker_complete_ps_filters() {
     [[ $PREFIX = -* ]] && return 1
     integer ret=1
@@ -469,11 +462,7 @@ __docker_network_complete_ls_filters() {
     if compset -P '*='; then
         case "${${words[-1]%=*}#*=}" in
             (driver)
-<<<<<<< HEAD
-                __docker_plugins Network && ret=0
-=======
                 __docker_complete_info_plugins Network && ret=0
->>>>>>> 12a5469... start on swarm services; move to glade
                 ;;
             (id)
                 __docker_networks_ids && ret=0
@@ -560,11 +549,7 @@ __docker_networks_names() {
 __docker_network_commands() {
     local -a _docker_network_subcommands
     _docker_network_subcommands=(
-<<<<<<< HEAD
-        "connect:Connects a container to a network"
-=======
         "connect:Connect a container to a network"
->>>>>>> 12a5469... start on swarm services; move to glade
         "create:Creates a new network with a name specified by the user"
         "disconnect:Disconnects a container from a network"
         "inspect:Displays detailed information on a network"
@@ -656,8 +641,6 @@ __docker_network_subcommand() {
     return ret
 }
 
-<<<<<<< HEAD
-=======
 # BO node
 
 __docker_node_complete_ls_filters() {
@@ -1253,7 +1236,6 @@ __docker_swarm_subcommand() {
 
 # EO swarm
 
->>>>>>> 12a5469... start on swarm services; move to glade
 __docker_volume_complete_ls_filters() {
     [[ $PREFIX = -* ]] && return 1
     integer ret=1
@@ -1265,11 +1247,7 @@ __docker_volume_complete_ls_filters() {
                 _describe -t dangling-filter-opts "Dangling Filter Options" dangling_opts && ret=0
                 ;;
             (driver)
-<<<<<<< HEAD
-                __docker_plugins Volume && ret=0
-=======
                 __docker_complete_info_plugins Volume && ret=0
->>>>>>> 12a5469... start on swarm services; move to glade
                 ;;
             (name)
                 __docker_volumes && ret=0
@@ -1322,11 +1300,7 @@ __docker_volume_commands() {
     local -a _docker_volume_subcommands
     _docker_volume_subcommands=(
         "create:Create a volume"
-<<<<<<< HEAD
-        "inspect:Return low-level information on a volume"
-=======
         "inspect:Display detailed information on one or more volumes"
->>>>>>> 12a5469... start on swarm services; move to glade
         "ls:List volumes"
         "rm:Remove a volume"
     )
@@ -1565,10 +1539,7 @@ __docker_subcommand() {
         (daemon)
             _arguments $(__docker_arguments) \
                 $opts_help \
-<<<<<<< HEAD
-=======
                 "($help)*--add-runtime=[Register an additional OCI compatible runtime]:runtime:__docker_complete_runtimes" \
->>>>>>> 12a5469... start on swarm services; move to glade
                 "($help)--api-cors-header=[CORS headers in the remote API]:CORS headers: " \
                 "($help)*--authorization-plugin=[Authorization plugins to load]" \
                 "($help -b --bridge)"{-b=,--bridge=}"[Attach containers to a network bridge]:bridge:_net_interfaces" \
@@ -1798,8 +1769,6 @@ __docker_subcommand() {
                     ;;
             esac
             ;;
-<<<<<<< HEAD
-=======
         (node)
             local curcontext="$curcontext" state
             _arguments $(__docker_arguments) \
@@ -1817,14 +1786,11 @@ __docker_subcommand() {
                     ;;
             esac
             ;;
->>>>>>> 12a5469... start on swarm services; move to glade
         (pause|unpause)
             _arguments $(__docker_arguments) \
                 $opts_help \
                 "($help -)*:containers:__docker_runningcontainers" && ret=0
             ;;
-<<<<<<< HEAD
-=======
         (plugin)
             local curcontext="$curcontext" state
             _arguments $(__docker_arguments) \
@@ -1842,7 +1808,6 @@ __docker_subcommand() {
                     ;;
             esac
             ;;
->>>>>>> 12a5469... start on swarm services; move to glade
         (port)
             _arguments $(__docker_arguments) \
                 $opts_help \
@@ -1857,11 +1822,7 @@ __docker_subcommand() {
                 "($help)*"{-f=,--filter=}"[Filter values]:filter:__docker_complete_ps_filters" \
                 "($help)--format[Pretty-print containers using a Go template]:format: " \
                 "($help -l --latest)"{-l,--latest}"[Show only the latest created container]" \
-<<<<<<< HEAD
-                "($help)-n[Show n last created containers, include non-running one]:n:(1 5 10 25 50)" \
-=======
                 "($help -n --last)"{-n=,--last=}"[Show n last created containers (includes all states)]:n:(1 5 10 25 50)" \
->>>>>>> 12a5469... start on swarm services; move to glade
                 "($help)--no-trunc[Do not truncate output]" \
                 "($help -q --quiet)"{-q,--quiet}"[Only show numeric IDs]" \
                 "($help -s --size)"{-s,--size}"[Display total file sizes]" \
@@ -1931,10 +1892,7 @@ __docker_subcommand() {
                 "($help)--health-timeout=[Maximum time to allow one check to run]:time: " \
                 "($help)--no-healthcheck[Disable any container-specified HEALTHCHECK]" \
                 "($help)--rm[Remove intermediate containers when it exits]" \
-<<<<<<< HEAD
-=======
                 "($help)--runtime=[Name of the runtime to be used for that container]:runtime:__docker_complete_runtimes" \
->>>>>>> 12a5469... start on swarm services; move to glade
                 "($help)--sig-proxy[Proxy all received signals to the process (non-TTY mode only)]" \
                 "($help)--stop-signal=[Signal to kill a container]:signal:_signals" \
                 "($help)--storage-opt=[Set storage driver options per container]:storage options:->storage-opt" \
@@ -1981,8 +1939,6 @@ __docker_subcommand() {
                     ;;
             esac
             ;;
-<<<<<<< HEAD
-=======
         (service)
             local curcontext="$curcontext" state
             _arguments $(__docker_arguments) \
@@ -2000,7 +1956,6 @@ __docker_subcommand() {
                     ;;
             esac
             ;;
->>>>>>> 12a5469... start on swarm services; move to glade
         (start)
             _arguments $(__docker_arguments) \
                 $opts_help \
@@ -2016,8 +1971,6 @@ __docker_subcommand() {
                 "($help)--no-stream[Disable streaming stats and only pull the first result]" \
                 "($help -)*:containers:__docker_runningcontainers" && ret=0
             ;;
-<<<<<<< HEAD
-=======
         (swarm)
             local curcontext="$curcontext" state
             _arguments $(__docker_arguments) \
@@ -2035,7 +1988,6 @@ __docker_subcommand() {
                     ;;
             esac
             ;;
->>>>>>> 12a5469... start on swarm services; move to glade
         (tag)
             _arguments $(__docker_arguments) \
                 $opts_help \

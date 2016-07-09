@@ -86,18 +86,10 @@ func (cli *DockerCli) inspectAll(ctx context.Context, getSize bool) inspect.GetR
 					}
 					return nil, nil, err
 				}
-<<<<<<< HEAD
-				return i, rawImage, err
-			}
-			return nil, nil, err
-		}
-		return c, rawContainer, err
-=======
 				return i, rawImage, nil
 			}
 			return nil, nil, err
 		}
 		return c, rawContainer, nil
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 }

@@ -91,17 +91,9 @@ RUN set -x \
 # NOTE: ppc64le has compatibility issues with older versions of go, so make sure the version >= 1.6
 ENV GO_VERSION 1.6.2
 ENV GO_DOWNLOAD_URL https://golang.org/dl/go${GO_VERSION}.src.tar.gz
-<<<<<<< HEAD
-ENV GO_DOWNLOAD_SHA256 787b0b750d037016a30c6ed05a8a70a91b2e9db4bd9b1a2453aa502a63f1bccc
 ENV GOROOT_BOOTSTRAP /usr/local
 
 RUN curl -fsSL "$GO_DOWNLOAD_URL" -o golang.tar.gz \
-    && echo "$GO_DOWNLOAD_SHA256  golang.tar.gz" | sha256sum -c - \
-=======
-ENV GOROOT_BOOTSTRAP /usr/local
-
-RUN curl -fsSL "$GO_DOWNLOAD_URL" -o golang.tar.gz \
->>>>>>> 12a5469... start on swarm services; move to glade
     && tar -C /usr/src -xzf golang.tar.gz \
     && rm golang.tar.gz \
     && cd /usr/src/go/src && ./make.bash 2>&1
@@ -221,11 +213,7 @@ RUN set -x \
 	&& rm -rf "$GOPATH"
 
 # Install containerd
-<<<<<<< HEAD
-ENV CONTAINERD_COMMIT b93a33be39bc4ef0fb00bfcb79147a28c33d9d43
-=======
 ENV CONTAINERD_COMMIT 1b3a81545ca79456086dc2aa424357be98b962ee
->>>>>>> 12a5469... start on swarm services; move to glade
 RUN set -x \
 	&& export GOPATH="$(mktemp -d)" \
 	&& git clone https://github.com/docker/containerd.git "$GOPATH/src/github.com/docker/containerd" \

@@ -167,9 +167,6 @@ func (rca *RootCA) RequestAndSaveNewCertificates(ctx context.Context, paths Cert
 	}
 
 	// Get the remote manager to issue a CA signed certificate for this node
-<<<<<<< HEAD
-	signedCert, err := GetRemoteSignedCertificate(ctx, csr, role, secret, rca.Pool, picker, transport, nodeInfo)
-=======
 	// Retry up to 5 times in case the manager we first try to contact isn't
 	// responding properly (for example, it may have just been demoted).
 	var signedCert []byte
@@ -180,7 +177,6 @@ func (rca *RootCA) RequestAndSaveNewCertificates(ctx context.Context, paths Cert
 		}
 		log.Warningf("error fetching signed node certificate: %v", err)
 	}
->>>>>>> 12a5469... start on swarm services; move to glade
 	if err != nil {
 		return nil, err
 	}
@@ -205,15 +201,12 @@ func (rca *RootCA) RequestAndSaveNewCertificates(ctx context.Context, paths Cert
 		return nil, err
 	}
 
-<<<<<<< HEAD
-=======
 	// Create a valid TLSKeyPair out of the PEM encoded private key and certificate
 	tlsKeyPair, err := tls.X509KeyPair(signedCert, key)
 	if err != nil {
 		return nil, err
 	}
 
->>>>>>> 12a5469... start on swarm services; move to glade
 	log.Infof("Downloaded new TLS credentials with role: %s.", role)
 
 	// Ensure directory exists
@@ -232,24 +225,6 @@ func (rca *RootCA) RequestAndSaveNewCertificates(ctx context.Context, paths Cert
 		return nil, err
 	}
 
-<<<<<<< HEAD
-	// Create a valid TLSKeyPair out of the PEM encoded private key and certificate
-	tlsKeyPair, err := tls.X509KeyPair(signedCert, key)
-	if err != nil {
-		return nil, err
-	}
-
-	return &tlsKeyPair, nil
-}
-
-// ParseValidateAndSignCSR returns a signed certificate from a particular rootCA and a CSR.
-func (rca *RootCA) ParseValidateAndSignCSR(csrBytes []byte, cn, ou, org string) ([]byte, error) {
-	if !rca.CanSign() {
-		return nil, ErrNoValidSigner
-	}
-
-	// All managers get added the subject-alt-name of CA, so they can be used for cert issuance
-=======
 	return &tlsKeyPair, nil
 }
 
@@ -258,26 +233,18 @@ func (rca *RootCA) ParseValidateAndSignCSR(csrBytes []byte, cn, ou, org string) 
 func PrepareCSR(csrBytes []byte, cn, ou, org string) cfsigner.SignRequest {
 	// All managers get added the subject-alt-name of CA, so they can be
 	// used for cert issuance.
->>>>>>> 12a5469... start on swarm services; move to glade
 	hosts := []string{ou}
 	if ou == ManagerRole {
 		hosts = append(hosts, CARole)
 	}
 
-<<<<<<< HEAD
-	cert, err := rca.Signer.Sign(cfsigner.SignRequest{
-=======
 	return cfsigner.SignRequest{
->>>>>>> 12a5469... start on swarm services; move to glade
 		Request: string(csrBytes),
 		// OU is used for Authentication of the node type. The CN has the random
 		// node ID.
 		Subject: &cfsigner.Subject{CN: cn, Names: []cfcsr.Name{{OU: ou, O: org}}},
 		// Adding ou as DNS alt name, so clients can connect to ManagerRole and CARole
 		Hosts: hosts,
-<<<<<<< HEAD
-	})
-=======
 	}
 }
 
@@ -290,14 +257,11 @@ func (rca *RootCA) ParseValidateAndSignCSR(csrBytes []byte, cn, ou, org string) 
 	signRequest := PrepareCSR(csrBytes, cn, ou, org)
 
 	cert, err := rca.Signer.Sign(signRequest)
->>>>>>> 12a5469... start on swarm services; move to glade
 	if err != nil {
 		log.Debugf("failed to sign node certificate: %v", err)
 		return nil, err
 	}
 
-<<<<<<< HEAD
-=======
 	return rca.AppendFirstRootPEM(cert)
 }
 
@@ -305,7 +269,6 @@ func (rca *RootCA) ParseValidateAndSignCSR(csrBytes []byte, cn, ou, org string) 
 // bundle to the given cert bundle (which should already be encoded as a series
 // of PEM-encoded certificate blocks).
 func (rca *RootCA) AppendFirstRootPEM(cert []byte) ([]byte, error) {
->>>>>>> 12a5469... start on swarm services; move to glade
 	// Append the first root CA Cert to the certificate, to create a valid chain
 	// Get the first Root CA Cert on the bundle
 	firstRootCA, _, err := helpers.ParseOneCertificateFromPEM(rca.Cert)
@@ -452,11 +415,7 @@ func GetLocalRootCA(baseDir string) (RootCA, error) {
 
 	rootCA, err := NewRootCA(cert, key, DefaultNodeCertExpiration)
 	if err == nil {
-<<<<<<< HEAD
-		log.Debugf("successfully loaded the signer for the Root CA: %s", paths.RootCA.Cert)
-=======
 		log.Debugf("successfully loaded the Root CA: %s", paths.RootCA.Cert)
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	return rootCA, err
@@ -668,11 +627,7 @@ func GetRemoteSignedCertificate(ctx context.Context, csr []byte, role, secret st
 	}
 	defer conn.Close()
 
-<<<<<<< HEAD
-	// Create a CAClient to retreive a new Certificate
-=======
 	// Create a CAClient to retrieve a new Certificate
->>>>>>> 12a5469... start on swarm services; move to glade
 	caClient := api.NewNodeCAClient(conn)
 
 	// Convert our internal string roles into an API role
@@ -714,9 +669,6 @@ func GetRemoteSignedCertificate(ctx context.Context, csr []byte, role, secret st
 			if statusResponse.Certificate == nil {
 				return nil, fmt.Errorf("no certificate in CertificateStatus response")
 			}
-<<<<<<< HEAD
-			return statusResponse.Certificate.Certificate, nil
-=======
 
 			// The certificate in the response must match the CSR
 			// we submitted. If we are getting a response for a
@@ -726,7 +678,6 @@ func GetRemoteSignedCertificate(ctx context.Context, csr []byte, role, secret st
 			if bytes.Equal(statusResponse.Certificate.CSR, csr) {
 				return statusResponse.Certificate.Certificate, nil
 			}
->>>>>>> 12a5469... start on swarm services; move to glade
 		}
 
 		// If we're still pending, the issuance failed, or the state is unknown

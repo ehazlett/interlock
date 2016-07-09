@@ -2,13 +2,6 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-// +build windows
->>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 // +build go1.4
 
 package windows

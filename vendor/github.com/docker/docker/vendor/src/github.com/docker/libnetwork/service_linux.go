@@ -48,10 +48,6 @@ func (c *controller) addServiceBinding(name, sid, nid, eid string, vip net.IP, i
 		return err
 	}
 
-<<<<<<< HEAD
-	c.Lock()
-	s, ok := c.serviceBindings[sid]
-=======
 	skey := serviceKey{
 		id:    sid,
 		ports: portConfigs(ingressPorts).String(),
@@ -59,16 +55,11 @@ func (c *controller) addServiceBinding(name, sid, nid, eid string, vip net.IP, i
 
 	c.Lock()
 	s, ok := c.serviceBindings[skey]
->>>>>>> 12a5469... start on swarm services; move to glade
 	if !ok {
 		// Create a new service if we are seeing this service
 		// for the first time.
 		s = newService(name, sid, ingressPorts)
-<<<<<<< HEAD
-		c.serviceBindings[sid] = s
-=======
 		c.serviceBindings[skey] = s
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 	c.Unlock()
 
@@ -135,10 +126,6 @@ func (c *controller) rmServiceBinding(name, sid, nid, eid string, vip net.IP, in
 		return err
 	}
 
-<<<<<<< HEAD
-	c.Lock()
-	s, ok := c.serviceBindings[sid]
-=======
 	skey := serviceKey{
 		id:    sid,
 		ports: portConfigs(ingressPorts).String(),
@@ -146,7 +133,6 @@ func (c *controller) rmServiceBinding(name, sid, nid, eid string, vip net.IP, in
 
 	c.Lock()
 	s, ok := c.serviceBindings[skey]
->>>>>>> 12a5469... start on swarm services; move to glade
 	if !ok {
 		c.Unlock()
 		return nil
@@ -159,24 +145,6 @@ func (c *controller) rmServiceBinding(name, sid, nid, eid string, vip net.IP, in
 		n.(*network).deleteSvcRecords("tasks."+alias, ip, nil, false)
 	}
 
-<<<<<<< HEAD
-	// Make sure to remove the right IP since if vip is
-	// not valid we would have added a DNS RR record.
-	svcIP := vip
-	if len(svcIP) == 0 {
-		svcIP = ip
-	}
-	n.(*network).deleteSvcRecords(name, svcIP, nil, false)
-	for _, alias := range aliases {
-		n.(*network).deleteSvcRecords(alias, svcIP, nil, false)
-	}
-
-	s.Lock()
-	defer s.Unlock()
-
-	lb, ok := s.loadBalancers[nid]
-	if !ok {
-=======
 	// If we are doing DNS RR add the endpoint IP to DNS record
 	// right away.
 	if len(vip) == 0 {
@@ -190,7 +158,6 @@ func (c *controller) rmServiceBinding(name, sid, nid, eid string, vip net.IP, in
 	lb, ok := s.loadBalancers[nid]
 	if !ok {
 		s.Unlock()
->>>>>>> 12a5469... start on swarm services; move to glade
 		return nil
 	}
 
@@ -207,11 +174,7 @@ func (c *controller) rmServiceBinding(name, sid, nid, eid string, vip net.IP, in
 	if len(s.loadBalancers) == 0 {
 		// All loadbalancers for the service removed. Time to
 		// remove the service itself.
-<<<<<<< HEAD
-		delete(c.serviceBindings, sid)
-=======
 		delete(c.serviceBindings, skey)
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	// Remove loadbalancer service(if needed) and backend in all
@@ -219,8 +182,6 @@ func (c *controller) rmServiceBinding(name, sid, nid, eid string, vip net.IP, in
 	if len(vip) != 0 {
 		n.(*network).rmLBBackend(ip, vip, lb.fwMark, ingressPorts, rmService)
 	}
-<<<<<<< HEAD
-=======
 	s.Unlock()
 
 	// Remove the DNS record for VIP only if we are removing the service
@@ -230,7 +191,6 @@ func (c *controller) rmServiceBinding(name, sid, nid, eid string, vip net.IP, in
 			n.(*network).deleteSvcRecords(alias, vip, nil, false)
 		}
 	}
->>>>>>> 12a5469... start on swarm services; move to glade
 
 	return nil
 }
@@ -370,11 +330,7 @@ func (sb *sandbox) addLBBackend(ip, vip net.IP, fwMark uint32, ingressPorts []*P
 	if addService {
 		var iPorts []*PortConfig
 		if sb.ingress {
-<<<<<<< HEAD
-			iPorts = ingressPorts
-=======
 			iPorts = filterPortConfigs(ingressPorts, false)
->>>>>>> 12a5469... start on swarm services; move to glade
 			if err := programIngress(gwIP, iPorts, false); err != nil {
 				logrus.Errorf("Failed to add ingress: %v", err)
 				return
@@ -443,11 +399,7 @@ func (sb *sandbox) rmLBBackend(ip, vip net.IP, fwMark uint32, ingressPorts []*Po
 
 		var iPorts []*PortConfig
 		if sb.ingress {
-<<<<<<< HEAD
-			iPorts = ingressPorts
-=======
 			iPorts = filterPortConfigs(ingressPorts, true)
->>>>>>> 12a5469... start on swarm services; move to glade
 			if err := programIngress(gwIP, iPorts, true); err != nil {
 				logrus.Errorf("Failed to delete ingress: %v", err)
 			}
@@ -465,10 +417,6 @@ var (
 	ingressOnce     sync.Once
 	ingressProxyMu  sync.Mutex
 	ingressProxyTbl = make(map[string]io.Closer)
-<<<<<<< HEAD
-)
-
-=======
 	portConfigMu    sync.Mutex
 	portConfigTbl   = make(map[PortConfig]int)
 )
@@ -510,7 +458,6 @@ func filterPortConfigs(ingressPorts []*PortConfig, isDelete bool) []*PortConfig 
 	return iPorts
 }
 
->>>>>>> 12a5469... start on swarm services; move to glade
 func programIngress(gwIP net.IP, ingressPorts []*PortConfig, isDelete bool) error {
 	addDelOpt := "-I"
 	if isDelete {

@@ -11,18 +11,6 @@ parent = "smn_cli"
 
 # swarm init
 
-<<<<<<< HEAD
-	Usage:	docker swarm init [OPTIONS]
-
-	Initialize a Swarm.
-
-	Options:
-	      --auto-accept value   Acceptance policy (default [worker,manager])
-	      --force-new-cluster   Force create a new cluster from current state.
-	      --help                Print usage
-	      --listen-addr value   Listen address (default 0.0.0.0:2377)
-	      --secret string       Set secret value needed to accept nodes into cluster
-=======
 ```markdown
 Usage:  docker swarm init [OPTIONS]
 
@@ -39,7 +27,6 @@ Options:
       --secret string                   Set secret value needed to accept nodes into cluster
       --task-history-limit int          Task history retention limit (default 10)
 ```
->>>>>>> 12a5469... start on swarm services; move to glade
 
 Initialize a Swarm cluster. The docker engine targeted by this command becomes a manager
 in the newly created one node Swarm cluster.
@@ -47,18 +34,6 @@ in the newly created one node Swarm cluster.
 
 ```bash
 $ docker swarm init --listen-addr 192.168.99.121:2377
-<<<<<<< HEAD
-Swarm initialized: current node (1ujecd0j9n3ro9i6628smdmth) is now a manager.
-$ docker node ls
-ID                           NAME      MEMBERSHIP  STATUS  AVAILABILITY  MANAGER STATUS          LEADER
-1ujecd0j9n3ro9i6628smdmth *  manager1  Accepted    Ready   Active        Reachable               Yes
-```
-
-###	--auto-accept value
-
-This flag controls node acceptance into the cluster. By default, both `worker` and `manager`
-nodes are auto accepted by the cluster. This can be changed by specifing what kinds of nodes
-=======
 No --secret provided. Generated random secret:
 	4ao565v9jsuogtq5t8s379ulb
 
@@ -81,7 +56,6 @@ a swarm with no secret, use `--secret ""`.
 
 This flag controls node acceptance into the cluster. By default, `worker` nodes are
 automatically accepted by the cluster. This can be changed by specifying what kinds of nodes
->>>>>>> 12a5469... start on swarm services; move to glade
 can be auto-accepted into the cluster. If auto-accept is not turned on, then
 [node accept](node_accept.md) can be used to explicitly accept a node into the cluster.
 
@@ -90,11 +64,6 @@ For example, the following initializes a cluster with auto-acceptance of workers
 
 ```bash
 $ docker swarm init --listen-addr 192.168.99.121:2377 --auto-accept worker
-<<<<<<< HEAD
-Swarm initialized: current node (1m8cdsylxbf3lk8qriqt07hx1) is now a manager.
-```
-
-=======
 ```
 
 ### `--cert-expiry`
@@ -113,7 +82,6 @@ the form `protocol=X,url=Y`. The value for `protocol` specifies what protocol sh
 to send signing requests to the external CA. Currently, the only supported value is `cfssl`.
 The URL specifies the endpoint where signing requests should be submitted.
 
->>>>>>> 12a5469... start on swarm services; move to glade
 ### `--force-new-cluster`
 
 This flag forces an existing node that was part of a quorum that was lost to restart as a single node Manager without losing its data
@@ -126,13 +94,10 @@ The node listens for inbound Swarm manager traffic on this IP:PORT
 
 Secret value needed to accept nodes into the Swarm
 
-<<<<<<< HEAD
-=======
 ### `--task-history-limit`
 
 This flag sets up task history retention limit.
 
->>>>>>> 12a5469... start on swarm services; move to glade
 ## Related information
 
 * [swarm join](swarm_join.md)

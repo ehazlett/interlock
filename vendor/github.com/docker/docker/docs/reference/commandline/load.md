@@ -10,16 +10,6 @@ parent = "smn_cli"
 
 # load
 
-<<<<<<< HEAD
-    Usage: docker load [OPTIONS]
-
-    Load an image from a tar archive or STDIN and shows image names or
-    IDs imported.
-
-      --help             Print usage
-      -i, --input=""     Read from a tar archive file, instead of STDIN. The tarball may be compressed with gzip, bzip, or xz
-      -q, --quiet        Suppress the load progress bar but still outputs the imported images
-=======
 ```markdown
 Usage:  docker load [OPTIONS]
 
@@ -31,7 +21,6 @@ Options:
                        The tarball may be compressed with gzip, bzip, or xz
   -q, --quiet          Suppress the load output but still outputs the imported images
 ```
->>>>>>> 12a5469... start on swarm services; move to glade
 
 Loads a tarred repository from a file or the standard input stream.
 Restores both images and tags.

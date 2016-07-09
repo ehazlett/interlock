@@ -10,17 +10,6 @@ parent = "smn_cli"
 
 # inspect
 
-<<<<<<< HEAD
-    Usage: docker inspect [OPTIONS] CONTAINER|IMAGE|TASK [CONTAINER|IMAGE|TASK...]
-
-    Return low-level information on a container or image or task
-
-      -f, --format=""              Format the output using the given go template
-      --help                       Print usage
-      --type=container|image|task  Return JSON for specified type, permissible
-                                   values are "image" or "container" or "task"
-      -s, --size                   Display total file sizes if the type is container
-=======
 ```markdown
 Usage:  docker inspect [OPTIONS] CONTAINER|IMAGE|TASK [CONTAINER|IMAGE|TASK...]
 
@@ -32,7 +21,6 @@ Return low-level information on a container, image or task
                      values are "image" or "container" or "task
   --type             Return JSON for specified type, (e.g image, container or task)
 ```
->>>>>>> 12a5469... start on swarm services; move to glade
 
 By default, this will render all results in a JSON array. If the container and
 image have the same name, this will return container JSON for unspecified type.

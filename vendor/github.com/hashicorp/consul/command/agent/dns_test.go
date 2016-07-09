@@ -3166,8 +3166,6 @@ func TestDNS_InvalidQueries(t *testing.T) {
 		}
 	}
 }
-<<<<<<< HEAD
-=======
 
 func TestDNS_PreparedQuery_AgentSource(t *testing.T) {
 	dir, srv := makeDNSServer(t)
@@ -3202,4 +3200,3 @@ func TestDNS_PreparedQuery_AgentSource(t *testing.T) {
 		}
 	}
 }
->>>>>>> 12a5469... start on swarm services; move to glade

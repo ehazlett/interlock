@@ -11,13 +11,6 @@ parent = "smn_cli"
 
 # plugin install (experimental)
 
-<<<<<<< HEAD
-    Usage: docker plugin install PLUGIN
-
-    Install a plugin
-
-      --help             Print usage
-=======
 ```markdown
 Usage:  docker plugin install PLUGIN [OPTIONS]
 
@@ -28,7 +21,6 @@ Options:
       --grant-all-permissions   grant all permissions necessary to run the plugin
       --help                    Print usage
 ```
->>>>>>> 12a5469... start on swarm services; move to glade
 
 Installs and enables a plugin. Docker looks first for the plugin on your Docker
 host. If the plugin does not exist locally, then the plugin is pulled from

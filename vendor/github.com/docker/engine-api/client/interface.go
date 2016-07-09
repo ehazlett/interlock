@@ -4,21 +4,11 @@ import (
 	"io"
 	"time"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-	"golang.org/x/net/context"
-
->>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 	"github.com/docker/engine-api/types"
 	"github.com/docker/engine-api/types/container"
 	"github.com/docker/engine-api/types/filters"
 	"github.com/docker/engine-api/types/network"
 	"github.com/docker/engine-api/types/registry"
-<<<<<<< HEAD
-<<<<<<< HEAD
 	"github.com/docker/engine-api/types/swarm"
 	"golang.org/x/net/context"
 )
@@ -40,37 +30,6 @@ type CommonAPIClient interface {
 
 // ContainerAPIClient defines API client methods for the containers
 type ContainerAPIClient interface {
-=======
-=======
-	"github.com/docker/engine-api/types/swarm"
-	"golang.org/x/net/context"
->>>>>>> 12a5469... start on swarm services; move to glade
-)
-
-// CommonAPIClient is the common methods between stable and experimental versions of APIClient.
-type CommonAPIClient interface {
-	ContainerAPIClient
-	ImageAPIClient
-	NodeAPIClient
-	NetworkAPIClient
-	ServiceAPIClient
-	SwarmAPIClient
-	SystemAPIClient
-	VolumeAPIClient
-	ClientVersion() string
-<<<<<<< HEAD
-	CheckpointCreate(ctx context.Context, container string, options types.CheckpointCreateOptions) error
-	CheckpointDelete(ctx context.Context, container string, checkpointID string) error
-	CheckpointList(ctx context.Context, container string) ([]types.Checkpoint, error)
->>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
-=======
-	ServerVersion(ctx context.Context) (types.Version, error)
-	UpdateClientVersion(v string)
-}
-
-// ContainerAPIClient defines API client methods for the containers
-type ContainerAPIClient interface {
->>>>>>> 12a5469... start on swarm services; move to glade
 	ContainerAttach(ctx context.Context, container string, options types.ContainerAttachOptions) (types.HijackedResponse, error)
 	ContainerCommit(ctx context.Context, container string, options types.ContainerCommitOptions) (types.ContainerCommitResponse, error)
 	ContainerCreate(ctx context.Context, config *container.Config, hostConfig *container.HostConfig, networkingConfig *network.NetworkingConfig, containerName string) (types.ContainerCreateResponse, error)
@@ -90,47 +49,21 @@ type ContainerAPIClient interface {
 	ContainerRemove(ctx context.Context, container string, options types.ContainerRemoveOptions) error
 	ContainerRename(ctx context.Context, container, newContainerName string) error
 	ContainerResize(ctx context.Context, container string, options types.ResizeOptions) error
-<<<<<<< HEAD
-<<<<<<< HEAD
 	ContainerRestart(ctx context.Context, container string, timeout *time.Duration) error
 	ContainerStatPath(ctx context.Context, container, path string) (types.ContainerPathStat, error)
 	ContainerStats(ctx context.Context, container string, stream bool) (io.ReadCloser, error)
 	ContainerStart(ctx context.Context, container string, options types.ContainerStartOptions) error
 	ContainerStop(ctx context.Context, container string, timeout *time.Duration) error
-=======
-	ContainerRestart(ctx context.Context, container string, timeout time.Duration) error
-	ContainerStatPath(ctx context.Context, container, path string) (types.ContainerPathStat, error)
-	ContainerStats(ctx context.Context, container string, stream bool) (io.ReadCloser, error)
-	ContainerStart(ctx context.Context, container string, options types.ContainerStartOptions) error
-	ContainerStop(ctx context.Context, container string, timeout time.Duration) error
->>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
-=======
-	ContainerRestart(ctx context.Context, container string, timeout *time.Duration) error
-	ContainerStatPath(ctx context.Context, container, path string) (types.ContainerPathStat, error)
-	ContainerStats(ctx context.Context, container string, stream bool) (io.ReadCloser, error)
-	ContainerStart(ctx context.Context, container string, options types.ContainerStartOptions) error
-	ContainerStop(ctx context.Context, container string, timeout *time.Duration) error
->>>>>>> 12a5469... start on swarm services; move to glade
 	ContainerTop(ctx context.Context, container string, arguments []string) (types.ContainerProcessList, error)
 	ContainerUnpause(ctx context.Context, container string) error
 	ContainerUpdate(ctx context.Context, container string, updateConfig container.UpdateConfig) error
 	ContainerWait(ctx context.Context, container string) (int, error)
 	CopyFromContainer(ctx context.Context, container, srcPath string) (io.ReadCloser, types.ContainerPathStat, error)
 	CopyToContainer(ctx context.Context, container, path string, content io.Reader, options types.CopyToContainerOptions) error
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // ImageAPIClient defines API client methods for the images
 type ImageAPIClient interface {
-<<<<<<< HEAD
-=======
-	Events(ctx context.Context, options types.EventsOptions) (io.ReadCloser, error)
->>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 	ImageBuild(ctx context.Context, context io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error)
 	ImageCreate(ctx context.Context, parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error)
 	ImageHistory(ctx context.Context, image string) ([]types.ImageHistory, error)
@@ -144,20 +77,10 @@ type ImageAPIClient interface {
 	ImageSearch(ctx context.Context, term string, options types.ImageSearchOptions) ([]registry.SearchResult, error)
 	ImageSave(ctx context.Context, images []string) (io.ReadCloser, error)
 	ImageTag(ctx context.Context, image, ref string) error
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // NetworkAPIClient defines API client methods for the networks
 type NetworkAPIClient interface {
-<<<<<<< HEAD
-=======
-	Info(ctx context.Context) (types.Info, error)
->>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 	NetworkConnect(ctx context.Context, networkID, container string, config *network.EndpointSettings) error
 	NetworkCreate(ctx context.Context, name string, options types.NetworkCreate) (types.NetworkCreateResponse, error)
 	NetworkDisconnect(ctx context.Context, networkID, container string, force bool) error
@@ -165,10 +88,6 @@ type NetworkAPIClient interface {
 	NetworkInspectWithRaw(ctx context.Context, networkID string) (types.NetworkResource, []byte, error)
 	NetworkList(ctx context.Context, options types.NetworkListOptions) ([]types.NetworkResource, error)
 	NetworkRemove(ctx context.Context, networkID string) error
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 // NodeAPIClient defines API client methods for the nodes
@@ -181,19 +100,11 @@ type NodeAPIClient interface {
 
 // ServiceAPIClient defines API client methods for the services
 type ServiceAPIClient interface {
-<<<<<<< HEAD
-	ServiceCreate(ctx context.Context, service swarm.ServiceSpec, headers map[string][]string) (types.ServiceCreateResponse, error)
-	ServiceInspectWithRaw(ctx context.Context, serviceID string) (swarm.Service, []byte, error)
-	ServiceList(ctx context.Context, options types.ServiceListOptions) ([]swarm.Service, error)
-	ServiceRemove(ctx context.Context, serviceID string) error
-	ServiceUpdate(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, headers map[string][]string) error
-=======
 	ServiceCreate(ctx context.Context, service swarm.ServiceSpec, options types.ServiceCreateOptions) (types.ServiceCreateResponse, error)
 	ServiceInspectWithRaw(ctx context.Context, serviceID string) (swarm.Service, []byte, error)
 	ServiceList(ctx context.Context, options types.ServiceListOptions) ([]swarm.Service, error)
 	ServiceRemove(ctx context.Context, serviceID string) error
 	ServiceUpdate(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options types.ServiceUpdateOptions) error
->>>>>>> 12a5469... start on swarm services; move to glade
 	TaskInspectWithRaw(ctx context.Context, taskID string) (swarm.Task, []byte, error)
 	TaskList(ctx context.Context, options types.TaskListOptions) ([]swarm.Task, error)
 }
@@ -211,36 +122,14 @@ type SwarmAPIClient interface {
 type SystemAPIClient interface {
 	Events(ctx context.Context, options types.EventsOptions) (io.ReadCloser, error)
 	Info(ctx context.Context) (types.Info, error)
-<<<<<<< HEAD
 	RegistryLogin(ctx context.Context, auth types.AuthConfig) (types.AuthResponse, error)
 }
 
 // VolumeAPIClient defines API client methods for the volumes
 type VolumeAPIClient interface {
-=======
-	RegistryLogin(ctx context.Context, auth types.AuthConfig) (types.AuthResponse, error)
-	ServerVersion(ctx context.Context) (types.Version, error)
-	UpdateClientVersion(v string)
->>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
-=======
-	RegistryLogin(ctx context.Context, auth types.AuthConfig) (types.AuthResponse, error)
-}
-
-// VolumeAPIClient defines API client methods for the volumes
-type VolumeAPIClient interface {
->>>>>>> 12a5469... start on swarm services; move to glade
 	VolumeCreate(ctx context.Context, options types.VolumeCreateRequest) (types.Volume, error)
 	VolumeInspect(ctx context.Context, volumeID string) (types.Volume, error)
 	VolumeInspectWithRaw(ctx context.Context, volumeID string) (types.Volume, []byte, error)
 	VolumeList(ctx context.Context, filter filters.Args) (types.VolumesListResponse, error)
 	VolumeRemove(ctx context.Context, volumeID string) error
 }
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-
-// Ensure that Client always implements APIClient.
-var _ APIClient = &Client{}
->>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
-=======
->>>>>>> 12a5469... start on swarm services; move to glade

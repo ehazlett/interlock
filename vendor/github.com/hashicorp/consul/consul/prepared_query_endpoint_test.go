@@ -1607,8 +1607,6 @@ func TestPreparedQuery_Execute(t *testing.T) {
 		t.Fatalf("unique shuffle ratio too low: %d/100", len(uniques))
 	}
 
-<<<<<<< HEAD
-=======
 	// Set the query to return results nearest to node3. This is the only
 	// node with coordinates, and it carries the service we are asking for,
 	// so node3 should always show up first.
@@ -1828,7 +1826,6 @@ func TestPreparedQuery_Execute(t *testing.T) {
 		t.Fatalf("err: %v", err)
 	}
 
->>>>>>> 12a5469... start on swarm services; move to glade
 	// Update the health of a node to mark it critical.
 	setHealth := func(node string, health string) {
 		req := structs.RegisterRequest{
@@ -1905,10 +1902,6 @@ func TestPreparedQuery_Execute(t *testing.T) {
 	}
 
 	// Make the query more picky so it excludes warning nodes.
-<<<<<<< HEAD
-	query.Op = structs.PreparedQueryUpdate
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 	query.Query.Service.OnlyPassing = true
 	if err := msgpackrpc.CallWithCodec(codec1, "PreparedQuery.Apply", &query, &query.Query.ID); err != nil {
 		t.Fatalf("err: %v", err)

@@ -32,11 +32,7 @@ type watchServer struct {
 	clusterID int64
 	memberID  int64
 	raftTimer etcdserver.RaftTimer
-<<<<<<< HEAD
-	watchable mvcc.Watchable
-=======
 	watchable mvcc.WatchableKV
->>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 func NewWatchServer(s *etcdserver.EtcdServer) pb.WatchServer {
@@ -86,22 +82,12 @@ type serverWatchStream struct {
 	memberID  int64
 	raftTimer etcdserver.RaftTimer
 
-<<<<<<< HEAD
-=======
 	watchable mvcc.WatchableKV
 
->>>>>>> 12a5469... start on swarm services; move to glade
 	gRPCStream  pb.Watch_WatchServer
 	watchStream mvcc.WatchStream
 	ctrlStream  chan *pb.WatchResponse
 
-<<<<<<< HEAD
-	// progress tracks the watchID that stream might need to send
-	// progress to.
-	progress map[mvcc.WatchID]bool
-	// mu protects progress
-	mu sync.Mutex
-=======
 	// mu protects progress, prevKV
 	mu sync.Mutex
 	// progress tracks the watchID that stream might need to send
@@ -109,7 +95,6 @@ type serverWatchStream struct {
 	// TOOD: combine progress and prevKV into a single struct?
 	progress map[mvcc.WatchID]bool
 	prevKV   map[mvcc.WatchID]bool
->>>>>>> 12a5469... start on swarm services; move to glade
 
 	// closec indicates the stream is closed.
 	closec chan struct{}
@@ -120,27 +105,18 @@ type serverWatchStream struct {
 
 func (ws *watchServer) Watch(stream pb.Watch_WatchServer) (err error) {
 	sws := serverWatchStream{
-<<<<<<< HEAD
-		clusterID:   ws.clusterID,
-		memberID:    ws.memberID,
-		raftTimer:   ws.raftTimer,
-=======
 		clusterID: ws.clusterID,
 		memberID:  ws.memberID,
 		raftTimer: ws.raftTimer,
 
 		watchable: ws.watchable,
 
->>>>>>> 12a5469... start on swarm services; move to glade
 		gRPCStream:  stream,
 		watchStream: ws.watchable.NewWatchStream(),
 		// chan for sending control response like watcher created and canceled.
 		ctrlStream: make(chan *pb.WatchResponse, ctrlStreamBufLen),
 		progress:   make(map[mvcc.WatchID]bool),
-<<<<<<< HEAD
-=======
 		prevKV:     make(map[mvcc.WatchID]bool),
->>>>>>> 12a5469... start on swarm services; move to glade
 		closec:     make(chan struct{}),
 	}
 
@@ -213,10 +189,6 @@ func (sws *serverWatchStream) recvLoop() error {
 				rev = wsrev + 1
 			}
 			id := sws.watchStream.Watch(creq.Key, creq.RangeEnd, rev, filters...)
-<<<<<<< HEAD
-			if id != -1 && creq.ProgressNotify {
-				sws.progress[id] = true
-=======
 			if id != -1 {
 				sws.mu.Lock()
 				if creq.ProgressNotify {
@@ -226,7 +198,6 @@ func (sws *serverWatchStream) recvLoop() error {
 					sws.prevKV[id] = true
 				}
 				sws.mu.Unlock()
->>>>>>> 12a5469... start on swarm services; move to glade
 			}
 			wr := &pb.WatchResponse{
 				Header:   sws.newResponseHeader(wsrev),
@@ -251,14 +222,6 @@ func (sws *serverWatchStream) recvLoop() error {
 					}
 					sws.mu.Lock()
 					delete(sws.progress, mvcc.WatchID(id))
-<<<<<<< HEAD
-					sws.mu.Unlock()
-				}
-			}
-			// TODO: do we need to return error back to client?
-		default:
-			panic("not implemented")
-=======
 					delete(sws.prevKV, mvcc.WatchID(id))
 					sws.mu.Unlock()
 				}
@@ -268,7 +231,6 @@ func (sws *serverWatchStream) recvLoop() error {
 			// receive an valid command.
 			// so just do nothing instead.
 			continue
->>>>>>> 12a5469... start on swarm services; move to glade
 		}
 	}
 }
@@ -307,10 +269,6 @@ func (sws *serverWatchStream) sendLoop() {
 			// or define protocol buffer with []mvccpb.Event.
 			evs := wresp.Events
 			events := make([]*mvccpb.Event, len(evs))
-<<<<<<< HEAD
-			for i := range evs {
-				events[i] = &evs[i]
-=======
 			sws.mu.Lock()
 			needPrevKV := sws.prevKV[wresp.WatchID]
 			sws.mu.Unlock()
@@ -324,7 +282,6 @@ func (sws *serverWatchStream) sendLoop() {
 						events[i].PrevKv = &(r.KVs[0])
 					}
 				}
->>>>>>> 12a5469... start on swarm services; move to glade
 			}
 
 			wr := &pb.WatchResponse{
@@ -379,20 +336,14 @@ func (sws *serverWatchStream) sendLoop() {
 				delete(pending, wid)
 			}
 		case <-progressTicker.C:
-<<<<<<< HEAD
-=======
 			sws.mu.Lock()
->>>>>>> 12a5469... start on swarm services; move to glade
 			for id, ok := range sws.progress {
 				if ok {
 					sws.watchStream.RequestProgress(id)
 				}
 				sws.progress[id] = true
 			}
-<<<<<<< HEAD
-=======
 			sws.mu.Unlock()
->>>>>>> 12a5469... start on swarm services; move to glade
 		case <-sws.closec:
 			return
 		}

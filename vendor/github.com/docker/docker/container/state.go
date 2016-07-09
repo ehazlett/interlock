@@ -195,11 +195,7 @@ func (s *State) ExitCode() int {
 	return res
 }
 
-<<<<<<< HEAD
-// SetExitCode set current exitcode for the state. Take lock before if state
-=======
 // SetExitCode sets current exitcode for the state. Take lock before if state
->>>>>>> 12a5469... start on swarm services; move to glade
 // may be shared.
 func (s *State) SetExitCode(ec int) {
 	s.exitCode = ec
@@ -218,11 +214,7 @@ func (s *State) SetRunning(pid int, initial bool) {
 	}
 }
 
-<<<<<<< HEAD
-// SetStoppedLocking locks the container state is sets it to "stopped".
-=======
 // SetStoppedLocking locks the container state and sets it to "stopped".
->>>>>>> 12a5469... start on swarm services; move to glade
 func (s *State) SetStoppedLocking(exitStatus *ExitStatus) {
 	s.Lock()
 	s.SetStopped(exitStatus)
@@ -298,11 +290,7 @@ func (s *State) SetRemovalInProgress() bool {
 	return false
 }
 
-<<<<<<< HEAD
-// ResetRemovalInProgress make the RemovalInProgress state to false.
-=======
 // ResetRemovalInProgress makes the RemovalInProgress state to false.
->>>>>>> 12a5469... start on swarm services; move to glade
 func (s *State) ResetRemovalInProgress() {
 	s.Lock()
 	s.RemovalInProgress = false

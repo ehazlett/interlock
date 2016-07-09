@@ -30,10 +30,6 @@ node. For example, the tutorial uses a machine named `manager1`.
 
     ```
     $ docker swarm init --listen-addr 192.168.99.100:2377
-<<<<<<< HEAD
-
-    Swarm initialized: current node (dxn1zf6l61qsb1josjja83ngz) is now a manager.
-=======
     No --secret provided. Generated random secret:
 	4ao565v9jsuogtq5t8s379ulb
 
@@ -43,7 +39,6 @@ node. For example, the tutorial uses a machine named `manager1`.
 	docker swarm join --secret 4ao565v9jsuogtq5t8s379ulb \
 	--ca-hash sha256:07ce22bd1a7619f2adc0d63bd110479a170e7c4e69df05b67a1aa2705c88ef09 \
 	192.168.99.100:2377
->>>>>>> 12a5469... start on swarm services; move to glade
     ```
 
     The `--listen-addr` flag configures the manager node to listen on port
@@ -74,11 +69,7 @@ node. For example, the tutorial uses a machine named `manager1`.
     ```
     $ docker node ls
 
-<<<<<<< HEAD
-    ID                           NAME      MEMBERSHIP  STATUS  AVAILABILITY  MANAGER STATUS  LEADER
-=======
     ID                           HOSTNAME  MEMBERSHIP  STATUS  AVAILABILITY  MANAGER STATUS  LEADER
->>>>>>> 12a5469... start on swarm services; move to glade
     dxn1zf6l61qsb1josjja83ngz *  manager1  Accepted    Ready   Active        Reachable       Yes
 
     ```

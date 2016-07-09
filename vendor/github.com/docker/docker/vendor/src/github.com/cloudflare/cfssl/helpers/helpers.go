@@ -6,10 +6,7 @@ import (
 	"bytes"
 	"crypto"
 	"crypto/ecdsa"
-<<<<<<< HEAD
-=======
 	"crypto/elliptic"
->>>>>>> 12a5469... start on swarm services; move to glade
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/asn1"
@@ -414,11 +411,7 @@ func ParseCSR(in []byte) (csr *x509.CertificateRequest, rest []byte, err error) 
 	in = bytes.TrimSpace(in)
 	p, rest := pem.Decode(in)
 	if p != nil {
-<<<<<<< HEAD
-		if p.Type != "CERTIFICATE REQUEST" {
-=======
 		if p.Type != "NEW CERTIFICATE REQUEST" && p.Type != "CERTIFICATE REQUEST" {
->>>>>>> 12a5469... start on swarm services; move to glade
 			return nil, rest, cferr.New(cferr.CSRError, cferr.BadRequest)
 		}
 
@@ -454,19 +447,6 @@ func ParseCSRPEM(csrPEM []byte) (*x509.CertificateRequest, error) {
 	return csrObject, nil
 }
 
-<<<<<<< HEAD
-// SignerAlgo returns an X.509 signature algorithm corresponding to
-// the crypto.Hash provided from a crypto.Signer.
-func SignerAlgo(priv crypto.Signer, h crypto.Hash) x509.SignatureAlgorithm {
-	switch priv.Public().(type) {
-	case *rsa.PublicKey:
-		switch h {
-		case crypto.SHA512:
-			return x509.SHA512WithRSA
-		case crypto.SHA384:
-			return x509.SHA384WithRSA
-		case crypto.SHA256:
-=======
 // SignerAlgo returns an X.509 signature algorithm from a crypto.Signer.
 func SignerAlgo(priv crypto.Signer) x509.SignatureAlgorithm {
 	switch pub := priv.Public().(type) {
@@ -478,27 +458,17 @@ func SignerAlgo(priv crypto.Signer) x509.SignatureAlgorithm {
 		case bitLength >= 3072:
 			return x509.SHA384WithRSA
 		case bitLength >= 2048:
->>>>>>> 12a5469... start on swarm services; move to glade
 			return x509.SHA256WithRSA
 		default:
 			return x509.SHA1WithRSA
 		}
 	case *ecdsa.PublicKey:
-<<<<<<< HEAD
-		switch h {
-		case crypto.SHA512:
-			return x509.ECDSAWithSHA512
-		case crypto.SHA384:
-			return x509.ECDSAWithSHA384
-		case crypto.SHA256:
-=======
 		switch pub.Curve {
 		case elliptic.P521():
 			return x509.ECDSAWithSHA512
 		case elliptic.P384():
 			return x509.ECDSAWithSHA384
 		case elliptic.P256():
->>>>>>> 12a5469... start on swarm services; move to glade
 			return x509.ECDSAWithSHA256
 		default:
 			return x509.ECDSAWithSHA1

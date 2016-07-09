@@ -10,16 +10,6 @@ parent = "smn_cli"
 
 # rm
 
-<<<<<<< HEAD
-    Usage: docker rm [OPTIONS] CONTAINER [CONTAINER...]
-
-    Remove one or more containers
-
-      -f, --force            Force the removal of a running container (uses SIGKILL)
-      --help                 Print usage
-      -l, --link             Remove the specified link
-      -v, --volumes          Remove the volumes associated with the container
-=======
 ```markdown
 Usage:  docker rm [OPTIONS] CONTAINER [CONTAINER...]
 
@@ -31,7 +21,6 @@ Options:
   -l, --link      Remove the specified link
   -v, --volumes   Remove the volumes associated with the container
 ```
->>>>>>> 12a5469... start on swarm services; move to glade
 
 ## Examples
 

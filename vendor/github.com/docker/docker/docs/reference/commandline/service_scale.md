@@ -11,15 +11,6 @@ parent = "smn_cli"
 
 # service scale
 
-<<<<<<< HEAD
-    Usage:	docker service scale SERVICE=REPLICAS [SERVICE=REPLICAS...]
-
-    Scale one or multiple services
-
-    Options:
-          --help   Print usage
-
-=======
 ```markdown
 Usage:  docker service scale SERVICE=REPLICAS [SERVICE=REPLICAS...]
 
@@ -28,7 +19,6 @@ Scale one or multiple services
 Options:
       --help   Print usage
 ```
->>>>>>> 12a5469... start on swarm services; move to glade
 
 ## Examples
 

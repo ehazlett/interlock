@@ -98,16 +98,6 @@ typedef struct user_regs PtraceRegs;
 typedef struct user_pt_regs PtraceRegs;
 #elif defined(__powerpc64__)
 typedef struct pt_regs PtraceRegs;
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-#elif defined(__mips__)
-typedef struct user PtraceRegs;
-#elif defined(__s390x__)
-typedef struct _user_regs_struct PtraceRegs;
->>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 #else
 typedef struct user_regs_struct PtraceRegs;
 #endif

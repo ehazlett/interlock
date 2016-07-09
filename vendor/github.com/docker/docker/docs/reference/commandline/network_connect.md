@@ -10,18 +10,6 @@ parent = "smn_cli"
 
 # network connect
 
-<<<<<<< HEAD
-    Usage:  docker network connect [OPTIONS] NETWORK CONTAINER
-
-    Connects a container to a network
-
-      --alias=[]         Add network-scoped alias for the container
-      --help             Print usage
-      --ip               IPv4 Address
-      --ip6              IPv6 Address
-      --link=[]          Add a link to another container
-      --link-local-ip=[] IPv4/IPv6 link-local addresses
-=======
 ```markdown
 Usage:  docker network connect [OPTIONS] NETWORK CONTAINER
 
@@ -35,7 +23,6 @@ Options:
       --link value            Add link to another container (default [])
       --link-local-ip value   Add a link-local address for the container (default [])
 ```
->>>>>>> 12a5469... start on swarm services; move to glade
 
 Connects a container to a network. You can connect a container by name
 or by ID. Once connected, the container can communicate with other containers in

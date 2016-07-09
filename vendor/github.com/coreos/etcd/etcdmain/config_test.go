@@ -242,11 +242,7 @@ func TestConfigParsingConflictClusteringFlags(t *testing.T) {
 func TestConfigFileConflictClusteringFlags(t *testing.T) {
 	tests := []struct {
 		InitialCluster string `json:"initial-cluster"`
-<<<<<<< HEAD
-		DnsCluster     string `json:"discovery-srv"`
-=======
 		DNSCluster     string `json:"discovery-srv"`
->>>>>>> 12a5469... start on swarm services; move to glade
 		Durl           string `json:"discovery"`
 	}{
 		{
@@ -254,29 +250,17 @@ func TestConfigFileConflictClusteringFlags(t *testing.T) {
 			Durl:           "http://example.com/abc",
 		},
 		{
-<<<<<<< HEAD
-			DnsCluster: "example.com",
-=======
 			DNSCluster: "example.com",
->>>>>>> 12a5469... start on swarm services; move to glade
 			Durl:       "http://example.com/abc",
 		},
 		{
 			InitialCluster: "0=localhost:8000",
-<<<<<<< HEAD
-			DnsCluster:     "example.com",
-=======
 			DNSCluster:     "example.com",
->>>>>>> 12a5469... start on swarm services; move to glade
 		},
 		{
 			InitialCluster: "0=localhost:8000",
 			Durl:           "http://example.com/abc",
-<<<<<<< HEAD
-			DnsCluster:     "example.com",
-=======
 			DNSCluster:     "example.com",
->>>>>>> 12a5469... start on swarm services; move to glade
 		},
 	}
 

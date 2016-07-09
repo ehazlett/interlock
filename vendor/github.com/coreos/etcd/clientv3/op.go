@@ -14,13 +14,7 @@
 
 package clientv3
 
-<<<<<<< HEAD
-import (
-	pb "github.com/coreos/etcd/etcdserver/etcdserverpb"
-)
-=======
 import pb "github.com/coreos/etcd/etcdserver/etcdserverpb"
->>>>>>> 12a5469... start on swarm services; move to glade
 
 type opType int
 
@@ -51,12 +45,9 @@ type Op struct {
 	// for range, watch
 	rev int64
 
-<<<<<<< HEAD
-=======
 	// for watch, put, delete
 	prevKV bool
 
->>>>>>> 12a5469... start on swarm services; move to glade
 	// progressNotify is for progress updates.
 	progressNotify bool
 
@@ -83,18 +74,11 @@ func (op Op) toRequestOp() *pb.RequestOp {
 		}
 		return &pb.RequestOp{Request: &pb.RequestOp_RequestRange{RequestRange: r}}
 	case tPut:
-<<<<<<< HEAD
-		r := &pb.PutRequest{Key: op.key, Value: op.val, Lease: int64(op.leaseID)}
-		return &pb.RequestOp{Request: &pb.RequestOp_RequestPut{RequestPut: r}}
-	case tDeleteRange:
-		r := &pb.DeleteRangeRequest{Key: op.key, RangeEnd: op.end}
-=======
 		r := &pb.PutRequest{Key: op.key, Value: op.val, Lease: int64(op.leaseID), PrevKv: op.prevKV}
 		return &pb.RequestOp{Request: &pb.RequestOp_RequestPut{RequestPut: r}}
 	case tDeleteRange:
 		r := &pb.DeleteRangeRequest{Key: op.key, RangeEnd: op.end, PrevKv: op.prevKV}
 
->>>>>>> 12a5469... start on swarm services; move to glade
 		return &pb.RequestOp{Request: &pb.RequestOp_RequestDeleteRange{RequestDeleteRange: r}}
 	default:
 		panic("Unknown Op")
@@ -146,11 +130,7 @@ func OpPut(key, val string, opts ...OpOption) Op {
 	case ret.serializable:
 		panic("unexpected serializable in put")
 	case ret.countOnly:
-<<<<<<< HEAD
-		panic("unexpected countOnly in delete")
-=======
 		panic("unexpected countOnly in put")
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 	return ret
 }
@@ -168,11 +148,7 @@ func opWatch(key string, opts ...OpOption) Op {
 	case ret.serializable:
 		panic("unexpected serializable in watch")
 	case ret.countOnly:
-<<<<<<< HEAD
-		panic("unexpected countOnly in delete")
-=======
 		panic("unexpected countOnly in watch")
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 	return ret
 }
@@ -208,15 +184,12 @@ func WithSort(target SortTarget, order SortOrder) OpOption {
 	}
 }
 
-<<<<<<< HEAD
-=======
 // GetPrefixRangeEnd gets the range end of the prefix.
 // 'Get(foo, WithPrefix())' is equal to 'Get(foo, WithRange(GetPrefixRangeEnd(foo))'.
 func GetPrefixRangeEnd(prefix string) string {
 	return string(getPrefix([]byte(prefix)))
 }
 
->>>>>>> 12a5469... start on swarm services; move to glade
 func getPrefix(key []byte) []byte {
 	end := make([]byte, len(key))
 	copy(end, key)
@@ -300,8 +273,6 @@ func WithProgressNotify() OpOption {
 		op.progressNotify = true
 	}
 }
-<<<<<<< HEAD
-=======
 
 // WithPrevKV gets the previous key-value pair before the event happens. If the previous KV is already compacted,
 // nothing will be returned.
@@ -310,4 +281,3 @@ func WithPrevKV() OpOption {
 		op.prevKV = true
 	}
 }
->>>>>>> 12a5469... start on swarm services; move to glade

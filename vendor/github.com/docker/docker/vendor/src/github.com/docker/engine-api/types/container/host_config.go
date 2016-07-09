@@ -308,13 +308,8 @@ type HostConfig struct {
 	UTSMode         UTSMode           // UTS namespace to use for the container
 	UsernsMode      UsernsMode        // The user namespace to use for the container
 	ShmSize         int64             // Total shm memory usage
-<<<<<<< HEAD
-	Sysctls         map[string]string `json:",omitempty"`        // List of Namespaced sysctls used for the container
-	Runtime         string            `json:"runtime,omitempty"` // Runtime to use with this container
-=======
 	Sysctls         map[string]string `json:",omitempty"` // List of Namespaced sysctls used for the container
 	Runtime         string            `json:",omitempty"` // Runtime to use with this container
->>>>>>> 12a5469... start on swarm services; move to glade
 
 	// Applicable to Windows
 	ConsoleSize [2]int    // Initial console size

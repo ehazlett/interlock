@@ -16,11 +16,7 @@ func (cli *Client) NetworkInspect(ctx context.Context, networkID string) (types.
 	return networkResource, err
 }
 
-<<<<<<< HEAD
-// NetworkInspectWithRaw returns the information for a specific network configured in the docker host and it's raw representation.
-=======
 // NetworkInspectWithRaw returns the information for a specific network configured in the docker host and its raw representation.
->>>>>>> 12a5469... start on swarm services; move to glade
 func (cli *Client) NetworkInspectWithRaw(ctx context.Context, networkID string) (types.NetworkResource, []byte, error) {
 	var networkResource types.NetworkResource
 	resp, err := cli.get(ctx, "/networks/"+networkID, nil, nil)

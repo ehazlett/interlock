@@ -243,11 +243,7 @@ func (d *discovery) checkCluster() ([]*client.Node, int, uint64, error) {
 		}
 		return nil, 0, 0, err
 	}
-<<<<<<< HEAD
-	nodes := make([]*client.Node, 0)
-=======
 	var nodes []*client.Node
->>>>>>> 12a5469... start on swarm services; move to glade
 	// append non-config keys to nodes
 	for _, n := range resp.Node.Nodes {
 		if !(path.Base(n.Key) == path.Base(configKey)) {

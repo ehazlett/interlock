@@ -19,11 +19,7 @@ func newDisconnectCommand(dockerCli *client.DockerCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "disconnect [OPTIONS] NETWORK CONTAINER",
-<<<<<<< HEAD
-		Short: "Disconnects container from a network",
-=======
 		Short: "Disconnect a container from a network",
->>>>>>> 12a5469... start on swarm services; move to glade
 		Args:  cli.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.network = args[0]

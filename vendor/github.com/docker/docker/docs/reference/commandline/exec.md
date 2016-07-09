@@ -10,19 +10,6 @@ parent = "smn_cli"
 
 # exec
 
-<<<<<<< HEAD
-    Usage: docker exec [OPTIONS] CONTAINER COMMAND [ARG...]
-
-    Run a command in a running container
-
-      -d, --detach               Detached mode: run command in the background
-      --detach-keys              Specify the escape key sequence used to detach a container
-      --help                     Print usage
-      -i, --interactive          Keep STDIN open even if not attached
-      --privileged               Give extended Linux capabilities to the command
-      -t, --tty                  Allocate a pseudo-TTY
-      -u, --user=                Username or UID (format: <name|uid>[:<group|gid>])
-=======
 ```markdown
 Usage:  docker exec [OPTIONS] CONTAINER COMMAND [ARG...]
 
@@ -36,7 +23,6 @@ Run a command in a running container
   -t, --tty            Allocate a pseudo-TTY
   -u, --user           Username or UID (format: <name|uid>[:<group|gid>])
 ```
->>>>>>> 12a5469... start on swarm services; move to glade
 
 The `docker exec` command runs a new command in a running container.
 

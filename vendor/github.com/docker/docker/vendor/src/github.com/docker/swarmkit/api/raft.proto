@@ -58,10 +58,6 @@ message JoinRequest {
 }
 
 message JoinResponse {
-<<<<<<< HEAD
-	uint64 raft_id = 1 [(gogoproto.customname) = "RaftID"];
-	repeated RaftMember members = 2;
-=======
 	// RaftID is the ID assigned to the new member.
 	uint64 raft_id = 1 [(gogoproto.customname) = "RaftID"];
 
@@ -71,7 +67,6 @@ message JoinResponse {
 	// RemovedMembers is a list of members that have been removed from
 	// the cluster, so the new node can avoid communicating with them.
 	repeated uint64 removed_members = 3;
->>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 message LeaveRequest {

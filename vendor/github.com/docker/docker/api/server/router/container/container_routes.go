@@ -132,17 +132,10 @@ func (s *containerRouter) postContainersStart(ctx context.Context, w http.Respon
 	// including r.TransferEncoding
 	// allow a nil body for backwards compatibility
 
-<<<<<<< HEAD
-	var hostConfig *container.HostConfig
-	// A non-nil json object is at least 7 characters.
-	if r.ContentLength > 7 || r.ContentLength == -1 {
-		version := httputils.VersionFromContext(ctx)
-=======
 	version := httputils.VersionFromContext(ctx)
 	var hostConfig *container.HostConfig
 	// A non-nil json object is at least 7 characters.
 	if r.ContentLength > 7 || r.ContentLength == -1 {
->>>>>>> 12a5469... start on swarm services; move to glade
 		if versions.GreaterThanOrEqualTo(version, "1.24") {
 			return validationError{fmt.Errorf("starting container with HostConfig was deprecated since v1.10 and removed in v1.12")}
 		}
@@ -158,12 +151,8 @@ func (s *containerRouter) postContainersStart(ctx context.Context, w http.Respon
 		hostConfig = c
 	}
 
-<<<<<<< HEAD
-	if err := s.backend.ContainerStart(vars["name"], hostConfig); err != nil {
-=======
 	validateHostname := versions.GreaterThanOrEqualTo(version, "1.24")
 	if err := s.backend.ContainerStart(vars["name"], hostConfig, validateHostname); err != nil {
->>>>>>> 12a5469... start on swarm services; move to glade
 		return err
 	}
 	w.WriteHeader(http.StatusNoContent)
@@ -323,10 +312,7 @@ func (s *containerRouter) postContainerUpdate(ctx context.Context, w http.Respon
 		return err
 	}
 
-<<<<<<< HEAD
-=======
 	version := httputils.VersionFromContext(ctx)
->>>>>>> 12a5469... start on swarm services; move to glade
 	var updateConfig container.UpdateConfig
 
 	decoder := json.NewDecoder(r.Body)
@@ -340,12 +326,8 @@ func (s *containerRouter) postContainerUpdate(ctx context.Context, w http.Respon
 	}
 
 	name := vars["name"]
-<<<<<<< HEAD
-	warnings, err := s.backend.ContainerUpdate(name, hostConfig)
-=======
 	validateHostname := versions.GreaterThanOrEqualTo(version, "1.24")
 	warnings, err := s.backend.ContainerUpdate(name, hostConfig, validateHostname)
->>>>>>> 12a5469... start on swarm services; move to glade
 	if err != nil {
 		return err
 	}
@@ -372,21 +354,14 @@ func (s *containerRouter) postContainersCreate(ctx context.Context, w http.Respo
 	version := httputils.VersionFromContext(ctx)
 	adjustCPUShares := versions.LessThan(version, "1.19")
 
-<<<<<<< HEAD
-=======
 	validateHostname := versions.GreaterThanOrEqualTo(version, "1.24")
->>>>>>> 12a5469... start on swarm services; move to glade
 	ccr, err := s.backend.ContainerCreate(types.ContainerCreateConfig{
 		Name:             name,
 		Config:           config,
 		HostConfig:       hostConfig,
 		NetworkingConfig: networkingConfig,
 		AdjustCPUShares:  adjustCPUShares,
-<<<<<<< HEAD
-	})
-=======
 	}, validateHostname)
->>>>>>> 12a5469... start on swarm services; move to glade
 	if err != nil {
 		return err
 	}

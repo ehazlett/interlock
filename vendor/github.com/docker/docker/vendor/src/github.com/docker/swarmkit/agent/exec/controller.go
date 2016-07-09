@@ -55,11 +55,7 @@ type ContainerStatuser interface {
 // correct status depending on the tasks current state according to the result.
 //
 // Unlike Do, if an error is returned, the status should still be reported. The
-<<<<<<< HEAD
-// error merely reports the
-=======
 // error merely reports the failure at getting the controller.
->>>>>>> 12a5469... start on swarm services; move to glade
 func Resolve(ctx context.Context, task *api.Task, executor Executor) (Controller, *api.TaskStatus, error) {
 	status := task.Status.Copy()
 

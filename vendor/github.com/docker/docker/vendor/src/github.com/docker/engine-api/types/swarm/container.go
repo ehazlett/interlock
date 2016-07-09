@@ -30,11 +30,7 @@ type Mount struct {
 	Type     MountType `json:",omitempty"`
 	Source   string    `json:",omitempty"`
 	Target   string    `json:",omitempty"`
-<<<<<<< HEAD
-	Writable bool      `json:",omitempty"`
-=======
 	ReadOnly bool      `json:",omitempty"`
->>>>>>> 12a5469... start on swarm services; move to glade
 
 	BindOptions   *BindOptions   `json:",omitempty"`
 	VolumeOptions *VolumeOptions `json:",omitempty"`
@@ -58,22 +54,14 @@ const (
 	MountPropagationSlave MountPropagation = "slave"
 )
 
-<<<<<<< HEAD
-// BindOptions define options specific to mounts of type "bind".
-=======
 // BindOptions defines options specific to mounts of type "bind".
->>>>>>> 12a5469... start on swarm services; move to glade
 type BindOptions struct {
 	Propagation MountPropagation `json:",omitempty"`
 }
 
 // VolumeOptions represents the options for a mount of type volume.
 type VolumeOptions struct {
-<<<<<<< HEAD
-	Populate     bool              `json:",omitempty"`
-=======
 	NoCopy       bool              `json:",omitempty"`
->>>>>>> 12a5469... start on swarm services; move to glade
 	Labels       map[string]string `json:",omitempty"`
 	DriverConfig *Driver           `json:",omitempty"`
 }

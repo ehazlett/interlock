@@ -252,11 +252,7 @@ func LookupWithCapability(name, capability string) (Plugin, error) {
 
 // StateChanged updates daemon inter...
 func (pm *Manager) StateChanged(id string, e libcontainerd.StateInfo) error {
-<<<<<<< HEAD
-	logrus.Debugf("plugin statechanged %s %#v", id, e)
-=======
 	logrus.Debugf("plugin state changed %s %#v", id, e)
->>>>>>> 12a5469... start on swarm services; move to glade
 
 	return nil
 }

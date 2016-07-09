@@ -379,10 +379,7 @@ func TestV3DeleteRange(t *testing.T) {
 		keySet []string
 		begin  string
 		end    string
-<<<<<<< HEAD
-=======
 		prevKV bool
->>>>>>> 12a5469... start on swarm services; move to glade
 
 		wantSet [][]byte
 		deleted int64
@@ -390,61 +387,36 @@ func TestV3DeleteRange(t *testing.T) {
 		// delete middle
 		{
 			[]string{"foo", "foo/abc", "fop"},
-<<<<<<< HEAD
-			"foo/", "fop",
-=======
 			"foo/", "fop", false,
->>>>>>> 12a5469... start on swarm services; move to glade
 			[][]byte{[]byte("foo"), []byte("fop")}, 1,
 		},
 		// no delete
 		{
 			[]string{"foo", "foo/abc", "fop"},
-<<<<<<< HEAD
-			"foo/", "foo/",
-=======
 			"foo/", "foo/", false,
->>>>>>> 12a5469... start on swarm services; move to glade
 			[][]byte{[]byte("foo"), []byte("foo/abc"), []byte("fop")}, 0,
 		},
 		// delete first
 		{
 			[]string{"foo", "foo/abc", "fop"},
-<<<<<<< HEAD
-			"fo", "fop",
-=======
 			"fo", "fop", false,
->>>>>>> 12a5469... start on swarm services; move to glade
 			[][]byte{[]byte("fop")}, 2,
 		},
 		// delete tail
 		{
 			[]string{"foo", "foo/abc", "fop"},
-<<<<<<< HEAD
-			"foo/", "fos",
-=======
 			"foo/", "fos", false,
->>>>>>> 12a5469... start on swarm services; move to glade
 			[][]byte{[]byte("foo")}, 2,
 		},
 		// delete exact
 		{
 			[]string{"foo", "foo/abc", "fop"},
-<<<<<<< HEAD
-			"foo/abc", "",
-=======
 			"foo/abc", "", false,
->>>>>>> 12a5469... start on swarm services; move to glade
 			[][]byte{[]byte("foo"), []byte("fop")}, 1,
 		},
 		// delete none, [x,x)
 		{
 			[]string{"foo"},
-<<<<<<< HEAD
-			"foo", "foo",
-			[][]byte{[]byte("foo")}, 0,
-		},
-=======
 			"foo", "foo", false,
 			[][]byte{[]byte("foo")}, 0,
 		},
@@ -454,7 +426,6 @@ func TestV3DeleteRange(t *testing.T) {
 			"foo/", "fop", true,
 			[][]byte{[]byte("foo"), []byte("fop")}, 1,
 		},
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	for i, tt := range tests {
@@ -472,13 +443,9 @@ func TestV3DeleteRange(t *testing.T) {
 
 		dreq := &pb.DeleteRangeRequest{
 			Key:      []byte(tt.begin),
-<<<<<<< HEAD
-			RangeEnd: []byte(tt.end)}
-=======
 			RangeEnd: []byte(tt.end),
 			PrevKv:   tt.prevKV,
 		}
->>>>>>> 12a5469... start on swarm services; move to glade
 		dresp, err := kvc.DeleteRange(context.TODO(), dreq)
 		if err != nil {
 			t.Fatalf("couldn't delete range on test %d (%v)", i, err)
@@ -486,14 +453,11 @@ func TestV3DeleteRange(t *testing.T) {
 		if tt.deleted != dresp.Deleted {
 			t.Errorf("expected %d on test %v, got %d", tt.deleted, i, dresp.Deleted)
 		}
-<<<<<<< HEAD
-=======
 		if tt.prevKV {
 			if len(dresp.PrevKvs) != int(dresp.Deleted) {
 				t.Errorf("preserve %d keys, want %d", len(dresp.PrevKvs), dresp.Deleted)
 			}
 		}
->>>>>>> 12a5469... start on swarm services; move to glade
 
 		rreq := &pb.RangeRequest{Key: []byte{0x0}, RangeEnd: []byte{0xff}}
 		rresp, err := kvc.Range(context.TODO(), rreq)
@@ -512,10 +476,6 @@ func TestV3DeleteRange(t *testing.T) {
 		if !reflect.DeepEqual(tt.wantSet, keys) {
 			t.Errorf("expected %v on test %v, got %v", tt.wantSet, i, keys)
 		}
-<<<<<<< HEAD
-
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 		// can't defer because tcp ports will be in use
 		clus.Terminate(t)
 	}

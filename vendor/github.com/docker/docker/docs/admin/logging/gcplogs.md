@@ -34,11 +34,7 @@ Otherwise, the user must specify which project to log to using the `--gcp-projec
 log option and Docker will attempt to obtain credentials from the
 <a href="https://developers.google.com/identity/protocols/application-default-credentials" target="_blank">Google Application Default Credential</a>.
 The `--gcp-project` takes precedence over information discovered from the metadata server
-<<<<<<< HEAD
-so a Docker daemon running in a Google Cloud Project can be overriden to log to a different
-=======
 so a Docker daemon running in a Google Cloud Project can be overridden to log to a different
->>>>>>> 12a5469... start on swarm services; move to glade
 Google Cloud Project using `--gcp-project`.
 
 ## gcplogs options

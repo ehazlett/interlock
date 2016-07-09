@@ -13,10 +13,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/docker/docker/pkg/term"
-<<<<<<< HEAD
-=======
 	"github.com/docker/docker/reference"
->>>>>>> 12a5469... start on swarm services; move to glade
 	"github.com/docker/docker/registry"
 	"github.com/docker/engine-api/types"
 	registrytypes "github.com/docker/engine-api/types/registry"
@@ -46,11 +43,7 @@ func EncodeAuthToBase64(authConfig types.AuthConfig) (string, error) {
 	return base64.URLEncoding.EncodeToString(buf), nil
 }
 
-<<<<<<< HEAD
-// RegistryAuthenticationPrivilegedFunc return a RequestPrivilegeFunc from the specified registry index info
-=======
 // RegistryAuthenticationPrivilegedFunc returns a RequestPrivilegeFunc from the specified registry index info
->>>>>>> 12a5469... start on swarm services; move to glade
 // for the given command.
 func (cli *DockerCli) RegistryAuthenticationPrivilegedFunc(index *registrytypes.IndexInfo, cmdName string) types.RequestPrivilegeFunc {
 	return func() (string, error) {
@@ -111,11 +104,7 @@ func (cli *DockerCli) ConfigureAuth(flUser, flPassword, serverAddress string, is
 	// will hit this if you attempt docker login from mintty where stdin
 	// is a pipe, not a character based console.
 	if flPassword == "" && !cli.isTerminalIn {
-<<<<<<< HEAD
-		return authconfig, fmt.Errorf("Error: Cannot perform an interactive logon from a non TTY device")
-=======
 		return authconfig, fmt.Errorf("Error: Cannot perform an interactive login from a non TTY device")
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	authconfig.Username = strings.TrimSpace(authconfig.Username)
@@ -160,8 +149,6 @@ func (cli *DockerCli) ConfigureAuth(flUser, flPassword, serverAddress string, is
 	return authconfig, nil
 }
 
-<<<<<<< HEAD
-=======
 // resolveAuthConfigFromImage retrieves that AuthConfig using the image string
 func (cli *DockerCli) resolveAuthConfigFromImage(ctx context.Context, image string) (types.AuthConfig, error) {
 	registryRef, err := reference.ParseNamed(image)
@@ -190,7 +177,6 @@ func (cli *DockerCli) RetrieveAuthTokenFromImage(ctx context.Context, image stri
 	return encodedAuth, nil
 }
 
->>>>>>> 12a5469... start on swarm services; move to glade
 func readInput(in io.Reader, out io.Writer) string {
 	reader := bufio.NewReader(in)
 	line, _, err := reader.ReadLine()

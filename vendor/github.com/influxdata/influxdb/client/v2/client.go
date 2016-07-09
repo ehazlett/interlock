@@ -1,12 +1,4 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
 package client // import "github.com/influxdata/influxdb/client/v2"
-=======
-package client
->>>>>>> 71ddfc9... add support for influxdb backend for beacon
-=======
-package client // import "github.com/influxdata/influxdb/client/v2"
->>>>>>> 12a5469... start on swarm services; move to glade
 
 import (
 	"bytes"

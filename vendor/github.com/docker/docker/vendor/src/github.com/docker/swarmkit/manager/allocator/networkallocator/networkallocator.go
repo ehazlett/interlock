@@ -8,25 +8,18 @@ import (
 	"github.com/docker/libnetwork/drivers/overlay/ovmanager"
 	"github.com/docker/libnetwork/drvregistry"
 	"github.com/docker/libnetwork/ipamapi"
-<<<<<<< HEAD
-=======
 	builtinIpam "github.com/docker/libnetwork/ipams/builtin"
 	nullIpam "github.com/docker/libnetwork/ipams/null"
->>>>>>> 12a5469... start on swarm services; move to glade
 	"github.com/docker/swarmkit/api"
 	"github.com/docker/swarmkit/log"
 	"golang.org/x/net/context"
 )
 
 const (
-<<<<<<< HEAD
-	defaultDriver = "overlay"
-=======
 	// DefaultDriver defines the name of the driver to be used by
 	// default if a network without any driver name specified is
 	// created.
 	DefaultDriver = "overlay"
->>>>>>> 12a5469... start on swarm services; move to glade
 )
 
 var (
@@ -81,12 +74,6 @@ func New() (*NetworkAllocator, error) {
 	}
 
 	// Add the manager component of overlay driver to the registry.
-<<<<<<< HEAD
-	if err := reg.AddDriver(defaultDriver, defaultDriverInitFunc, nil); err != nil {
-		return nil, err
-	}
-
-=======
 	if err := reg.AddDriver(DefaultDriver, defaultDriverInitFunc, nil); err != nil {
 		return nil, err
 	}
@@ -100,7 +87,6 @@ func New() (*NetworkAllocator, error) {
 		}
 	}
 
->>>>>>> 12a5469... start on swarm services; move to glade
 	pa, err := newPortAllocator()
 	if err != nil {
 		return nil, err
@@ -124,10 +110,7 @@ func (na *NetworkAllocator) Allocate(n *api.Network) error {
 	}
 
 	if err := na.allocateDriverState(n); err != nil {
-<<<<<<< HEAD
-=======
 		na.freePools(n, pools)
->>>>>>> 12a5469... start on swarm services; move to glade
 		return fmt.Errorf("failed while allocating driver state for network %s: %v", n.ID, err)
 	}
 
@@ -178,13 +161,9 @@ func (na *NetworkAllocator) ServiceAllocate(s *api.Service) (err error) {
 	}
 
 	if s.Endpoint == nil {
-<<<<<<< HEAD
-		s.Endpoint = &api.Endpoint{}
-=======
 		s.Endpoint = &api.Endpoint{
 			Spec: s.Spec.Endpoint.Copy(),
 		}
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	// First allocate VIPs for all the pre-populated endpoint attachments
@@ -558,11 +537,7 @@ func (na *NetworkAllocator) allocateDriverState(n *api.Network) error {
 
 // Resolve network driver
 func (na *NetworkAllocator) resolveDriver(n *api.Network) (driverapi.Driver, string, error) {
-<<<<<<< HEAD
-	dName := defaultDriver
-=======
 	dName := DefaultDriver
->>>>>>> 12a5469... start on swarm services; move to glade
 	if n.Spec.DriverConfig != nil && n.Spec.DriverConfig.Name != "" {
 		dName = n.Spec.DriverConfig.Name
 	}

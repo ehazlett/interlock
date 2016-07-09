@@ -1,10 +1,7 @@
 package libnetwork
 
 import (
-<<<<<<< HEAD
-=======
 	"fmt"
->>>>>>> 12a5469... start on swarm services; move to glade
 	"net"
 	"sync"
 )
@@ -16,8 +13,6 @@ var (
 	fwMarkCtrMu sync.Mutex
 )
 
-<<<<<<< HEAD
-=======
 type portConfigs []*PortConfig
 
 func (p portConfigs) String() string {
@@ -39,7 +34,6 @@ type serviceKey struct {
 	ports string
 }
 
->>>>>>> 12a5469... start on swarm services; move to glade
 type service struct {
 	name string // Service Name
 	id   string // Service ID
@@ -49,11 +43,7 @@ type service struct {
 	loadBalancers map[string]*loadBalancer
 
 	// List of ingress ports exposed by the service
-<<<<<<< HEAD
-	ingressPorts []*PortConfig
-=======
 	ingressPorts portConfigs
->>>>>>> 12a5469... start on swarm services; move to glade
 
 	sync.Mutex
 }

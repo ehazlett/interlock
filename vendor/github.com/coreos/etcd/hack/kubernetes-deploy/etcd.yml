@@ -23,11 +23,7 @@ metadata:
 spec:
   containers:
   - command:
-<<<<<<< HEAD
-    - /etcd
-=======
     - /usr/local/bin/etcd
->>>>>>> 12a5469... start on swarm services; move to glade
     - --name
     - etcd0
     - --initial-advertise-peer-urls
@@ -86,11 +82,7 @@ metadata:
 spec:
   containers:
   - command:
-<<<<<<< HEAD
-    - /etcd
-=======
     - /usr/local/bin/etcd
->>>>>>> 12a5469... start on swarm services; move to glade
     - --name
     - etcd1
     - --initial-advertise-peer-urls
@@ -149,11 +141,7 @@ metadata:
 spec:
   containers:
   - command:
-<<<<<<< HEAD
-    - /etcd
-=======
     - /usr/local/bin/etcd
->>>>>>> 12a5469... start on swarm services; move to glade
     - --name
     - etcd2
     - --initial-advertise-peer-urls

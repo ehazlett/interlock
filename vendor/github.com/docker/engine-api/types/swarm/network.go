@@ -67,21 +67,13 @@ type NetworkSpec struct {
 	IPAMOptions         *IPAMOptions `json:",omitempty"`
 }
 
-<<<<<<< HEAD
-// NetworkAttachmentConfig represents the configuration of a network attachement.
-=======
 // NetworkAttachmentConfig represents the configuration of a network attachment.
->>>>>>> 12a5469... start on swarm services; move to glade
 type NetworkAttachmentConfig struct {
 	Target  string   `json:",omitempty"`
 	Aliases []string `json:",omitempty"`
 }
 
-<<<<<<< HEAD
-// NetworkAttachment represents a network attchement.
-=======
 // NetworkAttachment represents a network attachment.
->>>>>>> 12a5469... start on swarm services; move to glade
 type NetworkAttachment struct {
 	Network   Network  `json:",omitempty"`
 	Addresses []string `json:",omitempty"`

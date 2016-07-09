@@ -180,9 +180,6 @@ func (c *aclCache) lookupACL(id, authDC string) (acl.ACL, error) {
 	if strings.Contains(err.Error(), aclNotFound) {
 		return nil, errors.New(aclNotFound)
 	} else {
-<<<<<<< HEAD
-		c.logger.Printf("[ERR] consul.acl: Failed to get policy for '%s': %v", id, err)
-=======
 		s := id
 		// Print last 3 chars of the token if long enough, otherwise completly hide it
 		if len(s) > 3 {
@@ -191,7 +188,6 @@ func (c *aclCache) lookupACL(id, authDC string) (acl.ACL, error) {
 			s = redactedToken
 		}
 		c.logger.Printf("[ERR] consul.acl: Failed to get policy for %s: %v", s, err)
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	// Unable to refresh, apply the down policy

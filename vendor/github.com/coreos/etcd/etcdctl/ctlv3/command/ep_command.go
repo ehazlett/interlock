@@ -28,13 +28,8 @@ import (
 // NewEndpointCommand returns the cobra command for "endpoint".
 func NewEndpointCommand() *cobra.Command {
 	ec := &cobra.Command{
-<<<<<<< HEAD
-		Use:   "endpoint",
-		Short: "endpoint is used to check endpoints.",
-=======
 		Use:   "endpoint <subcommand>",
 		Short: "Endpoint related commands",
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	ec.AddCommand(newEpHealthCommand())
@@ -46,11 +41,7 @@ func NewEndpointCommand() *cobra.Command {
 func newEpHealthCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "health",
-<<<<<<< HEAD
-		Short: "health checks the healthiness of endpoints specified in `--endpoints` flag",
-=======
 		Short: "Checks the healthiness of endpoints specified in `--endpoints` flag",
->>>>>>> 12a5469... start on swarm services; move to glade
 		Run:   epHealthCommandFunc,
 	}
 	return cmd
@@ -59,11 +50,7 @@ func newEpHealthCommand() *cobra.Command {
 func newEpStatusCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "status",
-<<<<<<< HEAD
-		Short: "status prints out the status of endpoints specified in `--endpoints` flag",
-=======
 		Short: "Prints out the status of endpoints specified in `--endpoints` flag",
->>>>>>> 12a5469... start on swarm services; move to glade
 		Long: `When --write-out is set to simple, this command prints out comma-separated status lists for each endpoint.
 The items in the lists are endpoint, ID, version, db size, is leader, raft term, raft index.
 `,

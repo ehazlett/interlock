@@ -11,13 +11,6 @@ parent = "smn_cli"
 
 # plugin enable (experimental)
 
-<<<<<<< HEAD
-    Usage: docker plugin enable PLUGIN
-
-    Enable a plugin
-
-      --help             Print usage
-=======
 ```markdown
 Usage:  docker plugin enable PLUGIN
 
@@ -26,7 +19,6 @@ Enable a plugin
 Options:
       --help   Print usage
 ```
->>>>>>> 12a5469... start on swarm services; move to glade
 
 Enables a plugin. The plugin must be installed before it can be enabled,
 see [`docker plugin install`](plugin_install.md).

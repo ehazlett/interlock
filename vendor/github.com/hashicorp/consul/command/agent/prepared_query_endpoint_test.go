@@ -286,13 +286,10 @@ func TestPreparedQuery_Execute(t *testing.T) {
 					Datacenter: "dc1",
 					Node:       "my-node",
 				},
-<<<<<<< HEAD
-=======
 				Agent: structs.QuerySource{
 					Datacenter: srv.agent.config.Datacenter,
 					Node:       srv.agent.config.NodeName,
 				},
->>>>>>> 12a5469... start on swarm services; move to glade
 				QueryOptions: structs.QueryOptions{
 					Token:             "my-token",
 					RequireConsistent: true,
@@ -330,8 +327,6 @@ func TestPreparedQuery_Execute(t *testing.T) {
 		}
 	})
 
-<<<<<<< HEAD
-=======
 	// Ensure the proper params are set when no special args are passed
 	httpTest(t, func(srv *HTTPServer) {
 		m := MockPreparedQuery{}
@@ -364,7 +359,6 @@ func TestPreparedQuery_Execute(t *testing.T) {
 		}
 	})
 
->>>>>>> 12a5469... start on swarm services; move to glade
 	httpTest(t, func(srv *HTTPServer) {
 		body := bytes.NewBuffer(nil)
 		req, err := http.NewRequest("GET", "/v1/query/not-there/execute", body)
@@ -399,13 +393,10 @@ func TestPreparedQuery_Explain(t *testing.T) {
 					Datacenter: "dc1",
 					Node:       "my-node",
 				},
-<<<<<<< HEAD
-=======
 				Agent: structs.QuerySource{
 					Datacenter: srv.agent.config.Datacenter,
 					Node:       srv.agent.config.NodeName,
 				},
->>>>>>> 12a5469... start on swarm services; move to glade
 				QueryOptions: structs.QueryOptions{
 					Token:             "my-token",
 					RequireConsistent: true,

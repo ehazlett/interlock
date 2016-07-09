@@ -10,14 +10,6 @@ parent = "smn_cli"
 
 # save
 
-<<<<<<< HEAD
-    Usage: docker save [OPTIONS] IMAGE [IMAGE...]
-
-    Save one or more images to a tar archive (streamed to STDOUT by default)
-
-      --help             Print usage
-      -o, --output=""    Write to a file, instead of STDOUT
-=======
 ```markdown
 Usage:  docker save [OPTIONS] IMAGE [IMAGE...]
 
@@ -27,7 +19,6 @@ Options:
       --help            Print usage
   -o, --output string   Write to a file, instead of STDOUT
 ```
->>>>>>> 12a5469... start on swarm services; move to glade
 
 Produces a tarred repository to the standard output stream.
 Contains all parent layers, and all tags + versions, or specified `repo:tag`, for

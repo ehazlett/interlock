@@ -10,16 +10,6 @@ parent = "smn_cli"
 
 # login
 
-<<<<<<< HEAD
-    Usage: docker login [OPTIONS] [SERVER]
-
-    Log in to a Docker registry server, if no server is
-	specified "https://index.docker.io/v1/" is the default.
-
-      --help               Print usage
-      -p, --password=""    Password
-      -u, --username=""    Username
-=======
 ```markdown
 Usage:  docker login [OPTIONS] [SERVER]
 
@@ -31,7 +21,6 @@ Options:
   -p, --password string   Password
   -u, --username string   Username
 ```
->>>>>>> 12a5469... start on swarm services; move to glade
 
 If you want to login to a self-hosted registry you can specify this by
 adding the server name.

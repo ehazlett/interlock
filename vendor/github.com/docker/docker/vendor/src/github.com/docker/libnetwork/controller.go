@@ -144,11 +144,7 @@ type controller struct {
 	unWatchCh              chan *endpoint
 	svcRecords             map[string]svcInfo
 	nmap                   map[string]*netWatch
-<<<<<<< HEAD
-	serviceBindings        map[string]*service
-=======
 	serviceBindings        map[serviceKey]*service
->>>>>>> 12a5469... start on swarm services; move to glade
 	defOsSbox              osl.Sandbox
 	ingressSandbox         *sandbox
 	sboxOnce               sync.Once
@@ -171,11 +167,7 @@ func New(cfgOptions ...config.Option) (NetworkController, error) {
 		cfg:             config.ParseConfigOptions(cfgOptions...),
 		sandboxes:       sandboxTable{},
 		svcRecords:      make(map[string]svcInfo),
-<<<<<<< HEAD
-		serviceBindings: make(map[string]*service),
-=======
 		serviceBindings: make(map[serviceKey]*service),
->>>>>>> 12a5469... start on swarm services; move to glade
 		agentInitDone:   make(chan struct{}),
 	}
 
@@ -201,14 +193,11 @@ func New(cfgOptions ...config.Option) (NetworkController, error) {
 			return nil, err
 		}
 	}
-<<<<<<< HEAD
-=======
 
 	if err = initIPAMDrivers(drvRegistry, nil, c.getStore(datastore.GlobalScope)); err != nil {
 		return nil, err
 	}
 
->>>>>>> 12a5469... start on swarm services; move to glade
 	c.drvRegistry = drvRegistry
 
 	if c.cfg != nil && c.cfg.Cluster.Watcher != nil {

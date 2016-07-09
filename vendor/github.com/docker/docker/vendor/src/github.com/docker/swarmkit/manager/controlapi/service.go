@@ -7,13 +7,9 @@ import (
 	"github.com/docker/engine-api/types/reference"
 	"github.com/docker/swarmkit/api"
 	"github.com/docker/swarmkit/identity"
-<<<<<<< HEAD
-	"github.com/docker/swarmkit/manager/state/store"
-=======
 	"github.com/docker/swarmkit/manager/scheduler"
 	"github.com/docker/swarmkit/manager/state/store"
 	"github.com/docker/swarmkit/protobuf/ptypes"
->>>>>>> 12a5469... start on swarm services; move to glade
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -21,10 +17,7 @@ import (
 
 var (
 	errNetworkUpdateNotSupported = errors.New("changing network in service is not supported")
-<<<<<<< HEAD
-=======
 	errModeChangeNotAllowed      = errors.New("service mode change is not allowed")
->>>>>>> 12a5469... start on swarm services; move to glade
 )
 
 func validateResources(r *api.Resources) error {
@@ -55,18 +48,6 @@ func validateResourceRequirements(r *api.ResourceRequirements) error {
 	return nil
 }
 
-<<<<<<< HEAD
-func validateServiceSpecTemplate(spec *api.ServiceSpec) error {
-	if err := validateResourceRequirements(spec.Task.Resources); err != nil {
-		return err
-	}
-
-	if spec.Task.GetRuntime() == nil {
-		return grpc.Errorf(codes.InvalidArgument, "TaskSpec: missing runtime")
-	}
-
-	_, ok := spec.Task.GetRuntime().(*api.TaskSpec_Container)
-=======
 func validateRestartPolicy(rp *api.RestartPolicy) error {
 	if rp == nil {
 		return nil
@@ -138,16 +119,11 @@ func validateTask(taskSpec api.TaskSpec) error {
 	}
 
 	_, ok := taskSpec.GetRuntime().(*api.TaskSpec_Container)
->>>>>>> 12a5469... start on swarm services; move to glade
 	if !ok {
 		return grpc.Errorf(codes.Unimplemented, "RuntimeSpec: unimplemented runtime in service spec")
 	}
 
-<<<<<<< HEAD
-	container := spec.Task.GetContainer()
-=======
 	container := taskSpec.GetContainer()
->>>>>>> 12a5469... start on swarm services; move to glade
 	if container == nil {
 		return grpc.Errorf(codes.InvalidArgument, "ContainerSpec: missing in service spec")
 	}
@@ -187,9 +163,6 @@ func validateServiceSpec(spec *api.ServiceSpec) error {
 	if err := validateAnnotations(spec.Annotations); err != nil {
 		return err
 	}
-<<<<<<< HEAD
-	if err := validateServiceSpecTemplate(spec); err != nil {
-=======
 	if err := validateTask(spec.Task); err != nil {
 		return err
 	}
@@ -197,7 +170,6 @@ func validateServiceSpec(spec *api.ServiceSpec) error {
 		return err
 	}
 	if err := validateEndpointSpec(spec.Endpoint); err != nil {
->>>>>>> 12a5469... start on swarm services; move to glade
 		return err
 	}
 	return nil
@@ -277,15 +249,12 @@ func (s *Server) UpdateService(ctx context.Context, request *api.UpdateServiceRe
 			return errNetworkUpdateNotSupported
 		}
 
-<<<<<<< HEAD
-=======
 		// orchestrator is designed to be stateless, so it should not deal
 		// with service mode change (comparing current config with previous config).
 		// proper way to change service mode is to delete and re-add.
 		if request.Spec != nil && reflect.TypeOf(service.Spec.Mode) != reflect.TypeOf(request.Spec.Mode) {
 			return errModeChangeNotAllowed
 		}
->>>>>>> 12a5469... start on swarm services; move to glade
 		service.Meta.Version = *request.ServiceVersion
 		service.Spec = *request.Spec.Copy()
 		return store.UpdateService(tx, service)

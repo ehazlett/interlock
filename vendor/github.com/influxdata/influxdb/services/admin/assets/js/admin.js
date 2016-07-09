@@ -353,11 +353,7 @@ var pretty = function(val) {
 }
 
 var getClientVersion = function () {
-<<<<<<< HEAD
-    var query = $.get(window.location.origin + "/");
-=======
     var query = $.get(window.location.origin + window.location.pathname);
->>>>>>> 12a5469... start on swarm services; move to glade
 
     query.fail(handleRequestError);
 

@@ -5,10 +5,7 @@ import (
 
 	"github.com/docker/docker/api/client"
 	"github.com/docker/docker/api/client/idresolver"
-<<<<<<< HEAD
-=======
 	"github.com/docker/docker/api/client/node"
->>>>>>> 12a5469... start on swarm services; move to glade
 	"github.com/docker/docker/api/client/task"
 	"github.com/docker/docker/cli"
 	"github.com/docker/docker/opts"
@@ -55,11 +52,6 @@ func runTasks(dockerCli *client.DockerCli, opts tasksOptions) error {
 
 	filter := opts.filter.Value()
 	filter.Add("service", service.ID)
-<<<<<<< HEAD
-	if !opts.all && !filter.Include("desired_state") {
-		filter.Add("desired_state", string(swarm.TaskStateRunning))
-		filter.Add("desired_state", string(swarm.TaskStateAccepted))
-=======
 	if !opts.all && !filter.Include("desired-state") {
 		filter.Add("desired-state", string(swarm.TaskStateRunning))
 		filter.Add("desired-state", string(swarm.TaskStateAccepted))
@@ -75,7 +67,6 @@ func runTasks(dockerCli *client.DockerCli, opts tasksOptions) error {
 			filter.Del("node", nodeFilter)
 			filter.Add("node", nodeReference)
 		}
->>>>>>> 12a5469... start on swarm services; move to glade
 	}
 
 	tasks, err := client.TaskList(ctx, types.TaskListOptions{Filter: filter})

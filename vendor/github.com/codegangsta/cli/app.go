@@ -8,14 +8,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"sort"
-<<<<<<< HEAD
-<<<<<<< HEAD
 	"strings"
-=======
->>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
-=======
-	"strings"
->>>>>>> 12a5469... start on swarm services; move to glade
 	"time"
 )
 
@@ -147,19 +140,6 @@ func (a *App) Setup() {
 	}
 	a.Commands = newCmds
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-	a.categories = CommandCategories{}
-	for _, command := range a.Commands {
-		a.categories = a.categories.AddCommand(command.Category, command)
-	}
-	sort.Sort(a.categories)
-
-	// append help to commands
->>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 	if a.Command(helpCommand.Name) == nil && !a.HideHelp {
 		a.Commands = append(a.Commands, helpCommand)
 		if (HelpFlag != BoolFlag{}) {
@@ -174,18 +154,6 @@ func (a *App) Setup() {
 	if !a.HideVersion {
 		a.appendFlag(VersionFlag)
 	}
-
-	a.categories = CommandCategories{}
-	for _, command := range a.Commands {
-		a.categories = a.categories.AddCommand(command.Category, command)
-	}
-	sort.Sort(a.categories)
-}
-
-// Run is the entry point to the cli app. Parses the arguments slice and routes
-// to the proper flag/args combination
-func (a *App) Run(arguments []string) (err error) {
-	a.Setup()
 
 	a.categories = CommandCategories{}
 	for _, command := range a.Commands {
@@ -495,10 +463,6 @@ func (a Author) String() string {
 func HandleAction(action interface{}, context *Context) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 			// Try to detect a known reflection error from *this scope*, rather than
 			// swallowing all panics that may happen when calling an Action func.
 			s := fmt.Sprintf("%v", r)
@@ -506,16 +470,6 @@ func HandleAction(action interface{}, context *Context) (err error) {
 				err = NewExitError(fmt.Sprintf("ERROR unknown Action error: %v.  See %s", r, appActionDeprecationURL), 2)
 			} else {
 				panic(r)
-<<<<<<< HEAD
-=======
-			switch r.(type) {
-			case error:
-				err = r.(error)
-			default:
-				err = NewExitError(fmt.Sprintf("ERROR unknown Action error: %v. See %s", r, appActionDeprecationURL), 2)
->>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 			}
 		}
 	}()

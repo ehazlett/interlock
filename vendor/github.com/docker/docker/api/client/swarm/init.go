@@ -12,8 +12,6 @@ import (
 	"github.com/spf13/pflag"
 )
 
-<<<<<<< HEAD
-=======
 const (
 	generatedSecretEntropyBytes = 16
 	generatedSecretBase         = 36
@@ -21,7 +19,6 @@ const (
 	maxGeneratedSecretLength = 25
 )
 
->>>>>>> 12a5469... start on swarm services; move to glade
 type initOptions struct {
 	swarmOptions
 	listenAddr      NodeAddrOption
@@ -56,15 +53,12 @@ func runInit(dockerCli *client.DockerCli, flags *pflag.FlagSet, opts initOptions
 	client := dockerCli.Client()
 	ctx := context.Background()
 
-<<<<<<< HEAD
-=======
 	// If no secret was specified, we create a random one
 	if !flags.Changed("secret") {
 		opts.secret = generateRandomSecret()
 		fmt.Fprintf(dockerCli.Out(), "No --secret provided. Generated random secret:\n\t%s\n\n", opts.secret)
 	}
 
->>>>>>> 12a5469... start on swarm services; move to glade
 	req := swarm.InitRequest{
 		ListenAddr:      opts.listenAddr.String(),
 		ForceNewCluster: opts.forceNewCluster,
@@ -75,9 +69,6 @@ func runInit(dockerCli *client.DockerCli, flags *pflag.FlagSet, opts initOptions
 	if err != nil {
 		return err
 	}
-<<<<<<< HEAD
-	fmt.Printf("Swarm initialized: current node (%s) is now a manager.\n", nodeID)
-=======
 
 	fmt.Fprintf(dockerCli.Out(), "Swarm initialized: current node (%s) is now a manager.\n\n", nodeID)
 
@@ -100,6 +91,5 @@ func runInit(dockerCli *client.DockerCli, flags *pflag.FlagSet, opts initOptions
 		fmt.Fprintf(dockerCli.Out(), "To add a worker to this swarm, run the following command:\n\tdocker swarm join %s \\\n\t--ca-hash %s \\\n\t%s\n", secretArgs, info.Swarm.CACertHash, node.ManagerStatus.Addr)
 	}
 
->>>>>>> 12a5469... start on swarm services; move to glade
 	return nil
 }

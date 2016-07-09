@@ -9,8 +9,6 @@ A simple example application, _raftexample_, is also available to help illustrat
 how to use this package in practice:
 https://github.com/coreos/etcd/tree/master/contrib/raftexample
 
-<<<<<<< HEAD
-=======
 # Features
 
 This raft implementation is a full feature implementation of Raft protocol. Features includes:
@@ -32,7 +30,6 @@ This raft implementation also includes a few optional enhancements:
 - Internal proposal redirection from followers to leader
 - Automatic stepping down when the leader loses quorum 
 
->>>>>>> 12a5469... start on swarm services; move to glade
 ## Notable Users
 
 - [cockroachdb](https://github.com/cockroachdb/cockroach) A Scalable, Survivable, Strongly-Consistent SQL Database

@@ -108,36 +108,7 @@ func Seek(fd int, offset int64, whence int) (newoffset int64, err error) {
 
 // Vsyscalls on amd64.
 //sysnb	Gettimeofday(tv *Timeval) (err error)
-<<<<<<< HEAD
-<<<<<<< HEAD
 //sysnb	Time(t *Time_t) (tt Time_t, err error)
-=======
-//sys	EpollWait(epfd int, events []EpollEvent, msec int) (n int, err error)
-//sys	Pause() (err error)
-
-func Time(t *Time_t) (Time_t, error) {
-	var tv Timeval
-	err := Gettimeofday(&tv)
-	if err != nil {
-		return 0, err
-	}
-	if t != nil {
-		*t = Time_t(tv.Sec)
-	}
-	return Time_t(tv.Sec), nil
-}
-
-func Utime(path string, buf *Utimbuf) error {
-	tv := []Timeval{
-		{Sec: buf.Actime},
-		{Sec: buf.Modtime},
-	}
-	return Utimes(path, tv)
-}
->>>>>>> c73b1ae... switch to engine-api; update beacon to be more efficient
-=======
-//sysnb	Time(t *Time_t) (tt Time_t, err error)
->>>>>>> 12a5469... start on swarm services; move to glade
 
 //sys   Pread(fd int, p []byte, offset int64) (n int, err error) = SYS_PREAD64
 //sys   Pwrite(fd int, p []byte, offset int64) (n int, err error) = SYS_PWRITE64

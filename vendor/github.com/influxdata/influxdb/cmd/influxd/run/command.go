@@ -204,20 +204,6 @@ func (cmd *Command) ParseConfig(path string) (*Config, error) {
 	return config, nil
 }
 
-<<<<<<< HEAD
-var usage = `usage: influxd run [flags]
-
-Runs the InfluxDB server.
-
-        -config <path>
-                          Set the path to the configuration file.
-        -pidfile <path>
-                          Write process ID to a file.
-        -cpuprofile <path>
-                          Write CPU profiling information to a file.
-        -memprofile <path>
-                          Write memory usage information to a file.
-=======
 var usage = `Runs the InfluxDB server.
 
 Usage: influxd run [flags]
@@ -235,7 +221,6 @@ Usage: influxd run [flags]
             Write CPU profiling information to a file.
     -memprofile <path>
             Write memory usage information to a file.
->>>>>>> 12a5469... start on swarm services; move to glade
 `
 
 // Options represents the command line options that can be parsed.
@@ -255,12 +240,9 @@ type Options struct {
 //        - /etc/influxdb
 func (opt *Options) GetConfigPath() string {
 	if opt.ConfigPath != "" {
-<<<<<<< HEAD
-=======
 		if opt.ConfigPath == os.DevNull {
 			return ""
 		}
->>>>>>> 12a5469... start on swarm services; move to glade
 		return opt.ConfigPath
 	} else if envVar := os.Getenv("INFLUXDB_CONFIG_PATH"); envVar != "" {
 		return envVar

@@ -5,10 +5,6 @@ Defaults generate an ECDSA-384 root and leaf certificates for `localhost`. etcd 
 **Instructions**
 
 1. Install git, go, and make
-<<<<<<< HEAD
-2. Run `make` to generate the certs
-3. Run `goreman start`
-=======
 2. Amend https://github.com/coreos/etcd/blob/master/hack/tls-setup/config/req-csr.json - IP's currently in the config should be replaced/added to with IP addresses of each node in your cluster, please note 127.0.0.1 is always required for loopback purposes:
 ```json
 Example:
@@ -33,4 +29,3 @@ Example:
 }
 ```
 3. Run `make` to generate the certs
->>>>>>> 12a5469... start on swarm services; move to glade

@@ -14,18 +14,6 @@ weight = -2
 To list available commands, either run `docker` with no parameters
 or execute `docker help`:
 
-<<<<<<< HEAD
-    $ docker
-      Usage: docker [OPTIONS] COMMAND [arg...]
-             docker daemon [ --help | ... ]
-             docker [ --help | -v | --version ]
-
-        -H, --host=[]: The socket(s) to talk to the Docker daemon in the format of tcp://host:port/path, unix:///path/to/socket, fd://* or fd://socketfd.
-
-      A self-sufficient runtime for Linux containers.
-
-      ...
-=======
 ```bash
 $ docker
 Usage: docker [OPTIONS] COMMAND [arg...]
@@ -51,7 +39,6 @@ Commands:
     attach    Attach to a running container
     # […]
 ```
->>>>>>> 12a5469... start on swarm services; move to glade
 
 Depending on your Docker system configuration, you may be required to preface
 each `docker` command with `sudo`. To avoid having to use `sudo` with the

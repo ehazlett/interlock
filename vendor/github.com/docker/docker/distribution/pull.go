@@ -4,10 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Sirupsen/logrus"
-<<<<<<< HEAD
-=======
 	"github.com/docker/distribution/digest"
->>>>>>> 12a5469... start on swarm services; move to glade
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/distribution/metadata"
 	"github.com/docker/docker/distribution/xfer"
@@ -207,8 +204,6 @@ func ValidateRepoName(name string) error {
 	}
 	return nil
 }
-<<<<<<< HEAD
-=======
 
 func addDigestReference(store reference.Store, ref reference.Named, dgst digest.Digest, imageID image.ID) error {
 	dgstRef, err := reference.WithDigest(ref, dgst)
@@ -228,4 +223,3 @@ func addDigestReference(store reference.Store, ref reference.Named, dgst digest.
 
 	return store.AddDigest(dgstRef, imageID, true)
 }
->>>>>>> 12a5469... start on swarm services; move to glade

@@ -53,12 +53,8 @@ func TestPointsWriter_MapShards_One(t *testing.T) {
 // Ensures the points writer maps a multiple points across shard group boundaries.
 func TestPointsWriter_MapShards_Multiple(t *testing.T) {
 	ms := PointsWriterMetaClient{}
-<<<<<<< HEAD
-	rp := NewRetentionPolicy("myp", time.Hour, 3)
-=======
 	rp := NewRetentionPolicy("myp", 0, 3)
 	rp.ShardGroupDuration = time.Hour
->>>>>>> 12a5469... start on swarm services; move to glade
 	AttachShardGroupInfo(rp, []meta.ShardOwner{
 		{NodeID: 1},
 		{NodeID: 2},
@@ -84,13 +80,9 @@ func TestPointsWriter_MapShards_Multiple(t *testing.T) {
 		panic("should not get here")
 	}
 
-<<<<<<< HEAD
-	c := coordinator.PointsWriter{MetaClient: ms}
-=======
 	c := coordinator.NewPointsWriter()
 	c.MetaClient = ms
 	defer c.Close()
->>>>>>> 12a5469... start on swarm services; move to glade
 	pr := &coordinator.WritePointsRequest{
 		Database:        "mydb",
 		RetentionPolicy: "myrp",
@@ -131,8 +123,6 @@ func TestPointsWriter_MapShards_Multiple(t *testing.T) {
 	}
 }
 
-<<<<<<< HEAD
-=======
 // Ensures the points writer does not map points beyond the retention policy.
 func TestPointsWriter_MapShards_Invalid(t *testing.T) {
 	ms := PointsWriterMetaClient{}
@@ -170,7 +160,6 @@ func TestPointsWriter_MapShards_Invalid(t *testing.T) {
 	}
 }
 
->>>>>>> 12a5469... start on swarm services; move to glade
 func TestPointsWriter_WritePoints(t *testing.T) {
 	tests := []struct {
 		name            string

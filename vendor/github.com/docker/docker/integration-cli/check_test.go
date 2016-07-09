@@ -4,18 +4,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-<<<<<<< HEAD
-=======
 	"sync"
->>>>>>> 12a5469... start on swarm services; move to glade
 	"testing"
 
 	"github.com/docker/docker/cliconfig"
 	"github.com/docker/docker/pkg/reexec"
-<<<<<<< HEAD
-=======
 	"github.com/docker/engine-api/types/swarm"
->>>>>>> 12a5469... start on swarm services; move to glade
 	"github.com/go-check/check"
 )
 
@@ -87,11 +81,7 @@ type DockerSchema1RegistrySuite struct {
 }
 
 func (s *DockerSchema1RegistrySuite) SetUpTest(c *check.C) {
-<<<<<<< HEAD
-	testRequires(c, DaemonIsLinux, RegistryHosting)
-=======
 	testRequires(c, DaemonIsLinux, RegistryHosting, NotArm64)
->>>>>>> 12a5469... start on swarm services; move to glade
 	s.reg = setupRegistry(c, true, "", "")
 	s.d = NewDaemon(c)
 }
@@ -205,16 +195,10 @@ func init() {
 }
 
 type DockerSwarmSuite struct {
-<<<<<<< HEAD
-	ds        *DockerSuite
-	daemons   []*SwarmDaemon
-	portIndex int
-=======
 	ds          *DockerSuite
 	daemons     []*SwarmDaemon
 	daemonsLock sync.Mutex // protect access to daemons
 	portIndex   int
->>>>>>> 12a5469... start on swarm services; move to glade
 }
 
 func (s *DockerSwarmSuite) SetUpTest(c *check.C) {
@@ -232,14 +216,6 @@ func (s *DockerSwarmSuite) AddDaemon(c *check.C, joinSwarm, manager bool) *Swarm
 
 	if joinSwarm == true {
 		if len(s.daemons) > 0 {
-<<<<<<< HEAD
-			c.Assert(d.Join(s.daemons[0].listenAddr, "", "", manager), check.IsNil)
-		} else {
-			aa := make(map[string]bool)
-			aa["worker"] = true
-			aa["manager"] = true
-			c.Assert(d.Init(aa, ""), check.IsNil)
-=======
 			c.Assert(d.Join(swarm.JoinRequest{
 				RemoteAddrs: []string{s.daemons[0].listenAddr},
 				Manager:     manager}), check.IsNil)
@@ -249,40 +225,27 @@ func (s *DockerSwarmSuite) AddDaemon(c *check.C, joinSwarm, manager bool) *Swarm
 					AcceptancePolicy: autoAcceptPolicy,
 				},
 			}), check.IsNil)
->>>>>>> 12a5469... start on swarm services; move to glade
 		}
 	}
 
 	s.portIndex++
-<<<<<<< HEAD
-	s.daemons = append(s.daemons, d)
-=======
 	s.daemonsLock.Lock()
 	s.daemons = append(s.daemons, d)
 	s.daemonsLock.Unlock()
->>>>>>> 12a5469... start on swarm services; move to glade
 
 	return d
 }
 
 func (s *DockerSwarmSuite) TearDownTest(c *check.C) {
 	testRequires(c, DaemonIsLinux)
-<<<<<<< HEAD
-=======
 	s.daemonsLock.Lock()
->>>>>>> 12a5469... start on swarm services; move to glade
 	for _, d := range s.daemons {
 		d.Stop()
 	}
 	s.daemons = nil
-<<<<<<< HEAD
-	s.portIndex = 0
-
-=======
 	s.daemonsLock.Unlock()
 
 	s.portIndex = 0
->>>>>>> 12a5469... start on swarm services; move to glade
 	s.ds.TearDownTest(c)
 }
 

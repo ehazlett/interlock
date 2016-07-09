@@ -722,21 +722,6 @@ func (ep *endpoint) sbLeave(sb *sandbox, force bool, options ...EndpointOption) 
 	return nil
 }
 
-<<<<<<< HEAD
-func (n *network) validateForceDelete(locator string) error {
-	if n.Scope() == datastore.LocalScope {
-		return nil
-	}
-
-	if locator == "" {
-		return fmt.Errorf("invalid endpoint locator identifier")
-	}
-
-	return nil
-}
-
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 func (ep *endpoint) Delete(force bool) error {
 	var err error
 	n, err := ep.getNetworkFromStore()
@@ -753,20 +738,8 @@ func (ep *endpoint) Delete(force bool) error {
 	epid := ep.id
 	name := ep.name
 	sbid := ep.sandboxID
-<<<<<<< HEAD
-	locator := ep.locator
 	ep.Unlock()
 
-	if force {
-		if err = n.validateForceDelete(locator); err != nil {
-			return fmt.Errorf("unable to force delete endpoint %s: %v", name, err)
-		}
-	}
-
-=======
-	ep.Unlock()
-
->>>>>>> 12a5469... start on swarm services; move to glade
 	sb, _ := n.getController().SandboxByID(sbid)
 	if sb != nil && !force {
 		return &ActiveContainerError{name: name, id: epid}

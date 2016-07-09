@@ -111,9 +111,6 @@ func TestMountOptSetErrorInvalidField(t *testing.T) {
 
 func TestMountOptSetErrorInvalidWritable(t *testing.T) {
 	var mount MountOpt
-<<<<<<< HEAD
-	assert.Error(t, mount.Set("type=VOLUME,writable=yes"), "invalid value for writable: yes")
-=======
 	assert.Error(t, mount.Set("type=VOLUME,readonly=no"), "invalid value for readonly: no")
 }
 
@@ -163,5 +160,4 @@ func TestMountOptTypeConflict(t *testing.T) {
 	var m MountOpt
 	assert.Error(t, m.Set("type=bind,target=/foo,source=/foo,volume-nocopy=true"), "cannot mix")
 	assert.Error(t, m.Set("type=volume,target=/foo,source=/foo,bind-propagation=rprivate"), "cannot mix")
->>>>>>> 12a5469... start on swarm services; move to glade
 }

@@ -2,7 +2,4 @@
 
 DOCKER_CLIENT_BINARY_NAME='docker'
 DOCKER_DAEMON_BINARY_NAME='dockerd'
-<<<<<<< HEAD
-=======
 DOCKER_PROXY_BINARY_NAME='docker-proxy'
->>>>>>> 12a5469... start on swarm services; move to glade

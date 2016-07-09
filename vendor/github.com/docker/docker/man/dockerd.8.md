@@ -6,10 +6,7 @@ dockerd - Enable daemon mode
 
 # SYNOPSIS
 **dockerd**
-<<<<<<< HEAD
-=======
 [**--add-runtime**[=*[]*]]
->>>>>>> 12a5469... start on swarm services; move to glade
 [**--api-cors-header**=[=*API-CORS-HEADER*]]
 [**--authorization-plugin**[=*[]*]]
 [**-b**|**--bridge**[=*BRIDGE*]]
@@ -79,12 +76,9 @@ format.
 
 # OPTIONS
 
-<<<<<<< HEAD
-=======
 **--add-runtime**=[]
   Set additional OCI compatible runtime.
 
->>>>>>> 12a5469... start on swarm services; move to glade
 **--api-cors-header**=""
   Set CORS headers in the remote API. Default is cors disabled. Give urls like "http://foo, http://bar, ...". Give "*" to allow all.
 

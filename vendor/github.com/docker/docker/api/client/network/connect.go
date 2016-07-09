@@ -28,11 +28,7 @@ func newConnectCommand(dockerCli *client.DockerCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "connect [OPTIONS] NETWORK CONTAINER",
-<<<<<<< HEAD
-		Short: "Connects a container to a network",
-=======
 		Short: "Connect a container to a network",
->>>>>>> 12a5469... start on swarm services; move to glade
 		Args:  cli.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.network = args[0]

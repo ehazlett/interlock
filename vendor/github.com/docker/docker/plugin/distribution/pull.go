@@ -104,11 +104,7 @@ func Pull(name string, rs registry.Service, metaheader http.Header, authConfig *
 		}
 		if !confirmedV2 {
 			logrus.Debugf("pull.go: !confirmedV2")
-<<<<<<< HEAD
-			return nil, ErrUnSupportedRegistry
-=======
 			return nil, ErrUnsupportedRegistry
->>>>>>> 12a5469... start on swarm services; move to glade
 		}
 		logrus.Debugf("Trying to pull %s from %s %s", repoInfo.Name(), endpoint.URL, endpoint.Version)
 		break
@@ -147,12 +143,9 @@ func Pull(name string, rs registry.Service, metaheader http.Header, authConfig *
 		logrus.Debugf("pull.go: error in json.Unmarshal(): %v", err)
 		return nil, err
 	}
-<<<<<<< HEAD
-=======
 	if m.Config.MediaType != MediaTypeConfig {
 		return nil, ErrUnsupportedMediaType
 	}
->>>>>>> 12a5469... start on swarm services; move to glade
 
 	pd := &pullData{
 		repository: repository,

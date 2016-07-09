@@ -10,16 +10,6 @@ parent = "smn_cli"
 
 # start
 
-<<<<<<< HEAD
-    Usage: docker start [OPTIONS] CONTAINER [CONTAINER...]
-
-    Start one or more containers
-
-      -a, --attach               Attach STDOUT/STDERR and forward signals
-      --detach-keys              Specify the escape key sequence used to detach a container
-      --help                     Print usage
-      -i, --interactive          Attach container's STDIN
-=======
 ```markdown
 Usage:  docker start [OPTIONS] CONTAINER [CONTAINER...]
 
@@ -31,4 +21,3 @@ Options:
       --help                 Print usage
   -i, --interactive          Attach container's STDIN
 ```
->>>>>>> 12a5469... start on swarm services; move to glade

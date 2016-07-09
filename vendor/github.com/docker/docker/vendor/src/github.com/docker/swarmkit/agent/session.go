@@ -26,10 +26,6 @@ var (
 // agent through errs, messages and tasks.
 type session struct {
 	agent     *Agent
-<<<<<<< HEAD
-	nodeID    string
-=======
->>>>>>> 12a5469... start on swarm services; move to glade
 	sessionID string
 	session   api.Dispatcher_SessionClient
 	errs      chan error
