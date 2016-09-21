@@ -38,7 +38,13 @@ http {
       ''      $scheme;
     }
 
-    #gzip  on;
+    gzip  on;
+    gzip_static on;
+    gzip_min_length 1k;
+    gzip_proxied        expired no-cache no-store private auth;
+    gzip_comp_level 8;
+    gzip_vary           on;
+
     proxy_connect_timeout {{ .Config.ProxyConnectTimeout }};
     proxy_send_timeout {{ .Config.ProxySendTimeout }};
     proxy_read_timeout {{ .Config.ProxyReadTimeout }};
@@ -122,11 +128,25 @@ http {
     }
     {{ if $host.SSL }}
     server {
-        listen {{ $host.SSLPort }};
+        listen {{ $host.SSLPort }} ssl http2;
         ssl on;
         ssl_certificate {{ $host.SSLCert }};
         ssl_certificate_key {{ $host.SSLCertKey }};
+        ssl_stapling on;
+        ssl_stapling_verify on;
+        ssl_session_cache   shared:SSL:10m;
+	ssl_session_timeout 1h;
+	ssl_session_tickets on;
+	ssl_session_ticket_key {{ $host.SSLCertKey }}.ticket.key;
+	ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+	ssl_prefer_server_ciphers on;
+        ssl_trusted_certificate {{ $host.SSLCert }}.ca.pem;
+        add_header Strict-Transport-Security "max-age=63072000; preload";
+        ssl_buffer_size 16k;
         server_name{{ range $name := $host.ServerNames }} {{ $name }}{{ end }};
+        client_header_buffer_size 1k;
+  	large_client_header_buffers 2 16k;
+
 
         location / {
             {{ if $host.SSLBackend }}proxy_pass https://{{ $host.Upstream.Name }};{{ else }}proxy_pass http://{{ $host.Upstream.Name }};{{ end }}
