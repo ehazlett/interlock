@@ -12,6 +12,7 @@ import (
 func (p *NginxLoadBalancer) GenerateProxyConfig(containers []dockerclient.Container) (interface{}, error) {
 	var hosts []*Host
 	upstreamServers := map[string][]string{}
+    hostChecks := map[string]string{}
 	serverNames := map[string][]string{}
 	hostContextRoots := map[string]*ContextRoot{}
 	hostContextRootRewrites := map[string]bool{}
@@ -58,6 +59,28 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []dockerclient.Contai
 			Path: contextRoot,
 		}
 		hostContextRootRewrites[domain] = utils.ContextRootRewrite(cInfo.Config)
+
+        healthCheck := utils.HealthCheck(cInfo.Config)
+        healthCheckInterval, err := utils.HealthCheckInterval(cInfo.Config)
+        if err != nil {
+            log().Errorf("error parsing health check interval: %s", err)
+            continue
+        }
+
+
+    if healthCheck != "" {
+            if val, ok := hostChecks[domain]; ok {
+                // check existing host check for different values
+                if val != healthCheck {
+                    log().Warnf("conflicting check specified for %s", domain)
+                }
+            } else {
+                hostChecks[domain] = healthCheck
+                log().Debugf("using custom check for %s: %s", domain, healthCheck)
+            }
+
+            log().Debugf("check interval for %s: %d", domain, healthCheckInterval)
+        }
 
 		// check if the first server name is there; if not, add
 		// this happens if there are multiple backend containers
@@ -159,6 +182,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []dockerclient.Contai
 			Port:               p.cfg.Port,
 			ContextRoot:        hostContextRoots[k],
 			ContextRootRewrite: hostContextRootRewrites[k],
+            Check:              hostChecks[k],
 			SSLPort:            p.cfg.SSLPort,
 			SSL:                hostSSL[k],
 			SSLCert:            hostSSLCert[k],
@@ -182,6 +206,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []dockerclient.Contai
 		up := &Upstream{
 			Name:    k,
 			Servers: servers,
+            heckInterval: healthCheckInterval,
 		}
 		h.Upstream = up
 
