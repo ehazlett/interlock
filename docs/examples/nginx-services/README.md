@@ -9,10 +9,13 @@ This will create a global Nginx service that will run on every node and
 publish port 80:
 
 ```
+docker network create -d overlay demo
+
 docker service create \
     --name interlock-nginx \
     --publish 80:80 \
     --mode global \
+    --network demo \
     --label interlock.ext.name=nginx \
     nginx \
         nginx -g "daemon off;" -c /etc/nginx/nginx.conf
@@ -47,6 +50,7 @@ Now create the Interlock service:
 docker service create \
     --mode global \
     --name interlock \
+    --network demo \
     --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock,writable=true \
     --env INTERLOCK_CONFIG="$(cat config.toml)" \
     ehazlett/interlock:latest -D run
@@ -65,10 +69,11 @@ Interlock to configure the upstream:
 ```
 docker service create \
     --name demo \
-    --publish 8080 \
+    --network demo \
     --env SHOW_VERSION=1 \
     --label interlock.hostname=demo \
     --label interlock.domain=local \
+    --label interlock.port=8080 \
     ehazlett/docker-demo:latest
 ```
 
