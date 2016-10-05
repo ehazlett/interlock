@@ -65,10 +65,10 @@ Interlock to configure the upstream:
 ```
 docker service create \
     --name demo \
-    --publish 8080 \
     --env SHOW_VERSION=1 \
     --label interlock.hostname=demo \
     --label interlock.domain=local \
+    --label interlock.port=8080 \
     ehazlett/docker-demo:latest
 ```
 
