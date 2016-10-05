@@ -2,7 +2,6 @@ package haproxy
 
 import (
 	"fmt"
-	"net"
 	"strconv"
 	"strings"
 
@@ -102,65 +101,29 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []types.Container, 
 			log().Debugf("checking service: id=%s", t.ID)
 			labels = t.Spec.Labels
 			id = t.ID
-			publishedPort := uint32(0)
+			servicePort := uint32(0)
 
 			// get service address
-			if len(t.Endpoint.Spec.Ports) == 0 {
-				log().Debugf("service has no published ports: id=%s", t.ID)
-				continue
-			}
-
 			if v, ok := t.Spec.Labels[ext.InterlockPortLabel]; ok {
 				port, err := strconv.Atoi(v)
 				if err != nil {
 					log().Error(err)
 					continue
 				}
-				for _, p := range t.Endpoint.Ports {
-					if p.TargetPort == uint32(port) {
-						publishedPort = p.PublishedPort
-						break
-					}
-				}
+				servicePort = uint32(port)
 			} else {
-				publishedPort = t.Endpoint.Ports[0].PublishedPort
+				if len(t.Endpoint.Spec.Ports) == 0 {
+					log().Debugf("service has no published ports and no label for port: id=%s", t.ID)
+					continue
+				}
+
+				servicePort = t.Endpoint.Ports[0].TargetPort
 			}
 
 			// get the node IP
-			ip := ""
+			ip := t.Spec.Name
 
-			// HACK?: get the local node gateway addr to use as the ip to resolve for the interlock container to access the published port
-			network, err := p.client.NetworkInspect(context.Background(), "ingress")
-			if err != nil {
-				log().Error(err)
-				continue
-			}
-
-			// TODO: what do we do if the IPAM has more than a single definition?
-			// the gateway appears to change between IP and CIDR -- need to debug to report issue
-			if c, ok := network.Containers["ingress-sbox"]; ok {
-				log().Debugf("ingress-sbox ip: %s", c.IPv4Address)
-				ipv4Addr := c.IPv4Address
-				if strings.IndexAny(ipv4Addr, "/") > -1 {
-					ipAddr, _, err := net.ParseCIDR(ipv4Addr)
-					if err != nil {
-						log().Error(err)
-						continue
-					}
-
-					ip = ipAddr.String()
-				}
-
-				// check for override backend address
-				if v := p.cfg.BackendOverrideAddress; v != "" {
-					ip = v
-				}
-			} else {
-				log().Errorf("unable to detect node ip: %s", err)
-				continue
-			}
-
-			addr = fmt.Sprintf("%s:%d", ip, publishedPort)
+			addr = fmt.Sprintf("%s:%d", ip, servicePort)
 		default:
 			log().Warnf("unknown type detected: %v", t)
 			continue
