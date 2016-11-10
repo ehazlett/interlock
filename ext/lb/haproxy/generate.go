@@ -162,6 +162,10 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []types.Container) 
 		for _, alias := range aliasDomains {
 			log().Debugf("adding alias %s for %s", alias, cntId)
 			proxyUpstreams[alias] = append(proxyUpstreams[alias], up)
+			hostContextRoots[alias] = &ContextRoot{
+				Name: contextRootName,
+				Path: contextRoot,
+			}
 		}
 
 		proxyUpstreams[domain] = append(proxyUpstreams[domain], up)
