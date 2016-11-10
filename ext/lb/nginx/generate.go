@@ -147,6 +147,10 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 		for _, alias := range aliasDomains {
 			log().Debugf("adding alias %s for %s", alias, cntId)
 			serverNames[domain] = append(serverNames[domain], alias)
+			hostContextRoots[alias] = &ContextRoot{
+				Name: contextRootName,
+				Path: contextRoot,
+			}
 		}
 
 		log().Infof("%s: upstream=%s", domain, addr)
