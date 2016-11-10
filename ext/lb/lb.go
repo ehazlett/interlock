@@ -277,7 +277,7 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *client.Client) (*LoadBal
 
 			for _, cnt := range containers {
 				// always include self container
-				if cnt.ID == nodeID {
+				if cnt.ID == nodeID && cnt.State == "running" {
 					interlockNodes = append(interlockNodes, cnt)
 					continue
 				}
