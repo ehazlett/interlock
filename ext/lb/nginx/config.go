@@ -33,6 +33,7 @@ type Host struct {
 	WebsocketEndpoints []string
 	IPHash             bool
 	Check              string
+    CheckInterval      int
 }
 type Config struct {
 	Hosts    []*Host
