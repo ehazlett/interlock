@@ -150,9 +150,8 @@ message Mount {
 	// Target path in container
 	string target = 3;
 
-	// Writable should be set to true if the mount should be writable from the
-	// container.
-	bool writable = 4;
+	// ReadOnly should be set to true if the mount should not be writable.
+	bool readonly = 4 [(gogoproto.customname) = "ReadOnly"];
 
 	// BindOptions specifies options that are specific to a bind mount.
 	message BindOptions {
@@ -174,8 +173,8 @@ message Mount {
 
 	// VolumeOptions contains parameters for mounting the volume.
 	message VolumeOptions {
-		// populate volume with data from target
-		bool populate = 1;
+		// nocopy prevents automatic copying of data to the volume with data from target
+		bool nocopy = 1 [(gogoproto.customname) = "NoCopy"];
 
 		// labels to apply to the volume if creating
 		map<string, string> labels = 2;
@@ -427,10 +426,10 @@ message IssuanceStatus {
 
 message AcceptancePolicy {
 	message RoleAdmissionPolicy {
-		message HashedSecret {
-			// The actual hashed content
+		message Secret {
+			// The actual content (possibly hashed)
 			bytes data = 1;
-			// The type of hash we are using
+			// The type of hash we are using, or "plaintext"
 			string alg = 2;
 		}
 
@@ -440,16 +439,35 @@ message AcceptancePolicy {
 		bool autoaccept = 2;
 		// Secret represents a user-provided string that is necessary for new
 		// nodes to join the cluster
-		HashedSecret secret = 3;
+		Secret secret = 3;
 	}
 
 	repeated RoleAdmissionPolicy policies = 1;
 }
 
+message ExternalCA {
+	enum CAProtocol {
+		CFSSL = 0 [(gogoproto.enumvalue_customname) = "CAProtocolCFSSL"];
+	}
+
+	// Protocol is the protocol used by this external CA.
+	CAProtocol protocol = 1;
+
+	// URL is the URL where the external CA can be reached.
+	string url = 2 [(gogoproto.customname) = "URL"];
+
+	// Options is a set of additional key/value pairs whose interpretation
+	// depends on the specified CA type.
+	map<string, string> options = 3;
+}
 
 message CAConfig {
 	// NodeCertExpiry is the duration certificates should be issued for
 	Duration node_cert_expiry = 1;
+
+	// ExternalCAs is a list of CAs to which a manager node will make
+	// certificate signing requests for node certificates.
+	repeated ExternalCA external_cas = 2 [(gogoproto.customname) = "ExternalCAs"];
 }
 
 // OrchestrationConfig defines cluster-level orchestration settings.

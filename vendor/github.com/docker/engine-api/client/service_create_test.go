@@ -18,7 +18,7 @@ func TestServiceCreateError(t *testing.T) {
 	client := &Client{
 		transport: newMockClient(nil, errorMock(http.StatusInternalServerError, "Server error")),
 	}
-	_, err := client.ServiceCreate(context.Background(), swarm.ServiceSpec{}, nil)
+	_, err := client.ServiceCreate(context.Background(), swarm.ServiceSpec{}, types.ServiceCreateOptions{})
 	if err == nil || err.Error() != "Error response from daemon: Server error" {
 		t.Fatalf("expected a Server Error, got %v", err)
 	}
@@ -47,7 +47,7 @@ func TestServiceCreate(t *testing.T) {
 		}),
 	}
 
-	r, err := client.ServiceCreate(context.Background(), swarm.ServiceSpec{}, nil)
+	r, err := client.ServiceCreate(context.Background(), swarm.ServiceSpec{}, types.ServiceCreateOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}

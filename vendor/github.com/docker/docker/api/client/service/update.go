@@ -10,6 +10,7 @@ import (
 	"github.com/docker/docker/cli"
 	"github.com/docker/docker/opts"
 	runconfigopts "github.com/docker/docker/runconfig/opts"
+	"github.com/docker/engine-api/types"
 	"github.com/docker/engine-api/types/swarm"
 	"github.com/docker/go-connections/nat"
 	"github.com/spf13/cobra"
@@ -37,10 +38,11 @@ func newUpdateCommand(dockerCli *client.DockerCli) *cobra.Command {
 }
 
 func runUpdate(dockerCli *client.DockerCli, flags *pflag.FlagSet, serviceID string) error {
-	client := dockerCli.Client()
+	apiClient := dockerCli.Client()
 	ctx := context.Background()
+	updateOpts := types.ServiceUpdateOptions{}
 
-	service, _, err := client.ServiceInspectWithRaw(ctx, serviceID)
+	service, _, err := apiClient.ServiceInspectWithRaw(ctx, serviceID)
 	if err != nil {
 		return err
 	}
@@ -49,7 +51,24 @@ func runUpdate(dockerCli *client.DockerCli, flags *pflag.FlagSet, serviceID stri
 	if err != nil {
 		return err
 	}
-	err = client.ServiceUpdate(ctx, service.ID, service.Version, service.Spec)
+
+	// only send auth if flag was set
+	sendAuth, err := flags.GetBool(flagRegistryAuth)
+	if err != nil {
+		return err
+	}
+	if sendAuth {
+		// Retrieve encoded auth token from the image reference
+		// This would be the old image if it didn't change in this update
+		image := service.Spec.TaskTemplate.ContainerSpec.Image
+		encodedAuth, err := dockerCli.RetrieveAuthTokenFromImage(ctx, image)
+		if err != nil {
+			return err
+		}
+		updateOpts.EncodedRegistryAuth = encodedAuth
+	}
+
+	err = apiClient.ServiceUpdate(ctx, service.ID, service.Version, service.Spec, updateOpts)
 	if err != nil {
 		return err
 	}

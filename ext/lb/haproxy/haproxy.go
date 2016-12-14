@@ -78,7 +78,7 @@ func (p *HAProxyLoadBalancer) Reload(proxyContainers []types.Container) error {
 			continue
 		}
 
-		log().Infof("restarted proxy container: id=%s name=%s", cnt.ID[:12], cnt.Names[0])
+		log().Infof("restarted proxy container: id=%s", cnt.ID[:12])
 	}
 
 	if err := p.resumeSYN(); err != nil {

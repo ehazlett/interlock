@@ -1,7 +1,6 @@
 package tsm1
 
 import (
-	"expvar"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -13,10 +12,10 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
-	"github.com/influxdata/influxdb"
-	"github.com/influxdata/influxdb/tsdb"
+	"github.com/influxdata/influxdb/models"
 )
 
 type TSMFile interface {
@@ -99,6 +98,7 @@ type TSMFile interface {
 // Statistics gathered by the FileStore.
 const (
 	statFileStoreBytes = "diskBytes"
+	statFileStoreCount = "numFiles"
 )
 
 type FileStore struct {
@@ -113,7 +113,7 @@ type FileStore struct {
 	Logger       *log.Logger
 	traceLogging bool
 
-	statMap *expvar.Map
+	stats *FileStoreStatistics
 
 	currentTempDirID int
 }
@@ -140,16 +140,11 @@ func (f FileStat) ContainsKey(key string) bool {
 }
 
 func NewFileStore(dir string) *FileStore {
-	db, rp := tsdb.DecodeStorePath(dir)
 	return &FileStore{
 		dir:          dir,
 		lastModified: time.Now(),
 		Logger:       log.New(os.Stderr, "[filestore] ", log.LstdFlags),
-		statMap: influxdb.NewStatistics(
-			"tsm1_filestore:"+dir,
-			"tsm1_filestore",
-			map[string]string{"path": dir, "database": db, "retentionPolicy": rp},
-		),
+		stats:        &FileStoreStatistics{},
 	}
 }
 
@@ -157,6 +152,24 @@ func NewFileStore(dir string) *FileStore {
 // after the Open method has been called.
 func (f *FileStore) SetLogOutput(w io.Writer) {
 	f.Logger = log.New(w, "[filestore] ", log.LstdFlags)
+}
+
+// FileStoreStatistics keeps statistics about the file store.
+type FileStoreStatistics struct {
+	DiskBytes int64
+	FileCount int64
+}
+
+// Statistics returns statistics for periodic monitoring.
+func (f *FileStore) Statistics(tags map[string]string) []models.Statistic {
+	return []models.Statistic{{
+		Name: "tsm1_filestore",
+		Tags: tags,
+		Values: map[string]interface{}{
+			statFileStoreBytes: atomic.LoadInt64(&f.stats.DiskBytes),
+			statFileStoreCount: atomic.LoadInt64(&f.stats.FileCount),
+		},
+	}}
 }
 
 // Returns the number of TSM files currently loaded
@@ -192,10 +205,11 @@ func (f *FileStore) Add(files ...TSMFile) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	for _, file := range files {
-		f.statMap.Add(statFileStoreBytes, int64(file.Size()))
+		atomic.AddInt64(&f.stats.DiskBytes, int64(file.Size()))
 	}
 	f.files = append(f.files, files...)
 	sort.Sort(tsmReaders(f.files))
+	atomic.StoreInt64(&f.stats.FileCount, int64(len(f.files)))
 }
 
 // Remove removes the files with matching paths from the set of active files.  It does
@@ -217,11 +231,12 @@ func (f *FileStore) Remove(paths ...string) {
 			active = append(active, file)
 		} else {
 			// Removing the file, remove the file size from the total file store bytes
-			f.statMap.Add(statFileStoreBytes, -int64(file.Size()))
+			atomic.AddInt64(&f.stats.DiskBytes, -int64(file.Size()))
 		}
 	}
 	f.files = active
 	sort.Sort(tsmReaders(f.files))
+	atomic.StoreInt64(&f.stats.FileCount, int64(len(f.files)))
 }
 
 // WalkKeys calls fn for every key in every TSM file known to the FileStore.  If the key
@@ -345,7 +360,7 @@ func (f *FileStore) Open() error {
 
 		// Accumulate file store size stat
 		if fi, err := file.Stat(); err == nil {
-			f.statMap.Add(statFileStoreBytes, fi.Size())
+			atomic.AddInt64(&f.stats.DiskBytes, fi.Size())
 		}
 
 		go func(idx int, file *os.File) {
@@ -374,6 +389,7 @@ func (f *FileStore) Open() error {
 	close(readerC)
 
 	sort.Sort(tsmReaders(f.files))
+	atomic.StoreInt64(&f.stats.FileCount, int64(len(f.files)))
 	return nil
 }
 
@@ -386,6 +402,7 @@ func (f *FileStore) Close() error {
 	}
 
 	f.files = nil
+	atomic.StoreInt64(&f.stats.FileCount, 0)
 	return nil
 }
 
@@ -496,15 +513,14 @@ func (f *FileStore) Replace(oldFiles, newFiles []string) error {
 
 	f.files = active
 	sort.Sort(tsmReaders(f.files))
+	atomic.StoreInt64(&f.stats.FileCount, int64(len(f.files)))
 
 	// Recalculate the disk size stat
 	var totalSize int64
 	for _, file := range f.files {
 		totalSize += int64(file.Size())
 	}
-	sizeStat := new(expvar.Int)
-	sizeStat.Set(totalSize)
-	f.statMap.Set(statFileStoreBytes, sizeStat)
+	atomic.StoreInt64(&f.stats.DiskBytes, totalSize)
 
 	return nil
 }

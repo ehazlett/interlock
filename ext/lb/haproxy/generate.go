@@ -2,14 +2,18 @@ package haproxy
 
 import (
 	"fmt"
+	"net"
+	"strconv"
 	"strings"
 
 	"github.com/docker/engine-api/types"
+	swarmtypes "github.com/docker/engine-api/types/swarm"
+	"github.com/ehazlett/interlock/ext"
 	"github.com/ehazlett/interlock/ext/lb/utils"
 	"golang.org/x/net/context"
 )
 
-func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []types.Container) (interface{}, error) {
+func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []types.Container, services []swarmtypes.Service) (interface{}, error) {
 	var hosts []*Host
 
 	proxyUpstreams := map[string][]*Upstream{}
@@ -21,22 +25,156 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []types.Container) 
 	hostSSLOnly := map[string]bool{}
 	hostSSLBackend := map[string]bool{}
 	hostSSLBackendTLSVerify := map[string]string{}
-
 	networks := map[string]string{}
 
-	for _, cnt := range containers {
-		cntId := cnt.ID[:12]
-		// load interlock data
-		cInfo, err := p.client.ContainerInspect(context.Background(), cntId)
-		if err != nil {
-			return nil, err
+	var backends []interface{}
+
+	for _, i := range containers {
+		backends = append(backends, i)
+	}
+
+	for _, i := range services {
+		backends = append(backends, i)
+	}
+
+	for _, c := range backends {
+		var labels map[string]string
+
+		addr := ""
+		hostname := ""
+		domain := ""
+		id := ""
+		containerName := ""
+
+		switch t := c.(type) {
+		case types.Container:
+			labels = t.Labels
+			cntID := t.ID[:12]
+			// load interlock data
+			cInfo, err := p.client.ContainerInspect(context.Background(), t.ID)
+			if err != nil {
+				return nil, err
+			}
+
+			log().Debugf("checking container: id=%s", cntID)
+			id = cntID
+			containerName = cInfo.Name[1:]
+
+			hostname = cInfo.Config.Hostname
+			domain = cInfo.Config.Domainname
+
+			if n, ok := utils.OverlayEnabled(labels); ok {
+				log().Debugf("configuring docker network: name=%s", n)
+
+				network, err := p.client.NetworkInspect(context.Background(), n)
+				if err != nil {
+					log().Error(err)
+					continue
+				}
+
+				addr, err = utils.BackendOverlayAddress(network, cInfo)
+				if err != nil {
+					log().Error(err)
+					continue
+				}
+
+				networks[n] = ""
+			} else {
+				portsExposed := false
+				for _, portBindings := range cInfo.NetworkSettings.Ports {
+					if len(portBindings) != 0 {
+						portsExposed = true
+						break
+					}
+				}
+				if !portsExposed {
+					log().Warnf("%s: no ports exposed", cntID)
+					continue
+				}
+
+				addr, err = utils.BackendAddress(cInfo, p.cfg.BackendOverrideAddress)
+				if err != nil {
+					log().Error(err)
+					continue
+				}
+			}
+		case swarmtypes.Service:
+			log().Debugf("checking service: id=%s", t.ID)
+			labels = t.Spec.Labels
+			id = t.ID
+			publishedPort := uint32(0)
+
+			// get service address
+			if len(t.Endpoint.Spec.Ports) == 0 {
+				log().Debugf("service has no published ports: id=%s", t.ID)
+				continue
+			}
+
+			if v, ok := t.Spec.Labels[ext.InterlockPortLabel]; ok {
+				port, err := strconv.Atoi(v)
+				if err != nil {
+					log().Error(err)
+					continue
+				}
+				for _, p := range t.Endpoint.Ports {
+					if p.TargetPort == uint32(port) {
+						publishedPort = p.PublishedPort
+						break
+					}
+				}
+			} else {
+				publishedPort = t.Endpoint.Ports[0].PublishedPort
+			}
+
+			// get the node IP
+			ip := ""
+
+			// HACK?: get the local node gateway addr to use as the ip to resolve for the interlock container to access the published port
+			network, err := p.client.NetworkInspect(context.Background(), "ingress")
+			if err != nil {
+				log().Error(err)
+				continue
+			}
+
+			// TODO: what do we do if the IPAM has more than a single definition?
+			// the gateway appears to change between IP and CIDR -- need to debug to report issue
+			if c, ok := network.Containers["ingress-sbox"]; ok {
+				log().Debugf("ingress-sbox ip: %s", c.IPv4Address)
+				ipv4Addr := c.IPv4Address
+				if strings.IndexAny(ipv4Addr, "/") > -1 {
+					ipAddr, _, err := net.ParseCIDR(ipv4Addr)
+					if err != nil {
+						log().Error(err)
+						continue
+					}
+
+					ip = ipAddr.String()
+				}
+
+				// check for override backend address
+				if v := p.cfg.BackendOverrideAddress; v != "" {
+					ip = v
+				}
+			} else {
+				log().Errorf("unable to detect node ip: %s", err)
+				continue
+			}
+
+			addr = fmt.Sprintf("%s:%d", ip, publishedPort)
+		default:
+			log().Warnf("unknown type detected: %v", t)
+			continue
 		}
 
-		hostname := utils.Hostname(cInfo.Config)
-		domain := utils.Domain(cInfo.Config)
+		if v := utils.Hostname(labels); v != "" {
+			hostname = v
+		}
+		if v := utils.Domain(labels); v != "" {
+			domain = v
+		}
 
 		// context root
-		contextRoot := utils.ContextRoot(cInfo.Config)
+		contextRoot := utils.ContextRoot(labels)
 		contextRootName := strings.Replace(contextRoot, "/", "_", -1)
 
 		if domain == "" && contextRoot == "" {
@@ -57,10 +195,10 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []types.Container) 
 			Name: contextRootName,
 			Path: contextRoot,
 		}
-		hostContextRootRewrites[domain] = utils.ContextRootRewrite(cInfo.Config)
+		hostContextRootRewrites[domain] = utils.ContextRootRewrite(labels)
 
-		healthCheck := utils.HealthCheck(cInfo.Config)
-		healthCheckInterval, err := utils.HealthCheckInterval(cInfo.Config)
+		healthCheck := utils.HealthCheck(labels)
+		healthCheckInterval, err := utils.HealthCheckInterval(labels)
 		if err != nil {
 			log().Errorf("error parsing health check interval: %s", err)
 			continue
@@ -80,87 +218,36 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []types.Container) 
 			log().Debugf("check interval for %s: %d", domain, healthCheckInterval)
 		}
 
-		hostBalanceAlgorithms[domain] = utils.BalanceAlgorithm(cInfo.Config)
+		hostBalanceAlgorithms[domain] = utils.BalanceAlgorithm(labels)
 
-		backendOptions := utils.BackendOptions(cInfo.Config)
+		backendOptions := utils.BackendOptions(labels)
 
 		if len(backendOptions) > 0 {
 			hostBackendOptions[domain] = backendOptions
 			log().Debugf("using backend options for %s: %s", domain, strings.Join(backendOptions, ","))
 		}
 
-		hostSSLOnly[domain] = utils.SSLOnly(cInfo.Config)
+		hostSSLOnly[domain] = utils.SSLOnly(labels)
 
 		// ssl backend
-		hostSSLBackend[domain] = utils.SSLBackend(cInfo.Config)
-		hostSSLBackendTLSVerify[domain] = utils.SSLBackendTLSVerify(cInfo.Config)
+		hostSSLBackend[domain] = utils.SSLBackend(labels)
+		hostSSLBackendTLSVerify[domain] = utils.SSLBackendTLSVerify(labels)
 
-		addr := ""
-
-		// check for networking
-		if n, ok := utils.OverlayEnabled(cInfo.Config); ok {
-			log().Debugf("configuring docker network: name=%s", n)
-
-			// FIXME: for some reason the request from dockerclient
-			// is not returning a populated Networks object
-			// so we hack this by inspecting the Network
-			// we should switch to engine-api/client -- hopefully
-			// that will fix
-			//net, found := cInfo.NetworkSettings.Networks[n]
-			//if !found {
-			//	log().Errorf("container %s is not connected to the network %s", cInfo.Id, n)
-			//	continue
-			//}
-
-			network, err := p.client.NetworkInspect(context.Background(), n)
-			if err != nil {
-				log().Error(err)
-				continue
-			}
-
-			addr, err = utils.BackendOverlayAddress(network, cInfo)
-			if err != nil {
-				log().Error(err)
-				continue
-			}
-
-			networks[n] = ""
-		} else {
-			portsExposed := false
-			for _, portBindings := range cInfo.NetworkSettings.Ports {
-				if len(portBindings) != 0 {
-					portsExposed = true
-					break
-				}
-			}
-			if !portsExposed {
-				log().Warnf("%s: no ports exposed", cntId)
-				continue
-			}
-
-			addr, err = utils.BackendAddress(cInfo, p.cfg.BackendOverrideAddress)
-			if err != nil {
-				log().Error(err)
-				continue
-			}
-		}
-
-		container_name := cInfo.Name[1:]
 		up := &Upstream{
 			Addr:          addr,
-			Container:     container_name,
+			Container:     containerName,
 			CheckInterval: healthCheckInterval,
 		}
 
-		log().Infof("%s: upstream=%s container=%s", domain, addr, container_name)
+		log().Infof("%s: upstream=%s container=%s", domain, addr, containerName)
 
 		// "parse" multiple labels for alias domains
-		aliasDomains := utils.AliasDomains(cInfo.Config)
+		aliasDomains := utils.AliasDomains(labels)
 
 		log().Debugf("alias domains: %v", aliasDomains)
 
 		for _, alias := range aliasDomains {
-			log().Debugf("adding alias %s for %s", alias, cntId)
+			log().Debugf("adding alias %s for %s", alias, id)
 			proxyUpstreams[alias] = append(proxyUpstreams[alias], up)
 			hostContextRoots[alias] = &ContextRoot{
 				Name: contextRootName,

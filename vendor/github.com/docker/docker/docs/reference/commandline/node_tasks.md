@@ -11,15 +11,17 @@ parent = "smn_cli"
 
 # node tasks
 
-    Usage:  docker node tasks [OPTIONS] NODE
+```markdown
+Usage:  docker node tasks [OPTIONS] self|NODE
 
-    List tasks running on a node
+List tasks running on a node
 
-    Options:
-      -a, --all            Display all instances
-      -f, --filter value   Filter output based on conditions provided
+Options:
+  -a, --all            Display all instances
+  -f, --filter value   Filter output based on conditions provided
       --help           Print usage
-      -n, --no-resolve     Do not map IDs to Names
+  -n, --no-resolve     Do not map IDs to Names
+```
 
 Lists all the tasks on a Node that Docker knows about. You can filter using the `-f` or `--filter` flag. Refer to the [filtering](#filtering) section for more information about available filter options.
 
@@ -44,7 +46,7 @@ The currently supported filters are:
 * [name](#name)
 * [id](#id)
 * [label](#label)
-* [desired_state](#desired_state)
+* [desired-state](#desired-state)
 
 #### name
 
@@ -85,9 +87,9 @@ bg8c07zzg87di2mufeq51a2qp  redis.7  redis    redis:3.0.6  Running 9 minutes   Ru
 ```
 
 
-#### desired_state
+#### desired-state
 
-The `desired_state` filter can take the values `running` and `accepted`.
+The `desired-state` filter can take the values `running` and `accepted`.
 
 
 ## Related information

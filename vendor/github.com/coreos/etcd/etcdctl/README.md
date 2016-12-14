@@ -231,6 +231,8 @@ Watch watches events stream on keys or prefixes, [key or prefix, range_end) if `
 
 - prefix -- watch on a prefix if prefix is set.
 
+- prev-kv -- get the previous key-value pair before the event happens.
+
 - rev -- the revision to start watching. Specifying a revision is useful for observing past events.
 
 #### Input Format
@@ -245,7 +247,7 @@ watch [options] <key or prefix>\n
 
 ##### Simple reply
 
-- \<event\>\n\<key\>\n\<value\>\n\<event\>\n\<next_key\>\n\<next_value\>\n...
+- \<event\>[\n\<old_key\>\n\<old_value\>]\n\<key\>\n\<value\>\n\<event\>\n\<next_key\>\n\<next_value\>\n...
 
 - Additional error string if WATCH failed. Exit code is non-zero.
 
@@ -497,25 +499,25 @@ ENDPOINT STATUS does not support protobuf encoded output.
 
 ```bash
 ./etcdctl endpoint status
-127.0.0.1:2379, 8211f1d0f64f3269, 3.0.0-beta.0+git, 25 kB, false, 2, 63
-127.0.0.1:22379, 91bc3c398fb3c146, 3.0.0-beta.0+git, 25 kB, false, 2, 63
-127.0.0.1:32379, fd422379fda50e48, 3.0.0-beta.0+git, 25 kB, true, 2, 63
+127.0.0.1:2379, 8211f1d0f64f3269, 3.0.0, 25 kB, false, 2, 63
+127.0.0.1:22379, 91bc3c398fb3c146, 3.0.0, 25 kB, false, 2, 63
+127.0.0.1:32379, fd422379fda50e48, 3.0.0, 25 kB, true, 2, 63
 ```
 
 ```bash
 ./etcdctl -w json endpoint status
-[{"Endpoint":"127.0.0.1:2379","Status":{"header":{"cluster_id":17237436991929493444,"member_id":9372538179322589801,"revision":2,"raft_term":2},"version":"2.3.0+git","dbSize":24576,"leader":18249187646912138824,"raftIndex":32623,"raftTerm":2}},{"Endpoint":"127.0.0.1:22379","Status":{"header":{"cluster_id":17237436991929493444,"member_id":10501334649042878790,"revision":2,"raft_term":2},"version":"2.3.0+git","dbSize":24576,"leader":18249187646912138824,"raftIndex":32623,"raftTerm":2}},{"Endpoint":"127.0.0.1:32379","Status":{"header":{"cluster_id":17237436991929493444,"member_id":18249187646912138824,"revision":2,"raft_term":2},"version":"2.3.0+git","dbSize":24576,"leader":18249187646912138824,"raftIndex":32623,"raftTerm":2}}]
+[{"Endpoint":"127.0.0.1:2379","Status":{"header":{"cluster_id":17237436991929493444,"member_id":9372538179322589801,"revision":2,"raft_term":2},"version":"3.0.0","dbSize":24576,"leader":18249187646912138824,"raftIndex":32623,"raftTerm":2}},{"Endpoint":"127.0.0.1:22379","Status":{"header":{"cluster_id":17237436991929493444,"member_id":10501334649042878790,"revision":2,"raft_term":2},"version":"3.0.0","dbSize":24576,"leader":18249187646912138824,"raftIndex":32623,"raftTerm":2}},{"Endpoint":"127.0.0.1:32379","Status":{"header":{"cluster_id":17237436991929493444,"member_id":18249187646912138824,"revision":2,"raft_term":2},"version":"3.0.0","dbSize":24576,"leader":18249187646912138824,"raftIndex":32623,"raftTerm":2}}]
 ```
 
 ```bash
 ./etcdctl -w table endpoint status
-+-----------------+------------------+------------------+---------+-----------+-----------+------------+
-|    ENDPOINT     |        ID        |     VERSION      | DB SIZE | IS LEADER | RAFT TERM | RAFT INDEX |
-+-----------------+------------------+------------------+---------+-----------+-----------+------------+
-| 127.0.0.1:2379  | 8211f1d0f64f3269 | 3.0.0-beta.0+git | 25 kB   | false     |         2 |         52 |
-| 127.0.0.1:22379 | 91bc3c398fb3c146 | 3.0.0-beta.0+git | 25 kB   | false     |         2 |         52 |
-| 127.0.0.1:32379 | fd422379fda50e48 | 3.0.0-beta.0+git | 25 kB   | true      |         2 |         52 |
-+-----------------+------------------+------------------+---------+-----------+-----------+------------+
++-----------------+------------------+---------+---------+-----------+-----------+------------+
+|    ENDPOINT     |        ID        | VERSION | DB SIZE | IS LEADER | RAFT TERM | RAFT INDEX |
++-----------------+------------------+---------+---------+-----------+-----------+------------+
+| 127.0.0.1:2379  | 8211f1d0f64f3269 |  3.0.0  | 25 kB   | false     |         2 |         52 |
+| 127.0.0.1:22379 | 91bc3c398fb3c146 |  3.0.0  | 25 kB   | false     |         2 |         52 |
+| 127.0.0.1:32379 | fd422379fda50e48 |  3.0.0  | 25 kB   | true      |         2 |         52 |
++-----------------+------------------+---------+---------+-----------+-----------+------------+
 ```
 
 ### LOCK \<lockname\>

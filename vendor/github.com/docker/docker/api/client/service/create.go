@@ -5,6 +5,7 @@ import (
 
 	"github.com/docker/docker/api/client"
 	"github.com/docker/docker/cli"
+	"github.com/docker/engine-api/types"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
 )
@@ -32,14 +33,27 @@ func newCreateCommand(dockerCli *client.DockerCli) *cobra.Command {
 }
 
 func runCreate(dockerCli *client.DockerCli, opts *serviceOptions) error {
-	client := dockerCli.Client()
+	apiClient := dockerCli.Client()
+	createOpts := types.ServiceCreateOptions{}
 
 	service, err := opts.ToService()
 	if err != nil {
 		return err
 	}
 
-	response, err := client.ServiceCreate(context.Background(), service)
+	ctx := context.Background()
+
+	// only send auth if flag was set
+	if opts.registryAuth {
+		// Retrieve encoded auth token from the image reference
+		encodedAuth, err := dockerCli.RetrieveAuthTokenFromImage(ctx, opts.image)
+		if err != nil {
+			return err
+		}
+		createOpts.EncodedRegistryAuth = encodedAuth
+	}
+
+	response, err := apiClient.ServiceCreate(ctx, service, createOpts)
 	if err != nil {
 		return err
 	}

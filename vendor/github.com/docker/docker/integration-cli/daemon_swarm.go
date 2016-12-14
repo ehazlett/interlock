@@ -9,6 +9,7 @@ import (
 
 	"github.com/docker/docker/pkg/integration/checker"
 	"github.com/docker/engine-api/types"
+	"github.com/docker/engine-api/types/filters"
 	"github.com/docker/engine-api/types/swarm"
 	"github.com/go-check/check"
 )
@@ -21,22 +22,18 @@ type SwarmDaemon struct {
 	listenAddr string
 }
 
+// default policy in tests is allow-all
+var autoAcceptPolicy = swarm.AcceptancePolicy{
+	Policies: []swarm.Policy{
+		{Role: swarm.NodeRoleWorker, Autoaccept: true},
+		{Role: swarm.NodeRoleManager, Autoaccept: true},
+	},
+}
+
 // Init initializes a new swarm cluster.
-func (d *SwarmDaemon) Init(autoAccept map[string]bool, secret string) error {
-	req := swarm.InitRequest{
-		ListenAddr: d.listenAddr,
-	}
-	for _, role := range []swarm.NodeRole{swarm.NodeRoleManager, swarm.NodeRoleWorker} {
-		policy := swarm.Policy{
-			Role:       role,
-			Autoaccept: autoAccept[strings.ToLower(string(role))],
-		}
-
-		if secret != "" {
-			policy.Secret = &secret
-		}
-
-		req.Spec.AcceptancePolicy.Policies = append(req.Spec.AcceptancePolicy.Policies, policy)
+func (d *SwarmDaemon) Init(req swarm.InitRequest) error {
+	if req.ListenAddr == "" {
+		req.ListenAddr = d.listenAddr
 	}
 	status, out, err := d.SockRequest("POST", "/swarm/init", req)
 	if status != http.StatusOK {
@@ -53,17 +50,10 @@ func (d *SwarmDaemon) Init(autoAccept map[string]bool, secret string) error {
 	return nil
 }
 
-// Join joins a current daemon with existing cluster.
-func (d *SwarmDaemon) Join(remoteAddr, secret, cahash string, manager bool) error {
-	req := swarm.JoinRequest{
-		ListenAddr:  d.listenAddr,
-		RemoteAddrs: []string{remoteAddr},
-		Manager:     manager,
-		CACertHash:  cahash,
-	}
-
-	if secret != "" {
-		req.Secret = secret
+// Join joins a daemon to an existing cluster.
+func (d *SwarmDaemon) Join(req swarm.JoinRequest) error {
+	if req.ListenAddr == "" {
+		req.ListenAddr = d.listenAddr
 	}
 	status, out, err := d.SockRequest("POST", "/swarm/join", req)
 	if status != http.StatusOK {
@@ -140,6 +130,32 @@ func (d *SwarmDaemon) getService(c *check.C, id string) *swarm.Service {
 	c.Assert(json.Unmarshal(out, &service), checker.IsNil)
 	c.Assert(service.ID, checker.Equals, id)
 	return &service
+}
+
+func (d *SwarmDaemon) getServiceTasks(c *check.C, service string) []swarm.Task {
+	var tasks []swarm.Task
+
+	filterArgs := filters.NewArgs()
+	filterArgs.Add("desired-state", "running")
+	filterArgs.Add("service", service)
+	filters, err := filters.ToParam(filterArgs)
+	c.Assert(err, checker.IsNil)
+
+	status, out, err := d.SockRequest("GET", "/tasks?filters="+filters, nil)
+	c.Assert(status, checker.Equals, http.StatusOK, check.Commentf("output: %q", string(out)))
+	c.Assert(err, checker.IsNil, check.Commentf(string(out)))
+	c.Assert(json.Unmarshal(out, &tasks), checker.IsNil)
+	return tasks
+}
+
+func (d *SwarmDaemon) getTask(c *check.C, id string) swarm.Task {
+	var task swarm.Task
+
+	status, out, err := d.SockRequest("GET", "/tasks/"+id, nil)
+	c.Assert(status, checker.Equals, http.StatusOK, check.Commentf("output: %q", string(out)))
+	c.Assert(err, checker.IsNil, check.Commentf(string(out)))
+	c.Assert(json.Unmarshal(out, &task), checker.IsNil)
+	return task
 }
 
 func (d *SwarmDaemon) updateService(c *check.C, service *swarm.Service, f ...serviceConstructor) {

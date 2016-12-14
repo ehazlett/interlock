@@ -91,13 +91,12 @@ func (c *containerConfig) image() string {
 func (c *containerConfig) volumes() map[string]struct{} {
 	r := make(map[string]struct{})
 
-	for _, mount := range c.spec().Mounts {
+	for _, m := range c.spec().Mounts {
 		// pick off all the volume mounts.
-		if mount.Type != api.MountTypeVolume {
+		if m.Type != api.MountTypeVolume || m.Source != "" {
 			continue
 		}
-
-		r[fmt.Sprintf("%s:%s", mount.Target, getMountMask(&mount))] = struct{}{}
+		r[m.Target] = struct{}{}
 	}
 
 	return r
@@ -117,8 +116,8 @@ func (c *containerConfig) config() *enginecontainer.Config {
 		// If Command is provided, we replace the whole invocation with Command
 		// by replacing Entrypoint and specifying Cmd. Args is ignored in this
 		// case.
-		config.Entrypoint = append(config.Entrypoint, c.spec().Command[0])
-		config.Cmd = append(config.Cmd, c.spec().Command[1:]...)
+		config.Entrypoint = append(config.Entrypoint, c.spec().Command...)
+		config.Cmd = append(config.Cmd, c.spec().Args...)
 	} else if len(c.spec().Args) > 0 {
 		// In this case, we assume the image has an Entrypoint and Args
 		// specifies the arguments for that entrypoint.
@@ -164,9 +163,13 @@ func (c *containerConfig) bindMounts() []string {
 	var r []string
 
 	for _, val := range c.spec().Mounts {
-		mask := getMountMask(&val)
-		if val.Type == api.MountTypeBind {
-			r = append(r, fmt.Sprintf("%s:%s:%s", val.Source, val.Target, mask))
+		if val.Type == api.MountTypeBind || (val.Type == api.MountTypeVolume && val.Source != "") {
+			mask := getMountMask(&val)
+			spec := fmt.Sprintf("%s:%s", val.Source, val.Target)
+			if mask != "" {
+				spec = fmt.Sprintf("%s:%s", spec, mask)
+			}
+			r = append(r, spec)
 		}
 	}
 
@@ -174,9 +177,9 @@ func (c *containerConfig) bindMounts() []string {
 }
 
 func getMountMask(m *api.Mount) string {
-	maskOpts := []string{"ro"}
-	if m.Writable {
-		maskOpts[0] = "rw"
+	var maskOpts []string
+	if m.ReadOnly {
+		maskOpts = append(maskOpts, "ro")
 	}
 
 	if m.BindOptions != nil {
@@ -197,7 +200,7 @@ func getMountMask(m *api.Mount) string {
 	}
 
 	if m.VolumeOptions != nil {
-		if !m.VolumeOptions.Populate {
+		if m.VolumeOptions.NoCopy {
 			maskOpts = append(maskOpts, "nocopy")
 		}
 	}
@@ -404,6 +407,9 @@ func (c *containerConfig) networkCreateRequest(name string) (clustertypes.Networ
 			Driver: na.Network.IPAM.Driver.Name,
 		},
 		Options:        na.Network.DriverState.Options,
+		Labels:         na.Network.Spec.Annotations.Labels,
+		Internal:       na.Network.Spec.Internal,
+		EnableIPv6:     na.Network.Spec.Ipv6Enabled,
 		CheckDuplicate: true,
 	}
 

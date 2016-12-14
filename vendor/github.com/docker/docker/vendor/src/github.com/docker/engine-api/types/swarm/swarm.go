@@ -18,6 +18,14 @@ type Spec struct {
 	Raft             RaftConfig          `json:",omitempty"`
 	Dispatcher       DispatcherConfig    `json:",omitempty"`
 	CAConfig         CAConfig            `json:",omitempty"`
+
+	// DefaultLogDriver sets the log driver to use at task creation time if
+	// unspecified by a task.
+	//
+	// Updating this value will only have an affect on new tasks. Old tasks
+	// will continue use their previously configured log driver until
+	// recreated.
+	DefaultLogDriver *Driver `json:",omitempty"`
 }
 
 // AcceptancePolicy represents the list of policies.
@@ -32,7 +40,7 @@ type Policy struct {
 	Secret     *string `json:",omitempty"`
 }
 
-// OrchestrationConfig represents ochestration configuration.
+// OrchestrationConfig represents orchestration configuration.
 type OrchestrationConfig struct {
 	TaskHistoryRetentionLimit int64 `json:",omitempty"`
 }
@@ -54,6 +62,20 @@ type DispatcherConfig struct {
 // CAConfig represents CA configuration.
 type CAConfig struct {
 	NodeCertExpiry time.Duration `json:",omitempty"`
+	ExternalCAs    []*ExternalCA `json:",omitempty"`
+}
+
+// ExternalCAProtocol represents type of external CA.
+type ExternalCAProtocol string
+
+// ExternalCAProtocolCFSSL CFSSL
+const ExternalCAProtocolCFSSL ExternalCAProtocol = "cfssl"
+
+// ExternalCA defines external CA to be used by the cluster.
+type ExternalCA struct {
+	Protocol ExternalCAProtocol
+	URL      string
+	Options  map[string]string `json:",omitempty"`
 }
 
 // InitRequest is the request used to init a swarm.

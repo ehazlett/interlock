@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 
 	"github.com/docker/docker/cliconfig"
 	"github.com/docker/docker/pkg/reexec"
+	"github.com/docker/engine-api/types/swarm"
 	"github.com/go-check/check"
 )
 
@@ -79,7 +81,7 @@ type DockerSchema1RegistrySuite struct {
 }
 
 func (s *DockerSchema1RegistrySuite) SetUpTest(c *check.C) {
-	testRequires(c, DaemonIsLinux, RegistryHosting)
+	testRequires(c, DaemonIsLinux, RegistryHosting, NotArm64)
 	s.reg = setupRegistry(c, true, "", "")
 	s.d = NewDaemon(c)
 }
@@ -193,9 +195,10 @@ func init() {
 }
 
 type DockerSwarmSuite struct {
-	ds        *DockerSuite
-	daemons   []*SwarmDaemon
-	portIndex int
+	ds          *DockerSuite
+	daemons     []*SwarmDaemon
+	daemonsLock sync.Mutex // protect access to daemons
+	portIndex   int
 }
 
 func (s *DockerSwarmSuite) SetUpTest(c *check.C) {
@@ -213,29 +216,36 @@ func (s *DockerSwarmSuite) AddDaemon(c *check.C, joinSwarm, manager bool) *Swarm
 
 	if joinSwarm == true {
 		if len(s.daemons) > 0 {
-			c.Assert(d.Join(s.daemons[0].listenAddr, "", "", manager), check.IsNil)
+			c.Assert(d.Join(swarm.JoinRequest{
+				RemoteAddrs: []string{s.daemons[0].listenAddr},
+				Manager:     manager}), check.IsNil)
 		} else {
-			aa := make(map[string]bool)
-			aa["worker"] = true
-			aa["manager"] = true
-			c.Assert(d.Init(aa, ""), check.IsNil)
+			c.Assert(d.Init(swarm.InitRequest{
+				Spec: swarm.Spec{
+					AcceptancePolicy: autoAcceptPolicy,
+				},
+			}), check.IsNil)
 		}
 	}
 
 	s.portIndex++
+	s.daemonsLock.Lock()
 	s.daemons = append(s.daemons, d)
+	s.daemonsLock.Unlock()
 
 	return d
 }
 
 func (s *DockerSwarmSuite) TearDownTest(c *check.C) {
 	testRequires(c, DaemonIsLinux)
+	s.daemonsLock.Lock()
 	for _, d := range s.daemons {
 		d.Stop()
 	}
 	s.daemons = nil
-	s.portIndex = 0
+	s.daemonsLock.Unlock()
 
+	s.portIndex = 0
 	s.ds.TearDownTest(c)
 }
 

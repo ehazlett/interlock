@@ -29,19 +29,21 @@ var (
 	watchRev         int64
 	watchPrefix      bool
 	watchInteractive bool
+	watchPrevKey     bool
 )
 
 // NewWatchCommand returns the cobra command for "watch".
 func NewWatchCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "watch [options] [key or prefix] [range_end]",
-		Short: "Watch watches events stream on keys or prefixes.",
+		Short: "Watches events stream on keys or prefixes",
 		Run:   watchCommandFunc,
 	}
 
-	cmd.Flags().BoolVarP(&watchInteractive, "interactive", "i", false, "interactive mode")
-	cmd.Flags().BoolVar(&watchPrefix, "prefix", false, "watch on a prefix if prefix is set")
-	cmd.Flags().Int64Var(&watchRev, "rev", 0, "revision to start watching")
+	cmd.Flags().BoolVarP(&watchInteractive, "interactive", "i", false, "Interactive mode")
+	cmd.Flags().BoolVar(&watchPrefix, "prefix", false, "Watch on a prefix if prefix is set")
+	cmd.Flags().Int64Var(&watchRev, "rev", 0, "Revision to start watching")
+	cmd.Flags().BoolVar(&watchPrevKey, "prev-kv", false, "get the previous key-value pair before the event happens")
 
 	return cmd
 }
@@ -68,6 +70,10 @@ func watchCommandFunc(cmd *cobra.Command, args []string) {
 	if watchPrefix {
 		opts = append(opts, clientv3.WithPrefix())
 	}
+	if watchPrevKey {
+		opts = append(opts, clientv3.WithPrevKV())
+	}
+
 	c := mustClientFromCmd(cmd)
 	wc := c.Watch(context.TODO(), key, opts...)
 	printWatchCh(wc)

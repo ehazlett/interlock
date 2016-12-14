@@ -153,13 +153,13 @@ type Server interface {
 
 // EtcdServer is the production implementation of the Server interface
 type EtcdServer struct {
-	// r and inflightSnapshots must be the first elements to keep 64-bit alignment for atomic
-	// access to fields
-
-	// count the number of inflight snapshots.
-	// MUST use atomic operation to access this field.
-	inflightSnapshots int64
-	Cfg               *ServerConfig
+	// inflightSnapshots holds count the number of snapshots currently inflight.
+	inflightSnapshots int64  // must use atomic operations to access; keep 64-bit aligned.
+	appliedIndex      uint64 // must use atomic operations to access; keep 64-bit aligned.
+	// consistIndex used to hold the offset of current executing entry
+	// It is initialized to 0 before executing any entry.
+	consistIndex consistentIndex // must use atomic operations to access; keep 64-bit aligned.
+	Cfg          *ServerConfig
 
 	readych chan struct{}
 	r       raftNode
@@ -194,10 +194,6 @@ type EtcdServer struct {
 	// compactor is used to auto-compact the KV.
 	compactor *compactor.Periodic
 
-	// consistent index used to hold the offset of current executing entry
-	// It is initialized to 0 before executing any entry.
-	consistIndex consistentIndex
-
 	// peerRt used to send requests (version, lease) to peers.
 	peerRt   http.RoundTripper
 	reqIDGen *idutil.Generator
@@ -211,8 +207,6 @@ type EtcdServer struct {
 	// wg is used to wait for the go routines that depends on the server state
 	// to exit when stopping the server.
 	wg sync.WaitGroup
-
-	appliedIndex uint64
 }
 
 // NewServer creates a new EtcdServer from the supplied configuration. The
@@ -357,7 +351,7 @@ func NewServer(cfg *ServerConfig) (srv *EtcdServer, err error) {
 		cl.SetStore(st)
 		cl.SetBackend(be)
 		cl.Recover()
-		if cl.Version() != nil && cl.Version().LessThan(semver.Version{Major: 3}) && !beExist {
+		if cl.Version() != nil && !cl.Version().LessThan(semver.Version{Major: 3}) && !beExist {
 			os.RemoveAll(bepath)
 			return nil, fmt.Errorf("database file (%v) of the backend is missing", bepath)
 		}
@@ -1170,8 +1164,7 @@ func (s *EtcdServer) snapshot(snapi uint64, confState raftpb.ConfState) {
 			}
 			plog.Panicf("unexpected create snapshot error %v", err)
 		}
-		// commit v3 storage because WAL file before snapshot index
-		// could be removed after SaveSnap.
+		// commit kv to write metadata (for example: consistent index) to disk.
 		s.KV().Commit()
 		// SaveSnap saves the snapshot and releases the locked wal files
 		// to the snapshot index.

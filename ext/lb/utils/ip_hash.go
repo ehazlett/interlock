@@ -1,14 +1,11 @@
 package utils
 
-import (
-	ctypes "github.com/docker/engine-api/types/container"
-	"github.com/ehazlett/interlock/ext"
-)
+import "github.com/ehazlett/interlock/ext"
 
-func IPHash(config *ctypes.Config) bool {
+func IPHash(labels map[string]string) bool {
 	ipHash := false
 
-	if _, ok := config.Labels[ext.InterlockIPHashLabel]; ok {
+	if _, ok := labels[ext.InterlockIPHashLabel]; ok {
 		ipHash = true
 	}
 

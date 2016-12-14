@@ -1,31 +1,31 @@
 hash: 90fc7553fa1658284c3cc774fdb984790b405250c9029dd885c78df300339e33
-updated: 2016-06-29T16:57:58.537130518-04:00
+updated: 2016-07-08T23:33:43.999607844-04:00
 imports:
 - name: github.com/beorn7/perks
   version: 3ac7bf7a47d159a033b107610db8a1b6575507a4
   subpackages:
   - quantile
 - name: github.com/BurntSushi/toml
-  version: f0aeabca5a127c4078abb8c8d64298b147264b55
+  version: ffaa107fbd880f6d18cd6fec9b511668dcad8639
 - name: github.com/codegangsta/cli
   version: 1efa31f08b9333f1bd4882d61f9d668a70cd902e
 - name: github.com/coreos/etcd
-  version: b7d0497c478da5ce8968c17d627cbbac1680924c
+  version: 474eb1b44b097c0e53374d7467fc6f02d06990fc
   subpackages:
   - client
   - pkg/pathutil
   - pkg/types
 - name: github.com/docker/distribution
-  version: c24b072e7d3b3b81b03d46ed84443b5181beeb9c
+  version: 4e17ab5d319ac5b70b2769442947567a83386fbc
   subpackages:
   - reference
   - digest
 - name: github.com/docker/docker
-  version: a1fff2ca5afa15ae092668a06b55ae2dc4e039d7
+  version: 3ab080a4bd105d630bc1d67808bdc04bc4b4698e
   subpackages:
   - pkg/tlsconfig
 - name: github.com/docker/engine-api
-  version: 25941ecf6e8351810e8530c60de8dda7d5e1baba
+  version: 98348ad6f9c89bb10f31ac32cd1b12cbadd292b6
   subpackages:
   - client
   - types
@@ -33,11 +33,11 @@ imports:
   - types/events
   - types/filters
   - types/network
+  - types/swarm
   - client/transport
   - client/transport/cancellable
   - types/reference
   - types/registry
-  - types/swarm
   - types/time
   - types/versions
   - types/blkiodev
@@ -51,7 +51,7 @@ imports:
 - name: github.com/docker/go-units
   version: f2d77a61e3c169b43402a0a1e84f06daf29b8190
 - name: github.com/docker/libkv
-  version: 7283ef27ed32fe267388510a91709b307bb9942c
+  version: 35d3e2084c650109e7bcc7282655b1bc8ba924ff
   subpackages:
   - store
   - store/consul
@@ -59,11 +59,11 @@ imports:
 - name: github.com/ehazlett/ttlcache
   version: 9f221f68554a95645a171d5f9504be8fc100a881
 - name: github.com/golang/protobuf
-  version: b3e26a40c2321140ad7c7d031030d3c9e3cdecc7
+  version: 3852dcfda249c2097355a6aabb199a28d97b30df
   subpackages:
   - proto
 - name: github.com/hashicorp/consul
-  version: 56eb3bbe352c098914910c95affe123341684e3c
+  version: 64e3033d3c7f80af3f925f4665a9bc1af75d6153
   subpackages:
   - api
 - name: github.com/hashicorp/go-cleanhttp
@@ -74,7 +74,7 @@ imports:
   - coordinate
   - serf
 - name: github.com/influxdata/influxdb
-  version: 5aae28e14fa5feec895161085dfa070317eb9644
+  version: 11d141ae1fadfcac2a36e23d4aa38b36271a5daf
   subpackages:
   - client/v2
   - models
@@ -86,7 +86,7 @@ imports:
 - name: github.com/Microsoft/go-winio
   version: ce2922f643c8fd76b46cadc7f404a06282678b34
 - name: github.com/opencontainers/runc
-  version: 629e35666d31f743090452416c8df207d9fdbd34
+  version: 9d7831e41d3ef428b67685eeb27f2b4a22a92391
   subpackages:
   - libcontainer/user
 - name: github.com/prometheus/client_golang

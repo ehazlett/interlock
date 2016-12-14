@@ -32,7 +32,7 @@ type watchServer struct {
 	clusterID int64
 	memberID  int64
 	raftTimer etcdserver.RaftTimer
-	watchable mvcc.Watchable
+	watchable mvcc.WatchableKV
 }
 
 func NewWatchServer(s *etcdserver.EtcdServer) pb.WatchServer {
@@ -82,15 +82,19 @@ type serverWatchStream struct {
 	memberID  int64
 	raftTimer etcdserver.RaftTimer
 
+	watchable mvcc.WatchableKV
+
 	gRPCStream  pb.Watch_WatchServer
 	watchStream mvcc.WatchStream
 	ctrlStream  chan *pb.WatchResponse
 
+	// mu protects progress, prevKV
+	mu sync.Mutex
 	// progress tracks the watchID that stream might need to send
 	// progress to.
+	// TOOD: combine progress and prevKV into a single struct?
 	progress map[mvcc.WatchID]bool
-	// mu protects progress
-	mu sync.Mutex
+	prevKV   map[mvcc.WatchID]bool
 
 	// closec indicates the stream is closed.
 	closec chan struct{}
@@ -101,14 +105,18 @@ type serverWatchStream struct {
 
 func (ws *watchServer) Watch(stream pb.Watch_WatchServer) (err error) {
 	sws := serverWatchStream{
-		clusterID:   ws.clusterID,
-		memberID:    ws.memberID,
-		raftTimer:   ws.raftTimer,
+		clusterID: ws.clusterID,
+		memberID:  ws.memberID,
+		raftTimer: ws.raftTimer,
+
+		watchable: ws.watchable,
+
 		gRPCStream:  stream,
 		watchStream: ws.watchable.NewWatchStream(),
 		// chan for sending control response like watcher created and canceled.
 		ctrlStream: make(chan *pb.WatchResponse, ctrlStreamBufLen),
 		progress:   make(map[mvcc.WatchID]bool),
+		prevKV:     make(map[mvcc.WatchID]bool),
 		closec:     make(chan struct{}),
 	}
 
@@ -181,8 +189,15 @@ func (sws *serverWatchStream) recvLoop() error {
 				rev = wsrev + 1
 			}
 			id := sws.watchStream.Watch(creq.Key, creq.RangeEnd, rev, filters...)
-			if id != -1 && creq.ProgressNotify {
-				sws.progress[id] = true
+			if id != -1 {
+				sws.mu.Lock()
+				if creq.ProgressNotify {
+					sws.progress[id] = true
+				}
+				if creq.PrevKv {
+					sws.prevKV[id] = true
+				}
+				sws.mu.Unlock()
 			}
 			wr := &pb.WatchResponse{
 				Header:   sws.newResponseHeader(wsrev),
@@ -207,12 +222,15 @@ func (sws *serverWatchStream) recvLoop() error {
 					}
 					sws.mu.Lock()
 					delete(sws.progress, mvcc.WatchID(id))
+					delete(sws.prevKV, mvcc.WatchID(id))
 					sws.mu.Unlock()
 				}
 			}
-			// TODO: do we need to return error back to client?
 		default:
-			panic("not implemented")
+			// we probably should not shutdown the entire stream when
+			// receive an valid command.
+			// so just do nothing instead.
+			continue
 		}
 	}
 }
@@ -251,8 +269,19 @@ func (sws *serverWatchStream) sendLoop() {
 			// or define protocol buffer with []mvccpb.Event.
 			evs := wresp.Events
 			events := make([]*mvccpb.Event, len(evs))
+			sws.mu.Lock()
+			needPrevKV := sws.prevKV[wresp.WatchID]
+			sws.mu.Unlock()
 			for i := range evs {
 				events[i] = &evs[i]
+
+				if needPrevKV {
+					opt := mvcc.RangeOptions{Rev: evs[i].Kv.ModRevision - 1}
+					r, err := sws.watchable.Range(evs[i].Kv.Key, nil, opt)
+					if err == nil && len(r.KVs) != 0 {
+						events[i].PrevKv = &(r.KVs[0])
+					}
+				}
 			}
 
 			wr := &pb.WatchResponse{
@@ -307,12 +336,14 @@ func (sws *serverWatchStream) sendLoop() {
 				delete(pending, wid)
 			}
 		case <-progressTicker.C:
+			sws.mu.Lock()
 			for id, ok := range sws.progress {
 				if ok {
 					sws.watchStream.RequestProgress(id)
 				}
 				sws.progress[id] = true
 			}
+			sws.mu.Unlock()
 		case <-sws.closec:
 			return
 		}

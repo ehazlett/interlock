@@ -79,7 +79,7 @@ func (p *NginxLoadBalancer) Reload(proxyContainers []types.Container) error {
 			continue
 		}
 
-		log().Infof("restarted proxy container: id=%s name=%s", cnt.ID[:12], cnt.Names[0])
+		log().Infof("restarted proxy container: id=%s", cnt.ID[:12])
 	}
 
 	return nil

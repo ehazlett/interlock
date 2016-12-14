@@ -6,13 +6,12 @@ import (
 	"strings"
 
 	"github.com/docker/engine-api/types"
-	ctypes "github.com/docker/engine-api/types/container"
 	"github.com/docker/go-connections/nat"
 	"github.com/ehazlett/interlock/ext"
 )
 
-func OverlayEnabled(config *ctypes.Config) (string, bool) {
-	if v, ok := config.Labels[ext.InterlockNetworkLabel]; ok {
+func OverlayEnabled(labels map[string]string) (string, bool) {
+	if v, ok := labels[ext.InterlockNetworkLabel]; ok {
 		return v, true
 	}
 

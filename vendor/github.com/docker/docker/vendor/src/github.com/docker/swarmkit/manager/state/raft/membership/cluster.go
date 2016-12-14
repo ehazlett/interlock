@@ -27,8 +27,6 @@ var (
 // Cluster represents a set of active
 // raft Members
 type Cluster struct {
-	id uint64
-
 	mu      sync.RWMutex
 	members map[uint64]*Member
 
@@ -103,17 +101,15 @@ func (c *Cluster) RemoveMember(id uint64) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	if c.members[id] == nil {
-		return ErrIDNotFound
-	}
-
-	conn := c.members[id].Conn
-	if conn != nil {
-		_ = conn.Close()
+	if c.members[id] != nil {
+		conn := c.members[id].Conn
+		if conn != nil {
+			_ = conn.Close()
+		}
+		delete(c.members, id)
 	}
 
 	c.removed[id] = true
-	delete(c.members, id)
 	return nil
 }
 
@@ -169,19 +165,11 @@ func (c *Cluster) ValidateConfigurationChange(cc raftpb.ConfChange) error {
 // that might block or harm the Cluster on Member recovery
 func (c *Cluster) CanRemoveMember(from uint64, id uint64) bool {
 	members := c.Members()
-
-	nmembers := 0
 	nreachable := 0
 
 	for _, m := range members {
-		// Skip the node that is going to be deleted
-		if m.RaftID == id {
-			continue
-		}
-
 		// Local node from where the remove is issued
 		if m.RaftID == from {
-			nmembers++
 			nreachable++
 			continue
 		}
@@ -190,8 +178,6 @@ func (c *Cluster) CanRemoveMember(from uint64, id uint64) bool {
 		if err == nil && connState == grpc.Ready {
 			nreachable++
 		}
-
-		nmembers++
 	}
 
 	// Special case of 2 managers
@@ -199,7 +185,7 @@ func (c *Cluster) CanRemoveMember(from uint64, id uint64) bool {
 		return false
 	}
 
-	nquorum := nmembers/2 + 1
+	nquorum := (len(members)+1)/2 + 1
 	if nreachable < nquorum {
 		return false
 	}

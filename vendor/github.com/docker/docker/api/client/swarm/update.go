@@ -47,7 +47,8 @@ func runUpdate(dockerCli *client.DockerCli, flags *pflag.FlagSet, opts swarmOpti
 		return err
 	}
 
-	fmt.Println("Swarm updated.")
+	fmt.Fprintln(dockerCli.Out(), "Swarm updated.")
+
 	return nil
 }
 
@@ -83,6 +84,11 @@ func mergeSwarm(swarm *swarm.Swarm, flags *pflag.FlagSet) error {
 		if v, err := flags.GetDuration(flagCertExpiry); err == nil {
 			spec.CAConfig.NodeCertExpiry = v
 		}
+	}
+
+	if flags.Changed(flagExternalCA) {
+		value := flags.Lookup(flagExternalCA).Value.(*ExternalCAOption)
+		spec.CAConfig.ExternalCAs = value.Value()
 	}
 
 	return nil

@@ -30,6 +30,12 @@ With this release the systemd configuration files for InfluxDB will use the syst
 - [#4532](https://github.com/influxdata/influxdb/issues/4532): Support regex selection in SHOW TAG VALUES for the key.
 - [#6889](https://github.com/influxdata/influxdb/pull/6889): Update help and remove unused config options from the configuration file.
 - [#6900](https://github.com/influxdata/influxdb/pull/6900): Trim BOM from Windows Notepad-saved config files.
+- [#6938](https://github.com/influxdata/influxdb/issues/6938): Added favicon
+- [#6507](https://github.com/influxdata/influxdb/issues/6507): Refactor monitor service to avoid expvar and write monitor statistics on a truncated time interval.
+- [#6805](https://github.com/influxdata/influxdb/issues/6805): Allow any variant of the help option to trigger the help.
+- [#5499](https://github.com/influxdata/influxdb/issues/5499): Add stats and diagnostics to the TSM engine.
+- [#6959](https://github.com/influxdata/influxdb/issues/6959): Return 403 Forbidden when authentication succeeds but authorization fails.
+- [#1110](https://github.com/influxdata/influxdb/issues/1110): Support loading a folder for collectd typesdb files.
 
 ### Bugfixes
 
@@ -77,6 +83,11 @@ With this release the systemd configuration files for InfluxDB will use the syst
 - [#6855](https://github.com/influxdata/influxdb/pull/6855): Update `stress/v2` to work with clusters, ssl, and username/password auth. Code cleanup
 - [#6738](https://github.com/influxdata/influxdb/issues/6738): Time sorting broken with overwritten points
 - [#6829](https://github.com/influxdata/influxdb/issues/6829): Fix panic: runtime error: index out of range
+- [#6911](https://github.com/influxdata/influxdb/issues/6911): Fix fill(previous) when used with math operators.
+- [#6934](https://github.com/influxdata/influxdb/pull/6934): Fix regex binary encoding for a measurement.
+- [#6942](https://github.com/influxdata/influxdb/pull/6942): Fix panic: truncate the slice when merging the caches.
+- [#6708](https://github.com/influxdata/influxdb/issues/6708): Drop writes from before the retention policy time window.
+- [#6968](https://github.com/influxdata/influxdb/issues/6968): Always use the demo config when outputting a new config.
 
 ## v0.13.0 [2016-05-12]
 

@@ -24,16 +24,17 @@ import (
 )
 
 var (
-	leaseStr string
+	leaseStr  string
+	putPrevKV bool
 )
 
 // NewPutCommand returns the cobra command for "put".
 func NewPutCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "put [options] <key> <value> (<value> can also be given from stdin)",
-		Short: "Put puts the given key into the store.",
+		Short: "Puts the given key into the store",
 		Long: `
-Put puts the given key into the store.
+Puts the given key into the store.
 
 When <value> begins with '-', <value> is interpreted as a flag.
 Insert '--' for workaround:
@@ -49,6 +50,7 @@ will store the content of the file to <key>.
 		Run: putCommandFunc,
 	}
 	cmd.Flags().StringVar(&leaseStr, "lease", "0", "lease ID (in hexadecimal) to attach to the key")
+	cmd.Flags().BoolVar(&putPrevKV, "prev-kv", false, "return changed key-value pairs")
 	return cmd
 }
 
@@ -84,6 +86,9 @@ func getPutOp(cmd *cobra.Command, args []string) (string, string, []clientv3.OpO
 	opts := []clientv3.OpOption{}
 	if id != 0 {
 		opts = append(opts, clientv3.WithLease(clientv3.LeaseID(id)))
+	}
+	if putPrevKV {
+		opts = append(opts, clientv3.WithPrevKV())
 	}
 
 	return key, value, opts

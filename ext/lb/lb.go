@@ -16,7 +16,9 @@ import (
 	"github.com/docker/engine-api/client"
 	"github.com/docker/engine-api/types"
 	etypes "github.com/docker/engine-api/types/events"
+	"github.com/docker/engine-api/types/filters"
 	ntypes "github.com/docker/engine-api/types/network"
+	swarmtypes "github.com/docker/engine-api/types/swarm"
 	"github.com/ehazlett/interlock/config"
 	"github.com/ehazlett/interlock/ext"
 	"github.com/ehazlett/interlock/ext/lb/haproxy"
@@ -46,7 +48,7 @@ type proxyContainerNetworkConfig struct {
 type LoadBalancerBackend interface {
 	Name() string
 	ConfigPath() string
-	GenerateProxyConfig(c []types.Container) (interface{}, error)
+	GenerateProxyConfig(c []types.Container, s []swarmtypes.Service) (interface{}, error)
 	Template() string
 	Reload(proxyContainers []types.Container) error
 }
@@ -210,9 +212,16 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *client.Client) (*LoadBal
 				continue
 			}
 
+			svcOpts := types.ServiceListOptions{}
+			services, err := client.ServiceList(context.Background(), svcOpts)
+			if err != nil {
+				errChan <- err
+				continue
+			}
+
 			// generate proxy config
 			log().Debug("generating proxy config")
-			cfg, err := extension.backend.GenerateProxyConfig(containers)
+			cfg, err := extension.backend.GenerateProxyConfig(containers, services)
 			if err != nil {
 				errChan <- err
 				continue
@@ -311,9 +320,6 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *client.Client) (*LoadBal
 			d := time.Since(start)
 			duration := float64(d.Seconds() * float64(1000))
 
-			//log().Debug("triggering proxy network cleanup")
-			//proxyNetworkCleanupChan <- proxyContainerNetworkConfigs
-
 			log().Infof("reload duration: %0.2fms", duration)
 		}
 	}()
@@ -341,6 +347,55 @@ func (l *LoadBalancer) ProxyContainers(name string) ([]types.Container, error) {
 		if v, ok := cnt.Labels[ext.InterlockExtNameLabel]; ok && v == l.backend.Name() {
 			log().Debugf("detected proxy container: id=%s backend=%v", cnt.ID, v)
 			proxyContainers = append(proxyContainers, cnt)
+		}
+	}
+
+	// find interlock proxy service tasks
+	svcOpts := types.ServiceListOptions{}
+	services, err := l.client.ServiceList(context.Background(), svcOpts)
+	if err != nil {
+		return nil, err
+	}
+
+	log().Debug("checking for proxy services")
+	for _, svc := range services {
+		filter := filters.NewArgs()
+		filter.Add("service", svc.ID)
+
+		taskOpts := types.TaskListOptions{
+			Filter: filter,
+		}
+		tasks, err := l.client.TaskList(context.Background(), taskOpts)
+		if err != nil {
+			log().Error(err)
+			continue
+		}
+
+		log().Debugf("service tasks: svc=%s tasks=%d", svc.ID, len(tasks))
+
+		for _, t := range tasks {
+			// only check running
+			if t.Status.State != swarmtypes.TaskStateRunning {
+				log().Debugf("service task not running: id=%s state=%s", t.ID, t.Status.State)
+				continue
+			}
+
+			cID := t.Status.ContainerStatus.ContainerID
+			c, err := l.client.ContainerInspect(context.Background(), cID)
+			if err != nil {
+				log().Error(err)
+				continue
+			}
+			if v, ok := svc.Spec.Labels[ext.InterlockExtNameLabel]; ok && v == l.backend.Name() {
+				log().Debugf("detected proxy service task: id=%s backend=%v", svc.ID, v)
+				proxyContainers = append(proxyContainers, types.Container{
+					ID:    cID,
+					Image: c.Image,
+					NetworkSettings: &types.SummaryNetworkSettings{
+						Networks: c.NetworkSettings.Networks,
+					},
+				})
+			}
 		}
 	}
 

@@ -17,7 +17,7 @@ func TestUseOverlay(t *testing.T) {
 		},
 	}
 
-	if _, ok := OverlayEnabled(cfg); !ok {
+	if _, ok := OverlayEnabled(cfg.Labels); !ok {
 		t.Fatal("expected to use overlay networking")
 	}
 }
@@ -27,7 +27,7 @@ func TestUseOverlayNoLabel(t *testing.T) {
 		Labels: map[string]string{},
 	}
 
-	if _, ok := OverlayEnabled(cfg); ok {
+	if _, ok := OverlayEnabled(cfg.Labels); ok {
 		t.Fatal("expected to use bridge networking")
 	}
 }
