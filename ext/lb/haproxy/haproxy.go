@@ -86,6 +86,9 @@ func (p *HAProxyLoadBalancer) Reload(proxyContainers []types.Container) error {
 				log().Errorf("error reloading container: id=%s err=%s", cnt.ID[:12], err)
 				continue
 			}
+		default:
+			log().Infof("haproxy container id=%s name=%s in state %s", cnt.ID[:12], cnt.Names[0], cInfo.State.Status)
+			continue
 		}
 
 		log().Infof("reloaded proxy container: id=%s name=%s", cnt.ID[:12], cnt.Names[0])
