@@ -30,7 +30,8 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 		// load interlock data
 		cInfo, err := p.client.ContainerInspect(context.Background(), c.ID)
 		if err != nil {
-			return nil, err
+			log().Errorf("unable to inspect container for upstream: %s", err)
+			continue
 		}
 
 		hostname := utils.Hostname(cInfo.Config)
