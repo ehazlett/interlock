@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func GetNodeID() (string, error) {
+func GetContainerID() (string, error) {
 	f, err := os.Open("/proc/self/cgroup")
 	if err != nil {
 		return "", fmt.Errorf("unable to detect cgroup.  are you sure you are in a container? error: %s", err)
@@ -33,11 +33,11 @@ func GetNodeID() (string, error) {
 		}
 
 		id = dataParts[2]
+
+		if id != "" {
+			return strings.TrimSpace(id), nil
+		}
 	}
 
-	if id == "" {
-		return "", fmt.Errorf("unable to get node id")
-	}
-
-	return strings.TrimSpace(id), nil
+	return "", fmt.Errorf("unable to get container id")
 }

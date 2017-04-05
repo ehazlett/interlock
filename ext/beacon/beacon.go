@@ -56,7 +56,7 @@ func NewBeacon(c *config.ExtensionConfig, cl *client.Client) (*Beacon, error) {
 		monitored: map[string]int{},
 	}
 
-	nodeID, err := utils.GetNodeID()
+	containerID, err := utils.GetContainerID()
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func NewBeacon(c *config.ExtensionConfig, cl *client.Client) (*Beacon, error) {
 			gw := c.StatsPrometheusPushGatewayURL
 			if gw != "" {
 				log().Debug("pushing to gateway")
-				if err := prometheus.Push("beacon", nodeID, gw); err != nil {
+				if err := prometheus.Push("beacon", containerID, gw); err != nil {
 					log().Errorf("error pushing to gateway: %s", err)
 				}
 			}
