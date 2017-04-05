@@ -7,6 +7,9 @@ import (
 )
 
 func TestGetContainerID(t *testing.T) {
+	if os.Getenv("TRAVIS") != "" {
+		t.Skip("skipping GetContainerID test; in Travis container infra")
+	}
 	if _, err := os.Stat("/proc/self/cgroup"); err != nil {
 		if os.IsNotExist(err) {
 			t.Skipf("skipping GetContainerID; does not look like I am in a container")
