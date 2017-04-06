@@ -1,5 +1,5 @@
 FROM golang:1.6-alpine
-RUN apk add -U git make curl
+RUN apk add -U git make curl build-base
 RUN go get github.com/Masterminds/glide
 ENV DOCKER_VERSION 1.10.3
 ENV APP interlock

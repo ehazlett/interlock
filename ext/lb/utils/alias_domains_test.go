@@ -3,7 +3,7 @@ package utils
 import (
 	"testing"
 
-	ctypes "github.com/docker/engine-api/types/container"
+	ctypes "github.com/docker/docker/api/types/container"
 	"github.com/ehazlett/interlock/ext"
 )
 

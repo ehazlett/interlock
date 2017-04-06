@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/docker/engine-api/types"
+	"github.com/docker/docker/api/types"
 	"github.com/ehazlett/interlock/ext/lb/utils"
 	"golang.org/x/net/context"
 )
@@ -43,14 +43,8 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []types.Container) 
 			continue
 		}
 
-		// we check if a context root is passed and overwrite the
-		// domain component
-		if contextRoot != "" {
-			domain = contextRootName
-		} else {
-			if hostname != domain && hostname != "" {
-				domain = fmt.Sprintf("%s.%s", hostname, domain)
-			}
+		if hostname != domain && hostname != "" {
+			domain = fmt.Sprintf("%s.%s", hostname, domain)
 		}
 
 		hostContextRoots[domain] = &ContextRoot{
@@ -104,15 +98,13 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []types.Container) 
 			// FIXME: for some reason the request from dockerclient
 			// is not returning a populated Networks object
 			// so we hack this by inspecting the Network
-			// we should switch to engine-api/client -- hopefully
-			// that will fix
 			//net, found := cInfo.NetworkSettings.Networks[n]
 			//if !found {
 			//	log().Errorf("container %s is not connected to the network %s", cInfo.Id, n)
 			//	continue
 			//}
 
-			network, err := p.client.NetworkInspect(context.Background(), n)
+			network, err := p.client.NetworkInspect(context.Background(), n, false)
 			if err != nil {
 				log().Error(err)
 				continue

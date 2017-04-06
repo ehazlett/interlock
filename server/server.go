@@ -1,21 +1,19 @@
 package server
 
 import (
-	"bufio"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"sort"
 	"strings"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/docker/engine-api/client"
-	"github.com/docker/engine-api/types"
-	etypes "github.com/docker/engine-api/types/events"
+	"github.com/docker/docker/api/types"
+	etypes "github.com/docker/docker/api/types/events"
+	"github.com/docker/docker/client"
 	"github.com/ehazlett/interlock/config"
 	"github.com/ehazlett/interlock/events"
 	"github.com/ehazlett/interlock/ext"
@@ -39,7 +37,7 @@ type Server struct {
 
 var (
 	errChan      chan (error)
-	eventChan    (chan *etypes.Message)
+	eventChan    chan *events.Message
 	eventErrChan chan (error)
 	handler      *events.EventHandler
 	restartChan  chan (bool)
@@ -63,7 +61,7 @@ func NewServer(cfg *config.Config) (*Server, error) {
 	eventErrChan = make(chan error)
 	restartChan = make(chan bool)
 	recoverChan = make(chan bool)
-	eventChan = make(chan *etypes.Message)
+	eventChan = make(chan *events.Message)
 
 	s.client = client
 
@@ -73,9 +71,7 @@ func NewServer(cfg *config.Config) (*Server, error) {
 		for range eventErrChan {
 			// error from swarm event stream; attempt to restart
 			log.Error("event stream fail; attempting to reconnect")
-
 			s.waitForSwarm()
-
 			restartChan <- true
 		}
 	}()
@@ -104,50 +100,70 @@ func NewServer(cfg *config.Config) (*Server, error) {
 		for range restartChan {
 			log.Debug("starting event handling")
 
-			// monitor events
-			// event handler
-			h, err := events.NewEventHandler(eventChan)
-			if err != nil {
-				errChan <- err
-				continue
-			}
-
-			handler = h
-
 			if s.cfg.PollInterval != "" {
 				log.Infof("using polling for container updates: interval=%s", s.cfg.PollInterval)
 			} else {
 				log.Info("using event stream")
-				e, err := client.Events(context.Background(), types.EventsOptions{})
+				ctx, cancel := context.WithCancel(context.Background())
+				evtChan, evtErrChan := client.Events(ctx, types.EventsOptions{})
+				defer cancel()
+
+				go func(ch <-chan error) {
+					for {
+						err := <-ch
+						eventErrChan <- err
+					}
+				}(evtErrChan)
+
+				// since the event stream channel is receive
+				// only we wrap it to be able to send
+				// interlock events on the interlock chan
+				go func(ch <-chan etypes.Message) {
+					for {
+						msg := <-ch
+						m := &events.Message{
+							msg,
+						}
+
+						eventChan <- m
+					}
+				}(evtChan)
+
+				// monitor events
+				// event handler
+				h, err := events.NewEventHandler(eventChan)
 				if err != nil {
 					errChan <- err
 					continue
 				}
-				defer e.Close()
 
-				go func(e io.ReadCloser) {
-					s := bufio.NewScanner(e)
-					for s.Scan() {
-						if err != nil {
-							errChan <- err
-							continue
-						}
+				handler = h
+			}
 
-						var msg *etypes.Message
-						if err := json.Unmarshal([]byte(s.Text()), &msg); err != nil {
-							errChan <- err
-							continue
-						}
+			//go func(e io.ReadCloser) {
+			//	s := bufio.NewScanner(e)
+			//	for s.Scan() {
+			//		if err != nil {
+			//			errChan <- err
+			//			continue
+			//		}
 
-						eventChan <- msg
-					}
-				}(e)
+			//		var msg etypes.Message
+			//		if err := json.Unmarshal([]byte(s.Text()), &msg); err != nil {
+			//			errChan <- err
+			//			continue
+			//		}
 
-				// trigger initial load
-				eventChan <- &etypes.Message{
+			//		eventChan <- msg
+			//	}
+			//}(e)
+
+			// trigger initial load
+			eventChan <- &events.Message{
+				etypes.Message{
 					ID:     "0",
 					Status: "interlock-start",
-				}
+				},
 			}
 
 		}
@@ -256,7 +272,7 @@ func (s *Server) runPoller(d time.Duration) {
 			for _, c := range containers {
 				containerIDs = append(containerIDs, c.ID)
 				for _, p := range c.Ports {
-					ports = append(ports, p.PublicPort)
+					ports = append(ports, int(p.PublicPort))
 				}
 			}
 
@@ -284,9 +300,11 @@ func (s *Server) runPoller(d time.Duration) {
 				log.Debug("detected new containers; triggering reload")
 				s.containerHash = sum
 				// trigger update
-				eventChan <- &etypes.Message{
-					ID:     fmt.Sprintf("%d", time.Now().UnixNano()),
-					Status: "interlock-restart",
+				eventChan <- &events.Message{
+					etypes.Message{
+						ID:     fmt.Sprintf("%d", time.Now().UnixNano()),
+						Status: "interlock-restart",
+					},
 				}
 			}
 		}

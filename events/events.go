@@ -1,16 +1,19 @@
 package events
 
 import (
-	"github.com/docker/engine-api/types/events"
+	etypes "github.com/docker/docker/api/types/events"
 )
 
 type (
 	EventHandler struct {
-		eventChan chan (*events.Message)
+		eventChan chan *Message
+	}
+	Message struct {
+		etypes.Message
 	}
 )
 
-func NewEventHandler(eventChan chan (*events.Message)) (*EventHandler, error) {
+func NewEventHandler(eventChan chan *Message) (*EventHandler, error) {
 	h := &EventHandler{
 		eventChan: eventChan,
 	}
@@ -18,6 +21,6 @@ func NewEventHandler(eventChan chan (*events.Message)) (*EventHandler, error) {
 	return h, nil
 }
 
-func (h *EventHandler) Handle(e *events.Message, ec chan error, args ...interface{}) {
+func (h *EventHandler) Handle(e *Message, ec chan error, args ...interface{}) {
 	h.eventChan <- e
 }

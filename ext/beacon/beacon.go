@@ -6,12 +6,12 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/engine-api/client"
-	"github.com/docker/engine-api/types"
-	etypes "github.com/docker/engine-api/types/events"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
 	"github.com/ehazlett/interlock/config"
+	"github.com/ehazlett/interlock/events"
 	"github.com/ehazlett/interlock/utils"
-	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/push"
 	"golang.org/x/net/context"
 )
 
@@ -74,8 +74,33 @@ func NewBeacon(c *config.ExtensionConfig, cl *client.Client) (*Beacon, error) {
 
 			gw := c.StatsPrometheusPushGatewayURL
 			if gw != "" {
+				job := "beacon"
+				groups := map[string]string{
+					"source":    "beacon",
+					"container": containerID,
+				}
 				log().Debug("pushing to gateway")
-				if err := prometheus.Push("beacon", containerID, gw); err != nil {
+				if err := push.Collectors(
+					job,
+					groups,
+					gw,
+					counterTotalContainers,
+					counterTotalImages,
+					counterTotalVolumes,
+					counterTotalNetworks,
+					counterCpuTotalUsage,
+					counterMemoryUsage,
+					counterMemoryMaxUsage,
+					counterMemoryPercent,
+					counterNetworkRxBytes,
+					counterNetworkRxPackets,
+					counterNetworkRxErrors,
+					counterNetworkRxDropped,
+					counterNetworkTxBytes,
+					counterNetworkTxPackets,
+					counterNetworkTxErrors,
+					counterNetworkTxDropped,
+				); err != nil {
 					log().Errorf("error pushing to gateway: %s", err)
 				}
 			}
@@ -89,7 +114,7 @@ func (b *Beacon) Name() string {
 	return pluginName
 }
 
-func (b *Beacon) HandleEvent(event *etypes.Message) error {
+func (b *Beacon) HandleEvent(event *events.Message) error {
 	switch event.Status {
 	case "interlock-start":
 		// scan all containers and start metrics

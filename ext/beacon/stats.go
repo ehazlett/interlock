@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/docker/engine-api/types"
-	"github.com/docker/engine-api/types/filters"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/filters"
 	influx "github.com/influxdata/influxdb/client/v2"
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/net/context"
@@ -509,7 +509,7 @@ func (b *Beacon) collectStats() {
 			}
 
 			var stats *types.StatsJSON
-			s := bufio.NewScanner(r)
+			s := bufio.NewScanner(r.Body)
 			for s.Scan() {
 				if err := json.Unmarshal([]byte(s.Text()), &stats); err != nil {
 					log().Errorf("unable to unmarshal stats: %s", err)

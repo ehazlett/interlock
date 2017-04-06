@@ -3,7 +3,7 @@ package beacon
 import (
 	"regexp"
 
-	ctypes "github.com/docker/engine-api/types/container"
+	ctypes "github.com/docker/docker/api/types/container"
 )
 
 func (b *Beacon) ruleMatch(cfg *ctypes.Config) bool {

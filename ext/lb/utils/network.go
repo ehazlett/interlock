@@ -5,8 +5,8 @@ import (
 	"net"
 	"strings"
 
-	"github.com/docker/engine-api/types"
-	ctypes "github.com/docker/engine-api/types/container"
+	"github.com/docker/docker/api/types"
+	ctypes "github.com/docker/docker/api/types/container"
 	"github.com/docker/go-connections/nat"
 	"github.com/ehazlett/interlock/ext"
 )

@@ -1,8 +1,6 @@
 package ext
 
-import (
-	etypes "github.com/docker/engine-api/types/events"
-)
+import "github.com/ehazlett/interlock/events"
 
 const (
 	InterlockAppLabel                 = "interlock.app"                    // internal
@@ -30,5 +28,5 @@ const (
 
 type Extension interface {
 	Name() string
-	HandleEvent(event *etypes.Message) error
+	HandleEvent(event *events.Message) error
 }
