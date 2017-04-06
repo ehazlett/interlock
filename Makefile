@@ -12,7 +12,7 @@ all: clean-image image
 
 deps:
 	@glide i
-	# this causes an import conflict with tests.  remove this vendor. le sigh
+# this causes an import conflict with tests.  remove this vendor. le sigh
 	@rm -rf vendor/github.com/docker/docker/vendor/github.com/docker/go-connections
 
 build: build-static
@@ -33,17 +33,19 @@ build-image: clean-image
 container:
 	@docker build $(BUILD_ARGS) -t interlock-build -f Dockerfile.build .
 
-build-container: container
+build-in-container: container
 	@docker run -it -e BUILD -e TAG --name interlock-build -ti interlock-build make build
 	@docker cp interlock-build:/go/src/github.com/$(REPO)/cmd/$(APP)/$(APP) ./cmd/$(APP)/$(APP)
-	@docker rm -fv interlock-build
 
-test-container: container
-	@docker run -it -e BUILD -e TAG -e TEST_ARGS --name interlock-test -ti interlock-build make test
-	@docker rm -fv interlock-build interlock-test
+build-container: build-in-container clean-image
+
+integration: container
+
+test-integration:
+	@go test -v -cover -race -tags integration $$(glide novendor)
 
 test:
-	@go test -v -cover -race $(TEST_ARGS) `go list ./... | grep -v /vendor/`
+	@go test -v -cover -race $(TEST_ARGS) $$(glide novendor)
 
 image: build-container build-image
 

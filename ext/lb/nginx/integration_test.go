@@ -2,12 +2,12 @@
 package nginx
 
 import (
-	"context"
 	"testing"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
+	"golang.org/x/net/context"
 )
 
 func getDockerClient() (*client.Client, error) {
