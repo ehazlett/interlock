@@ -1,5 +1,4 @@
-// +build integration
-package nginx
+package integration
 
 import (
 	"testing"

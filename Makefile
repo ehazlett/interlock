@@ -42,10 +42,10 @@ build-container: build-in-container clean-image
 integration: container
 
 test-integration:
-	@go test -v -cover -race -tags integration $$(glide novendor)
+	@go test -v $(TEST_ARGS) ./test/integration/...
 
 test:
-	@go test -v -cover -race $(TEST_ARGS) $$(glide novendor)
+	@go test -v -cover -race $(TEST_ARGS) $$(glide novendor | grep -v ./test)
 
 image: build-container build-image
 
