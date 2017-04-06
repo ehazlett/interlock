@@ -77,42 +77,52 @@ cauchy = "cat 2"
 func TestDecodeEmbedded(t *testing.T) {
 	type Dog struct{ Name string }
 	type Age int
+	type cat struct{ Name string }
 
-	tests := map[string]struct {
+	for _, test := range []struct {
+		label       string
 		input       string
 		decodeInto  interface{}
 		wantDecoded interface{}
 	}{
-		"embedded struct": {
+		{
+			label:       "embedded struct",
 			input:       `Name = "milton"`,
 			decodeInto:  &struct{ Dog }{},
 			wantDecoded: &struct{ Dog }{Dog{"milton"}},
 		},
-		"embedded non-nil pointer to struct": {
+		{
+			label:       "embedded non-nil pointer to struct",
 			input:       `Name = "milton"`,
 			decodeInto:  &struct{ *Dog }{},
 			wantDecoded: &struct{ *Dog }{&Dog{"milton"}},
 		},
-		"embedded nil pointer to struct": {
+		{
+			label:       "embedded nil pointer to struct",
 			input:       ``,
 			decodeInto:  &struct{ *Dog }{},
 			wantDecoded: &struct{ *Dog }{nil},
 		},
-		"embedded int": {
+		{
+			label:       "unexported embedded struct",
+			input:       `Name = "socks"`,
+			decodeInto:  &struct{ cat }{},
+			wantDecoded: &struct{ cat }{cat{"socks"}},
+		},
+		{
+			label:       "embedded int",
 			input:       `Age = -5`,
 			decodeInto:  &struct{ Age }{},
 			wantDecoded: &struct{ Age }{-5},
 		},
-	}
-
-	for label, test := range tests {
+	} {
 		_, err := Decode(test.input, test.decodeInto)
 		if err != nil {
 			t.Fatal(err)
 		}
 		if !reflect.DeepEqual(test.wantDecoded, test.decodeInto) {
 			t.Errorf("%s: want decoded == %+v, got %+v",
-				label, test.wantDecoded, test.decodeInto)
+				test.label, test.wantDecoded, test.decodeInto)
 		}
 	}
 }
@@ -531,7 +541,7 @@ func TestDecodeFloats(t *testing.T) {
 			continue
 		}
 		if x.N != tt.want {
-			t.Errorf("Decode(%q): got %d; want %d", input, x.N, tt.want)
+			t.Errorf("Decode(%q): got %f; want %f", input, x.N, tt.want)
 		}
 	}
 }
@@ -541,12 +551,12 @@ func TestDecodeMalformedNumbers(t *testing.T) {
 		s    string
 		want string
 	}{
-		{"++99", "Expected a digit"},
+		{"++99", "expected a digit"},
 		{"0..1", "must be followed by one or more digits"},
 		{"0.1.2", "Invalid float value"},
 		{"1e2.3", "Invalid float value"},
 		{"1e2e3", "Invalid float value"},
-		{"_123", "Expected value"},
+		{"_123", "expected value"},
 		{"123_", "surrounded by digits"},
 		{"1._23", "surrounded by digits"},
 		{"1e__23", "surrounded by digits"},
@@ -573,7 +583,7 @@ func TestDecodeBadValues(t *testing.T) {
 		v    interface{}
 		want string
 	}{
-		{3, "non-pointer type"},
+		{3, "non-pointer int"},
 		{(*int)(nil), "nil"},
 	} {
 		_, err := Decode(`x = 3`, tt.v)
@@ -662,6 +672,118 @@ name = "Rice"
 		t.Fatal(err)
 	}
 
+}
+
+func TestDecodeInlineTable(t *testing.T) {
+	input := `
+[CookieJar]
+Types = {Chocolate = "yummy", Oatmeal = "best ever"}
+
+[Seasons]
+Locations = {NY = {Temp = "not cold", Rating = 4}, MI = {Temp = "freezing", Rating = 9}}
+`
+	type cookieJar struct {
+		Types map[string]string
+	}
+	type properties struct {
+		Temp   string
+		Rating int
+	}
+	type seasons struct {
+		Locations map[string]properties
+	}
+	type wrapper struct {
+		CookieJar cookieJar
+		Seasons   seasons
+	}
+	var got wrapper
+
+	meta, err := Decode(input, &got)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := wrapper{
+		CookieJar: cookieJar{
+			Types: map[string]string{
+				"Chocolate": "yummy",
+				"Oatmeal":   "best ever",
+			},
+		},
+		Seasons: seasons{
+			Locations: map[string]properties{
+				"NY": {
+					Temp:   "not cold",
+					Rating: 4,
+				},
+				"MI": {
+					Temp:   "freezing",
+					Rating: 9,
+				},
+			},
+		},
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("after decode, got:\n\n%#v\n\nwant:\n\n%#v", got, want)
+	}
+	if len(meta.keys) != 12 {
+		t.Errorf("after decode, got %d meta keys; want 12", len(meta.keys))
+	}
+	if len(meta.types) != 12 {
+		t.Errorf("after decode, got %d meta types; want 12", len(meta.types))
+	}
+}
+
+func TestDecodeInlineTableArray(t *testing.T) {
+	type point struct {
+		X, Y, Z int
+	}
+	var got struct {
+		Points []point
+	}
+	// Example inline table array from the spec.
+	const in = `
+points = [ { x = 1, y = 2, z = 3 },
+           { x = 7, y = 8, z = 9 },
+           { x = 2, y = 4, z = 8 } ]
+
+`
+	if _, err := Decode(in, &got); err != nil {
+		t.Fatal(err)
+	}
+	want := []point{
+		{X: 1, Y: 2, Z: 3},
+		{X: 7, Y: 8, Z: 9},
+		{X: 2, Y: 4, Z: 8},
+	}
+	if !reflect.DeepEqual(got.Points, want) {
+		t.Errorf("got %#v; want %#v", got.Points, want)
+	}
+}
+
+func TestDecodeMalformedInlineTable(t *testing.T) {
+	for _, tt := range []struct {
+		s    string
+		want string
+	}{
+		{"{,}", "unexpected comma"},
+		{"{x = 3 y = 4}", "expected a comma or an inline table terminator"},
+		{"{x=3,,y=4}", "unexpected comma"},
+		{"{x=3,\ny=4}", "newlines not allowed"},
+		{"{x=3\n,y=4}", "newlines not allowed"},
+	} {
+		var x struct{ A map[string]int }
+		input := "a = " + tt.s
+		_, err := Decode(input, &x)
+		if err == nil {
+			t.Errorf("Decode(%q): got nil, want error containing %q",
+				input, tt.want)
+			continue
+		}
+		if !strings.Contains(err.Error(), tt.want) {
+			t.Errorf("Decode(%q): got %q, want error containing %q",
+				input, err, tt.want)
+		}
+	}
 }
 
 type menu struct {
@@ -792,6 +914,53 @@ func TestDecodePrimitive(t *testing.T) {
 		}
 		if !reflect.DeepEqual(tt.v, tt.want) {
 			t.Errorf("[%d] got %#v; want %#v", i, tt.v, tt.want)
+		}
+	}
+}
+
+func TestDecodeErrors(t *testing.T) {
+	for _, s := range []string{
+		`x="`,
+		`x='`,
+		`x='''`,
+
+		// Cases found by fuzzing in
+		// https://github.com/BurntSushi/toml/issues/155.
+		`""�`,   // used to panic with index out of range
+		`e="""`, // used to hang
+	} {
+		var x struct{}
+		_, err := Decode(s, &x)
+		if err == nil {
+			t.Errorf("Decode(%q): got nil error", s)
+		}
+	}
+}
+
+// Test for https://github.com/BurntSushi/toml/pull/166.
+func TestDecodeBoolArray(t *testing.T) {
+	for _, tt := range []struct {
+		s    string
+		got  interface{}
+		want interface{}
+	}{
+		{
+			"a = [true, false]",
+			&struct{ A []bool }{},
+			&struct{ A []bool }{[]bool{true, false}},
+		},
+		{
+			"a = {a = true, b = false}",
+			&struct{ A map[string]bool }{},
+			&struct{ A map[string]bool }{map[string]bool{"a": true, "b": false}},
+		},
+	} {
+		if _, err := Decode(tt.s, tt.got); err != nil {
+			t.Errorf("Decode(%q): %s", tt.s, err)
+			continue
+		}
+		if !reflect.DeepEqual(tt.got, tt.want) {
+			t.Errorf("Decode(%q): got %#v; want %#v", tt.s, tt.got, tt.want)
 		}
 	}
 }
@@ -1043,7 +1212,7 @@ rating = 3.1
 
 	// 	// NOTE the example below contains detailed type casting to show how
 	// 	// the 'data' is retrieved. In operational use, a type cast wrapper
-	// 	// may be prefered e.g.
+	// 	// may be preferred e.g.
 	// 	//
 	// 	// func AsMap(v interface{}) (map[string]interface{}, error) {
 	// 	// 		return v.(map[string]interface{})
@@ -1170,7 +1339,7 @@ func (o *order) UnmarshalTOML(data interface{}) error {
 
 	// NOTE the example below contains detailed type casting to show how
 	// the 'data' is retrieved. In operational use, a type cast wrapper
-	// may be prefered e.g.
+	// may be preferred e.g.
 	//
 	// func AsMap(v interface{}) (map[string]interface{}, error) {
 	// 		return v.(map[string]interface{})

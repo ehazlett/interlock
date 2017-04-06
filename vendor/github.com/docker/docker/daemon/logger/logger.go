@@ -11,13 +11,14 @@ import (
 	"errors"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/docker/docker/pkg/jsonlog"
 )
 
 // ErrReadLogsNotSupported is returned when the logger does not support reading logs.
-var ErrReadLogsNotSupported = errors.New("configured logging reader does not support reading")
+var ErrReadLogsNotSupported = errors.New("configured logging driver does not support reading")
 
 const (
 	// TimeFormat is the time format used for timestamps sent to log readers.
@@ -25,12 +26,40 @@ const (
 	logWatcherBufferSize = 4096
 )
 
-// Message is datastructure that represents record from some container.
+var messagePool = &sync.Pool{New: func() interface{} { return &Message{Line: make([]byte, 0, 256)} }}
+
+// NewMessage returns a new message from the message sync.Pool
+func NewMessage() *Message {
+	return messagePool.Get().(*Message)
+}
+
+// PutMessage puts the specified message back n the message pool.
+// The message fields are reset before putting into the pool.
+func PutMessage(msg *Message) {
+	msg.reset()
+	messagePool.Put(msg)
+}
+
+// Message is datastructure that represents piece of output produced by some
+// container.  The Line member is a slice of an array whose contents can be
+// changed after a log driver's Log() method returns.
+// Any changes made to this struct must also be updated in the `reset` function
 type Message struct {
 	Line      []byte
 	Source    string
 	Timestamp time.Time
 	Attrs     LogAttributes
+	Partial   bool
+}
+
+// reset sets the message back to default values
+// This is used when putting a message back into the message pool.
+// Any changes to the `Message` struct should be reflected here.
+func (m *Message) reset() {
+	m.Line = m.Line[:0]
+	m.Source = ""
+	m.Attrs = nil
+	m.Partial = false
 }
 
 // LogAttributes is used to hold the extra attributes available in the log message
@@ -83,6 +112,7 @@ type LogWatcher struct {
 	Msg chan *Message
 	// For sending error messages that occur while while reading logs.
 	Err           chan error
+	closeOnce     sync.Once
 	closeNotifier chan struct{}
 }
 
@@ -98,11 +128,9 @@ func NewLogWatcher() *LogWatcher {
 // Close notifies the underlying log reader to stop.
 func (w *LogWatcher) Close() {
 	// only close if not already closed
-	select {
-	case <-w.closeNotifier:
-	default:
+	w.closeOnce.Do(func() {
 		close(w.closeNotifier)
-	}
+	})
 }
 
 // WatchClose returns a channel receiver that receives notification

@@ -10,6 +10,7 @@ import (
 
 	"github.com/influxdata/influxdb/influxql"
 	"github.com/influxdata/influxdb/models"
+	"github.com/uber-go/zap"
 )
 
 var (
@@ -27,13 +28,13 @@ type Engine interface {
 	Open() error
 	Close() error
 
-	SetLogOutput(io.Writer)
+	WithLogger(zap.Logger)
 	LoadMetadataIndex(shardID uint64, index *DatabaseIndex) error
 
 	Backup(w io.Writer, basePath string, since time.Time) error
 	Restore(r io.Reader, basePath string) error
 
-	CreateIterator(opt influxql.IteratorOptions) (influxql.Iterator, error)
+	CreateIterator(measurement string, opt influxql.IteratorOptions) (influxql.Iterator, error)
 	WritePoints(points []models.Point) error
 	ContainsSeries(keys []string) (map[string]bool, error)
 	DeleteSeries(keys []string) error
@@ -47,6 +48,10 @@ type Engine interface {
 	// Format will return the format for the engine
 	Format() EngineFormat
 
+	// Statistics will return statistics relevant to this engine.
+	Statistics(tags map[string]string) []models.Statistic
+	LastModified() time.Time
+
 	io.WriterTo
 }
 
@@ -59,7 +64,7 @@ const (
 )
 
 // NewEngineFunc creates a new engine.
-type NewEngineFunc func(path string, walPath string, options EngineOptions) Engine
+type NewEngineFunc func(id uint64, path string, walPath string, options EngineOptions) Engine
 
 // newEngineFuncs is a lookup of engine constructors by name.
 var newEngineFuncs = make(map[string]NewEngineFunc)
@@ -84,10 +89,10 @@ func RegisteredEngines() []string {
 
 // NewEngine returns an instance of an engine based on its format.
 // If the path does not exist then the DefaultFormat is used.
-func NewEngine(path string, walPath string, options EngineOptions) (Engine, error) {
+func NewEngine(id uint64, path string, walPath string, options EngineOptions) (Engine, error) {
 	// Create a new engine
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return newEngineFuncs[options.EngineVersion](path, walPath, options), nil
+		return newEngineFuncs[options.EngineVersion](id, path, walPath, options), nil
 	}
 
 	// If it's a dir then it's a tsm1 engine
@@ -106,12 +111,13 @@ func NewEngine(path string, walPath string, options EngineOptions) (Engine, erro
 		return nil, fmt.Errorf("invalid engine format: %q", format)
 	}
 
-	return fn(path, walPath, options), nil
+	return fn(id, path, walPath, options), nil
 }
 
 // EngineOptions represents the options used to initialize the engine.
 type EngineOptions struct {
 	EngineVersion string
+	ShardID       uint64
 
 	Config Config
 }

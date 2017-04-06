@@ -1,3 +1,5 @@
+// Package restore is the restore subcommand for the influxd command,
+// for restoring from a backup.
 package restore
 
 import (
@@ -159,7 +161,7 @@ func (cmd *Command) unpackMeta() error {
 	// Size of the node.json bytes
 	length = int(binary.BigEndian.Uint64(b[i : i+8]))
 	i += 8
-	nodeBytes := b[i:]
+	nodeBytes := b[i : i+length]
 
 	// Unpack into metadata.
 	var data meta.Data
@@ -182,7 +184,6 @@ func (cmd *Command) unpackMeta() error {
 	}
 
 	client := meta.NewClient(c)
-	client.SetLogOutput(ioutil.Discard)
 	if err := client.Open(); err != nil {
 		return err
 	}
@@ -309,7 +310,8 @@ func (cmd *Command) unpackTar(tarFile string) error {
 
 // unpackFile will copy the current file from the tar archive to the data dir
 func (cmd *Command) unpackFile(tr *tar.Reader, fileName string) error {
-	fn := filepath.Join(cmd.datadir, fileName)
+	nativeFileName := filepath.FromSlash(fileName)
+	fn := filepath.Join(cmd.datadir, nativeFileName)
 	fmt.Printf("unpacking %s\n", fn)
 
 	if err := os.MkdirAll(filepath.Dir(fn), 0777); err != nil {
@@ -331,26 +333,26 @@ func (cmd *Command) unpackFile(tr *tar.Reader, fileName string) error {
 
 // printUsage prints the usage message to STDERR.
 func (cmd *Command) printUsage() {
-	fmt.Fprintf(cmd.Stdout, `usage: influxd restore [flags] PATH
-
-Uses backups from the PATH to restore the metastore, databases,
+	fmt.Fprintf(cmd.Stdout, `Uses backups from the PATH to restore the metastore, databases,
 retention policies, or specific shards. The InfluxDB process must not be
 running during a restore.
 
-	-metadir <path>
-		Optional. If set the metastore will be recovered to the given path.
-	-datadir <path>
-		Optional. If set the restore process will recover the specified
-		database, retention policy or shard to the given directory.
-	-database <name>
-		Optional. Required if no metadir given. Will restore the database
-		TSM files.
-	-retention <name>
-		Optional. If given, database is required. Will restore the retention policy's
-		TSM files.
-	-shard <id>
-		Optional. If given, database and retention are required. Will restore the shard's
-		TSM files.
+Usage: influxd restore [flags] PATH
+
+    -metadir <path>
+            Optional. If set the metastore will be recovered to the given path.
+    -datadir <path>
+            Optional. If set the restore process will recover the specified
+            database, retention policy or shard to the given directory.
+    -database <name>
+            Optional. Required if no metadir given. Will restore the database
+            TSM files.
+    -retention <name>
+            Optional. If given, database is required. Will restore the retention policy's
+            TSM files.
+    -shard <id>
+            Optional. If given, database and retention are required. Will restore the shard's
+            TSM files.
 
 `)
 }

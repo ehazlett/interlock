@@ -104,7 +104,9 @@ func isDigit(r rune) bool {
 	return r >= '0' && r <= '9'
 }
 
-func isLetter(ch rune) bool { return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') }
+func isLetter(ch rune) bool {
+	return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch == '@')
+}
 
 // Scanner scans over the file and converts the raw text into tokens
 type Scanner struct {
@@ -606,13 +608,13 @@ func (p *Parser) ParseFunction() (*statement.Function, error) {
 
 	fn := &statement.Function{}
 
-	tok, lit := p.scanIgnoreWhitespace()
+	_, lit := p.scanIgnoreWhitespace()
 	fn.Type = lit
 
-	tok, lit = p.scanIgnoreWhitespace()
+	_, lit = p.scanIgnoreWhitespace()
 	fn.Fn = lit
 
-	tok, lit = p.scanIgnoreWhitespace()
+	tok, lit := p.scanIgnoreWhitespace()
 	if tok != LPAREN {
 		return nil, fmt.Errorf("Error parsing Insert template function\n  Expected: LPAREN\n  Found: %v\n", lit)
 	}

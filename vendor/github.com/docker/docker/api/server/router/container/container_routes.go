@@ -6,19 +6,19 @@ import (
 	"io"
 	"net/http"
 	"strconv"
-	"strings"
 	"syscall"
 	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/api/server/httputils"
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/backend"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/pkg/ioutils"
 	"github.com/docker/docker/pkg/signal"
-	"github.com/docker/engine-api/types"
-	"github.com/docker/engine-api/types/container"
-	"github.com/docker/engine-api/types/filters"
-	"github.com/docker/engine-api/types/versions"
+	"github.com/docker/docker/pkg/stdcopy"
 	"golang.org/x/net/context"
 	"golang.org/x/net/websocket"
 )
@@ -33,11 +33,11 @@ func (s *containerRouter) getContainersJSON(ctx context.Context, w http.Response
 	}
 
 	config := &types.ContainerListOptions{
-		All:    httputils.BoolValue(r, "all"),
-		Size:   httputils.BoolValue(r, "size"),
-		Since:  r.Form.Get("since"),
-		Before: r.Form.Get("before"),
-		Filter: filter,
+		All:     httputils.BoolValue(r, "all"),
+		Size:    httputils.BoolValue(r, "size"),
+		Since:   r.Form.Get("since"),
+		Before:  r.Form.Get("before"),
+		Filters: filter,
 	}
 
 	if tmpLimit := r.Form.Get("limit"); tmpLimit != "" {
@@ -109,9 +109,10 @@ func (s *containerRouter) getContainersLogs(ctx context.Context, w http.Response
 		select {
 		case <-chStarted:
 			// The client may be expecting all of the data we're sending to
-			// be multiplexed, so send it through OutStream, which will
-			// have been set up to handle that if needed.
-			fmt.Fprintf(logsConfig.OutStream, "Error running logs job: %v\n", err)
+			// be multiplexed, so mux it through the Systemerr stream, which
+			// will cause the client to throw an error when demuxing
+			stdwriter := stdcopy.NewStdWriter(logsConfig.OutStream, stdcopy.Systemerr)
+			fmt.Fprintf(stdwriter, "Error running logs job: %v\n", err)
 		default:
 			return err
 		}
@@ -132,12 +133,12 @@ func (s *containerRouter) postContainersStart(ctx context.Context, w http.Respon
 	// including r.TransferEncoding
 	// allow a nil body for backwards compatibility
 
+	version := httputils.VersionFromContext(ctx)
 	var hostConfig *container.HostConfig
 	// A non-nil json object is at least 7 characters.
 	if r.ContentLength > 7 || r.ContentLength == -1 {
-		version := httputils.VersionFromContext(ctx)
 		if versions.GreaterThanOrEqualTo(version, "1.24") {
-			return validationError{fmt.Errorf("starting container with HostConfig was deprecated since v1.10 and removed in v1.12")}
+			return validationError{fmt.Errorf("starting container with non-empty request body was deprecated since v1.10 and removed in v1.12")}
 		}
 
 		if err := httputils.CheckForJSON(r); err != nil {
@@ -151,9 +152,16 @@ func (s *containerRouter) postContainersStart(ctx context.Context, w http.Respon
 		hostConfig = c
 	}
 
-	if err := s.backend.ContainerStart(vars["name"], hostConfig); err != nil {
+	if err := httputils.ParseForm(r); err != nil {
 		return err
 	}
+
+	checkpoint := r.Form.Get("checkpoint")
+	checkpointDir := r.Form.Get("checkpoint-dir")
+	if err := s.backend.ContainerStart(vars["name"], hostConfig, checkpoint, checkpointDir); err != nil {
+		return err
+	}
+
 	w.WriteHeader(http.StatusNoContent)
 	return nil
 }
@@ -163,7 +171,14 @@ func (s *containerRouter) postContainersStop(ctx context.Context, w http.Respons
 		return err
 	}
 
-	seconds, _ := strconv.Atoi(r.Form.Get("t"))
+	var seconds *int
+	if tmpSeconds := r.Form.Get("t"); tmpSeconds != "" {
+		valSeconds, err := strconv.Atoi(tmpSeconds)
+		if err != nil {
+			return err
+		}
+		seconds = &valSeconds
+	}
 
 	if err := s.backend.ContainerStop(vars["name"], seconds); err != nil {
 		return err
@@ -217,9 +232,16 @@ func (s *containerRouter) postContainersRestart(ctx context.Context, w http.Resp
 		return err
 	}
 
-	timeout, _ := strconv.Atoi(r.Form.Get("t"))
+	var seconds *int
+	if tmpSeconds := r.Form.Get("t"); tmpSeconds != "" {
+		valSeconds, err := strconv.Atoi(tmpSeconds)
+		if err != nil {
+			return err
+		}
+		seconds = &valSeconds
+	}
 
-	if err := s.backend.ContainerRestart(vars["name"], timeout); err != nil {
+	if err := s.backend.ContainerRestart(vars["name"], seconds); err != nil {
 		return err
 	}
 
@@ -262,8 +284,8 @@ func (s *containerRouter) postContainersWait(ctx context.Context, w http.Respons
 		return err
 	}
 
-	return httputils.WriteJSON(w, http.StatusOK, &types.ContainerWaitResponse{
-		StatusCode: status,
+	return httputils.WriteJSON(w, http.StatusOK, &container.ContainerWaitOKBody{
+		StatusCode: int64(status),
 	})
 }
 
@@ -324,14 +346,12 @@ func (s *containerRouter) postContainerUpdate(ctx context.Context, w http.Respon
 	}
 
 	name := vars["name"]
-	warnings, err := s.backend.ContainerUpdate(name, hostConfig)
+	resp, err := s.backend.ContainerUpdate(name, hostConfig)
 	if err != nil {
 		return err
 	}
 
-	return httputils.WriteJSON(w, http.StatusOK, &types.ContainerUpdateResponse{
-		Warnings: warnings,
-	})
+	return httputils.WriteJSON(w, http.StatusOK, resp)
 }
 
 func (s *containerRouter) postContainersCreate(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
@@ -350,6 +370,11 @@ func (s *containerRouter) postContainersCreate(ctx context.Context, w http.Respo
 	}
 	version := httputils.VersionFromContext(ctx)
 	adjustCPUShares := versions.LessThan(version, "1.19")
+
+	// When using API 1.24 and under, the client is responsible for removing the container
+	if hostConfig != nil && versions.LessThan(version, "1.25") {
+		hostConfig.AutoRemove = false
+	}
 
 	ccr, err := s.backend.ContainerCreate(types.ContainerCreateConfig{
 		Name:             name,
@@ -378,10 +403,6 @@ func (s *containerRouter) deleteContainers(ctx context.Context, w http.ResponseW
 	}
 
 	if err := s.backend.ContainerRm(name, config); err != nil {
-		// Force a 404 for the empty string
-		if strings.Contains(strings.ToLower(err.Error()), "prefix can't be empty") {
-			return fmt.Errorf("no such container: \"\"")
-		}
 		return err
 	}
 
@@ -483,6 +504,8 @@ func (s *containerRouter) wsContainersAttach(ctx context.Context, w http.Respons
 	done := make(chan struct{})
 	started := make(chan struct{})
 
+	version := httputils.VersionFromContext(ctx)
+
 	setupStreams := func() (io.ReadCloser, io.Writer, io.Writer, error) {
 		wsChan := make(chan *websocket.Conn)
 		h := func(conn *websocket.Conn) {
@@ -497,6 +520,11 @@ func (s *containerRouter) wsContainersAttach(ctx context.Context, w http.Respons
 		}()
 
 		conn := <-wsChan
+		// In case version 1.28 and above, a binary frame will be sent.
+		// See 28176 for details.
+		if versions.GreaterThanOrEqualTo(version, "1.28") {
+			conn.PayloadType = websocket.BinaryFrame
+		}
 		return conn, conn, conn, nil
 	}
 
@@ -520,4 +548,21 @@ func (s *containerRouter) wsContainersAttach(ctx context.Context, w http.Respons
 	default:
 	}
 	return err
+}
+
+func (s *containerRouter) postContainersPrune(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+	if err := httputils.ParseForm(r); err != nil {
+		return err
+	}
+
+	pruneFilters, err := filters.FromParam(r.Form.Get("filters"))
+	if err != nil {
+		return err
+	}
+
+	pruneReport, err := s.backend.ContainersPrune(pruneFilters)
+	if err != nil {
+		return err
+	}
+	return httputils.WriteJSON(w, http.StatusOK, pruneReport)
 }

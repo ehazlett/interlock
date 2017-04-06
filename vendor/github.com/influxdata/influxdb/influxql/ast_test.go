@@ -61,73 +61,51 @@ func TestDataType_String(t *testing.T) {
 	}
 }
 
-// Ensure the SELECT statement can extract substatements.
-func TestSelectStatement_Substatement(t *testing.T) {
-	var tests = []struct {
-		stmt string
-		expr *influxql.VarRef
-		sub  string
-		err  string
+func TestDataType_LessThan(t *testing.T) {
+	for i, tt := range []struct {
+		typ   influxql.DataType
+		other influxql.DataType
+		exp   bool
 	}{
-		// 0. Single series
-		{
-			stmt: `SELECT value FROM myseries WHERE value > 1`,
-			expr: &influxql.VarRef{Val: "value"},
-			sub:  `SELECT value FROM myseries WHERE value > 1`,
-		},
-
-		// 1. Simple join
-		{
-			stmt: `SELECT sum(aa.value) + sum(bb.value) FROM aa, bb`,
-			expr: &influxql.VarRef{Val: "aa.value"},
-			sub:  `SELECT "aa.value" FROM aa`,
-		},
-
-		// 2. Simple merge
-		{
-			stmt: `SELECT sum(aa.value) + sum(bb.value) FROM aa, bb`,
-			expr: &influxql.VarRef{Val: "bb.value"},
-			sub:  `SELECT "bb.value" FROM bb`,
-		},
-
-		// 3. Join with condition
-		{
-			stmt: `SELECT sum(aa.value) + sum(bb.value) FROM aa, bb WHERE aa.host = 'servera' AND bb.host = 'serverb'`,
-			expr: &influxql.VarRef{Val: "bb.value"},
-			sub:  `SELECT "bb.value" FROM bb WHERE "bb.host" = 'serverb'`,
-		},
-
-		// 4. Join with complex condition
-		{
-			stmt: `SELECT sum(aa.value) + sum(bb.value) FROM aa, bb WHERE aa.host = 'servera' AND (bb.host = 'serverb' OR bb.host = 'serverc') AND 1 = 2`,
-			expr: &influxql.VarRef{Val: "bb.value"},
-			sub:  `SELECT "bb.value" FROM bb WHERE ("bb.host" = 'serverb' OR "bb.host" = 'serverc') AND 1 = 2`,
-		},
-
-		// 5. 4 with different condition order
-		{
-			stmt: `SELECT sum(aa.value) + sum(bb.value) FROM aa, bb WHERE ((bb.host = 'serverb' OR bb.host = 'serverc') AND aa.host = 'servera') AND 1 = 2`,
-			expr: &influxql.VarRef{Val: "bb.value"},
-			sub:  `SELECT "bb.value" FROM bb WHERE (("bb.host" = 'serverb' OR "bb.host" = 'serverc')) AND 1 = 2`,
-		},
-	}
-
-	for i, tt := range tests {
-		// Parse statement.
-		stmt, err := influxql.NewParser(strings.NewReader(tt.stmt)).ParseStatement()
-		if err != nil {
-			t.Fatalf("invalid statement: %q: %s", tt.stmt, err)
-		}
-
-		// Extract substatement.
-		sub, err := stmt.(*influxql.SelectStatement).Substatement(tt.expr)
-		if err != nil {
-			t.Errorf("%d. %q: unexpected error: %s", i, tt.stmt, err)
-			continue
-		}
-		if substr := sub.String(); tt.sub != substr {
-			t.Errorf("%d. %q: unexpected substatement:\n\nexp=%s\n\ngot=%s\n\n", i, tt.stmt, tt.sub, substr)
-			continue
+		{typ: influxql.Unknown, other: influxql.Unknown, exp: true},
+		{typ: influxql.Unknown, other: influxql.Float, exp: true},
+		{typ: influxql.Unknown, other: influxql.Integer, exp: true},
+		{typ: influxql.Unknown, other: influxql.String, exp: true},
+		{typ: influxql.Unknown, other: influxql.Boolean, exp: true},
+		{typ: influxql.Unknown, other: influxql.Tag, exp: true},
+		{typ: influxql.Float, other: influxql.Unknown, exp: false},
+		{typ: influxql.Integer, other: influxql.Unknown, exp: false},
+		{typ: influxql.String, other: influxql.Unknown, exp: false},
+		{typ: influxql.Boolean, other: influxql.Unknown, exp: false},
+		{typ: influxql.Tag, other: influxql.Unknown, exp: false},
+		{typ: influxql.Float, other: influxql.Float, exp: false},
+		{typ: influxql.Float, other: influxql.Integer, exp: false},
+		{typ: influxql.Float, other: influxql.String, exp: false},
+		{typ: influxql.Float, other: influxql.Boolean, exp: false},
+		{typ: influxql.Float, other: influxql.Tag, exp: false},
+		{typ: influxql.Integer, other: influxql.Float, exp: true},
+		{typ: influxql.Integer, other: influxql.Integer, exp: false},
+		{typ: influxql.Integer, other: influxql.String, exp: false},
+		{typ: influxql.Integer, other: influxql.Boolean, exp: false},
+		{typ: influxql.Integer, other: influxql.Tag, exp: false},
+		{typ: influxql.String, other: influxql.Float, exp: true},
+		{typ: influxql.String, other: influxql.Integer, exp: true},
+		{typ: influxql.String, other: influxql.String, exp: false},
+		{typ: influxql.String, other: influxql.Boolean, exp: false},
+		{typ: influxql.String, other: influxql.Tag, exp: false},
+		{typ: influxql.Boolean, other: influxql.Float, exp: true},
+		{typ: influxql.Boolean, other: influxql.Integer, exp: true},
+		{typ: influxql.Boolean, other: influxql.String, exp: true},
+		{typ: influxql.Boolean, other: influxql.Boolean, exp: false},
+		{typ: influxql.Boolean, other: influxql.Tag, exp: false},
+		{typ: influxql.Tag, other: influxql.Float, exp: true},
+		{typ: influxql.Tag, other: influxql.Integer, exp: true},
+		{typ: influxql.Tag, other: influxql.String, exp: true},
+		{typ: influxql.Tag, other: influxql.Boolean, exp: true},
+		{typ: influxql.Tag, other: influxql.Tag, exp: false},
+	} {
+		if got, exp := tt.typ.LessThan(tt.other), tt.exp; got != exp {
+			t.Errorf("%d. %q.LessThan(%q) = %v; exp = %v", i, tt.typ, tt.other, got, exp)
 		}
 	}
 }
@@ -428,6 +406,62 @@ func TestSelectStatement_RewriteFields(t *testing.T) {
 			stmt:    `SELECT * FROM cpu GROUP BY *`,
 			rewrite: `SELECT value1::float, value2::integer FROM cpu GROUP BY host, region`,
 		},
+
+		// Wildcard function with all fields.
+		{
+			stmt:    `SELECT mean(*) FROM cpu`,
+			rewrite: `SELECT mean(value1::float) AS mean_value1, mean(value2::integer) AS mean_value2 FROM cpu`,
+		},
+
+		{
+			stmt:    `SELECT distinct(*) FROM strings`,
+			rewrite: `SELECT distinct(string::string) AS distinct_string, distinct(value::float) AS distinct_value FROM strings`,
+		},
+
+		{
+			stmt:    `SELECT distinct(*) FROM bools`,
+			rewrite: `SELECT distinct(bool::boolean) AS distinct_bool, distinct(value::float) AS distinct_value FROM bools`,
+		},
+
+		// Wildcard function with some fields excluded.
+		{
+			stmt:    `SELECT mean(*) FROM strings`,
+			rewrite: `SELECT mean(value::float) AS mean_value FROM strings`,
+		},
+
+		{
+			stmt:    `SELECT mean(*) FROM bools`,
+			rewrite: `SELECT mean(value::float) AS mean_value FROM bools`,
+		},
+
+		// Wildcard function with an alias.
+		{
+			stmt:    `SELECT mean(*) AS alias FROM cpu`,
+			rewrite: `SELECT mean(value1::float) AS alias_value1, mean(value2::integer) AS alias_value2 FROM cpu`,
+		},
+
+		// Query regex
+		{
+			stmt:    `SELECT /1/ FROM cpu`,
+			rewrite: `SELECT value1::float FROM cpu`,
+		},
+
+		{
+			stmt:    `SELECT value1 FROM cpu GROUP BY /h/`,
+			rewrite: `SELECT value1::float FROM cpu GROUP BY host`,
+		},
+
+		// Query regex
+		{
+			stmt:    `SELECT mean(/1/) FROM cpu`,
+			rewrite: `SELECT mean(value1::float) AS mean_value1 FROM cpu`,
+		},
+
+		// Rewrite subquery
+		{
+			stmt:    `SELECT * FROM (SELECT mean(value1) FROM cpu GROUP BY host) GROUP BY *`,
+			rewrite: `SELECT mean::float FROM (SELECT mean(value1::float) FROM cpu GROUP BY host) GROUP BY host`,
+		},
 	}
 
 	for i, tt := range tests {
@@ -438,8 +472,24 @@ func TestSelectStatement_RewriteFields(t *testing.T) {
 		}
 
 		var ic IteratorCreator
-		ic.FieldDimensionsFn = func(sources influxql.Sources) (fields map[string]influxql.DataType, dimensions map[string]struct{}, err error) {
-			fields = map[string]influxql.DataType{"value1": influxql.Float, "value2": influxql.Integer}
+		ic.FieldDimensionsFn = func(m *influxql.Measurement) (fields map[string]influxql.DataType, dimensions map[string]struct{}, err error) {
+			switch m.Name {
+			case "cpu":
+				fields = map[string]influxql.DataType{
+					"value1": influxql.Float,
+					"value2": influxql.Integer,
+				}
+			case "strings":
+				fields = map[string]influxql.DataType{
+					"value":  influxql.Float,
+					"string": influxql.String,
+				}
+			case "bools":
+				fields = map[string]influxql.DataType{
+					"value": influxql.Float,
+					"bool":  influxql.Boolean,
+				}
+			}
 			dimensions = map[string]struct{}{"host": struct{}{}, "region": struct{}{}}
 			return
 		}
@@ -452,6 +502,75 @@ func TestSelectStatement_RewriteFields(t *testing.T) {
 			t.Errorf("%d. %q: unexpected nil statement", i, tt.stmt)
 		} else if rw := rw.String(); tt.rewrite != rw {
 			t.Errorf("%d. %q: unexpected rewrite:\n\nexp=%s\n\ngot=%s\n\n", i, tt.stmt, tt.rewrite, rw)
+		}
+	}
+}
+
+// Test SELECT statement regex conditions rewrite.
+func TestSelectStatement_RewriteRegexConditions(t *testing.T) {
+	var tests = []struct {
+		in  string
+		out string
+	}{
+		{in: `SELECT value FROM cpu`, out: `SELECT value FROM cpu`},
+		{in: `SELECT value FROM cpu WHERE host='server-1'`, out: `SELECT value FROM cpu WHERE host='server-1'`},
+		{in: `SELECT value FROM cpu WHERE host = 'server-1'`, out: `SELECT value FROM cpu WHERE host = 'server-1'`},
+		{in: `SELECT value FROM cpu WHERE host != 'server-1'`, out: `SELECT value FROM cpu WHERE host != 'server-1'`},
+
+		// Non matching regex
+		{in: `SELECT value FROM cpu WHERE host =~ /server-1|server-2|server-3/`, out: `SELECT value FROM cpu WHERE host =~ /server-1|server-2|server-3/`},
+		{in: `SELECT value FROM cpu WHERE host =~ /server-1/`, out: `SELECT value FROM cpu WHERE host =~ /server-1/`},
+		{in: `SELECT value FROM cpu WHERE host !~ /server-1/`, out: `SELECT value FROM cpu WHERE host !~ /server-1/`},
+		{in: `SELECT value FROM cpu WHERE host =~ /^server-1/`, out: `SELECT value FROM cpu WHERE host =~ /^server-1/`},
+		{in: `SELECT value FROM cpu WHERE host =~ /server-1$/`, out: `SELECT value FROM cpu WHERE host =~ /server-1$/`},
+		{in: `SELECT value FROM cpu WHERE host !~ /\^server-1$/`, out: `SELECT value FROM cpu WHERE host !~ /\^server-1$/`},
+		{in: `SELECT value FROM cpu WHERE host !~ /\^$/`, out: `SELECT value FROM cpu WHERE host !~ /\^$/`},
+		{in: `SELECT value FROM cpu WHERE host !~ /^server-1\$/`, out: `SELECT value FROM cpu WHERE host !~ /^server-1\$/`},
+		{in: `SELECT value FROM cpu WHERE host =~ /^\$/`, out: `SELECT value FROM cpu WHERE host =~ /^\$/`},
+		{in: `SELECT value FROM cpu WHERE host !~ /^a/`, out: `SELECT value FROM cpu WHERE host !~ /^a/`},
+
+		// These regexes are not supported due to the presence of escaped or meta characters.
+		{in: `SELECT value FROM cpu WHERE host !~ /^(foo|bar)$/`, out: `SELECT value FROM cpu WHERE host !~ /^(foo|bar)$/`},
+		{in: `SELECT value FROM cpu WHERE host !~ /^?a$/`, out: `SELECT value FROM cpu WHERE host !~ /^?a$/`},
+		{in: `SELECT value FROM cpu WHERE host !~ /^[a-z]$/`, out: `SELECT value FROM cpu WHERE host !~ /^[a-z]$/`},
+		{in: `SELECT value FROM cpu WHERE host !~ /^\d$/`, out: `SELECT value FROM cpu WHERE host !~ /^\d$/`},
+		{in: `SELECT value FROM cpu WHERE host !~ /^a*$/`, out: `SELECT value FROM cpu WHERE host !~ /^a*$/`},
+		{in: `SELECT value FROM cpu WHERE host !~ /^a.b$/`, out: `SELECT value FROM cpu WHERE host !~ /^a.b$/`},
+		{in: `SELECT value FROM cpu WHERE host !~ /^ab+$/`, out: `SELECT value FROM cpu WHERE host !~ /^ab+$/`},
+		{in: `SELECT value FROM cpu WHERE host =~ /^hello\world$/`, out: `SELECT value FROM cpu WHERE host =~ /^hello\world$/`},
+
+		// These regexes all match and will be rewritten.
+		{in: `SELECT value FROM cpu WHERE host !~ /^a[2]$/`, out: `SELECT value FROM cpu WHERE host != 'a2'`},
+		{in: `SELECT value FROM cpu WHERE host =~ /^server-1$/`, out: `SELECT value FROM cpu WHERE host = 'server-1'`},
+		{in: `SELECT value FROM cpu WHERE host !~ /^server-1$/`, out: `SELECT value FROM cpu WHERE host != 'server-1'`},
+		{in: `SELECT value FROM cpu WHERE host =~ /^server 1$/`, out: `SELECT value FROM cpu WHERE host = 'server 1'`},
+		{in: `SELECT value FROM cpu WHERE host =~ /^$/`, out: `SELECT value FROM cpu WHERE host = ''`},
+		{in: `SELECT value FROM cpu WHERE host !~ /^$/`, out: `SELECT value FROM cpu WHERE host != ''`},
+		{in: `SELECT value FROM cpu WHERE host =~ /^server-1$/ OR host =~ /^server-2$/`, out: `SELECT value FROM cpu WHERE host = 'server-1' OR host = 'server-2'`},
+		{in: `SELECT value FROM cpu WHERE host =~ /^server-1$/ OR host =~ /^server]a$/`, out: `SELECT value FROM cpu WHERE host = 'server-1' OR host = 'server]a'`},
+		{in: `SELECT value FROM cpu WHERE host =~ /^hello\?$/`, out: `SELECT value FROM cpu WHERE host = 'hello?'`},
+		{in: `SELECT value FROM cpu WHERE host !~ /^\\$/`, out: `SELECT value FROM cpu WHERE host != '\\'`},
+		{in: `SELECT value FROM cpu WHERE host !~ /^\\\$$/`, out: `SELECT value FROM cpu WHERE host != '\\$'`},
+	}
+
+	for i, test := range tests {
+		stmt, err := influxql.NewParser(strings.NewReader(test.in)).ParseStatement()
+		if err != nil {
+			t.Fatalf("[Example %d], %v", i, err)
+		}
+
+		// Rewrite any supported regex conditions.
+		stmt.(*influxql.SelectStatement).RewriteRegexConditions()
+
+		// Get the expected rewritten statement.
+		expStmt, err := influxql.NewParser(strings.NewReader(test.out)).ParseStatement()
+		if err != nil {
+			t.Fatalf("[Example %d], %v", i, err)
+		}
+
+		// Compare the (potentially) rewritten AST to the expected AST.
+		if got, exp := stmt, expStmt; !reflect.DeepEqual(got, exp) {
+			t.Errorf("[Example %d]\nattempting %v\ngot %v\n%s\n\nexpected %v\n%s\n", i+1, test.in, got, mustMarshalJSON(got), exp, mustMarshalJSON(exp))
 		}
 	}
 }
@@ -720,7 +839,6 @@ func TestTimeRange(t *testing.T) {
 
 		// number literal
 		{expr: `time < 10`, min: `0001-01-01T00:00:00Z`, max: `1970-01-01T00:00:00.000000009Z`},
-		{expr: `time < 10i`, min: `0001-01-01T00:00:00Z`, max: `1970-01-01T00:00:00.000000009Z`},
 
 		// Equality
 		{expr: `time = '2000-01-01 00:00:00'`, min: `2000-01-01T00:00:00Z`, max: `2000-01-01T00:00:00.000000001Z`},
@@ -1007,6 +1125,90 @@ func TestEval(t *testing.T) {
 	}
 }
 
+type EvalFixture map[string]map[string]influxql.DataType
+
+func (e EvalFixture) MapType(measurement *influxql.Measurement, field string) influxql.DataType {
+	m := e[measurement.Name]
+	if m == nil {
+		return influxql.Unknown
+	}
+	return m[field]
+}
+
+func TestEvalType(t *testing.T) {
+	for i, tt := range []struct {
+		name string
+		in   string
+		typ  influxql.DataType
+		data EvalFixture
+	}{
+		{
+			name: `a single data type`,
+			in:   `min(value)`,
+			typ:  influxql.Integer,
+			data: EvalFixture{
+				"cpu": map[string]influxql.DataType{
+					"value": influxql.Integer,
+				},
+			},
+		},
+		{
+			name: `multiple data types`,
+			in:   `min(value)`,
+			typ:  influxql.Integer,
+			data: EvalFixture{
+				"cpu": map[string]influxql.DataType{
+					"value": influxql.Integer,
+				},
+				"mem": map[string]influxql.DataType{
+					"value": influxql.String,
+				},
+			},
+		},
+		{
+			name: `count() with a float`,
+			in:   `count(value)`,
+			typ:  influxql.Integer,
+			data: EvalFixture{
+				"cpu": map[string]influxql.DataType{
+					"value": influxql.Float,
+				},
+			},
+		},
+		{
+			name: `mean() with an integer`,
+			in:   `mean(value)`,
+			typ:  influxql.Float,
+			data: EvalFixture{
+				"cpu": map[string]influxql.DataType{
+					"value": influxql.Integer,
+				},
+			},
+		},
+		{
+			name: `value inside a parenthesis`,
+			in:   `(value)`,
+			typ:  influxql.Float,
+			data: EvalFixture{
+				"cpu": map[string]influxql.DataType{
+					"value": influxql.Float,
+				},
+			},
+		},
+	} {
+		sources := make([]influxql.Source, 0, len(tt.data))
+		for src := range tt.data {
+			sources = append(sources, &influxql.Measurement{Name: src})
+		}
+
+		expr := influxql.MustParseExpr(tt.in)
+		typ := influxql.EvalType(expr, sources, tt.data)
+		if typ != tt.typ {
+			t.Errorf("%d. %s: unexpected type:\n\nexp=%#v\n\ngot=%#v\n\n", i, tt.name, tt.typ, typ)
+		}
+	}
+}
+
 // Ensure an expression can be reduced.
 func TestReduce(t *testing.T) {
 	now := mustParseTime("2000-01-01T00:00:00Z")
@@ -1041,10 +1243,13 @@ func TestReduce(t *testing.T) {
 		{in: `true <> false`, out: `true`},
 		{in: `true + false`, out: `true + false`},
 
-		// Time literals.
+		// Time literals with now().
 		{in: `now() + 2h`, out: `'2000-01-01T02:00:00Z'`, data: map[string]interface{}{"now()": now}},
 		{in: `now() / 2h`, out: `'2000-01-01T00:00:00Z' / 2h`, data: map[string]interface{}{"now()": now}},
 		{in: `4µ + now()`, out: `'2000-01-01T00:00:00.000004Z'`, data: map[string]interface{}{"now()": now}},
+		{in: `now() + 2000000000`, out: `'2000-01-01T00:00:02Z'`, data: map[string]interface{}{"now()": now}},
+		{in: `2000000000 + now()`, out: `'2000-01-01T00:00:02Z'`, data: map[string]interface{}{"now()": now}},
+		{in: `now() - 2000000000`, out: `'1999-12-31T23:59:58Z'`, data: map[string]interface{}{"now()": now}},
 		{in: `now() = now()`, out: `true`, data: map[string]interface{}{"now()": now}},
 		{in: `now() <> now()`, out: `false`, data: map[string]interface{}{"now()": now}},
 		{in: `now() < now() + 1h`, out: `true`, data: map[string]interface{}{"now()": now}},
@@ -1055,6 +1260,28 @@ func TestReduce(t *testing.T) {
 		{in: `now() AND now()`, out: `'2000-01-01T00:00:00Z' AND '2000-01-01T00:00:00Z'`, data: map[string]interface{}{"now()": now}},
 		{in: `now()`, out: `now()`},
 		{in: `946684800000000000 + 2h`, out: `'2000-01-01T02:00:00Z'`},
+
+		// Time literals.
+		{in: `'2000-01-01T00:00:00Z' + 2h`, out: `'2000-01-01T02:00:00Z'`},
+		{in: `'2000-01-01T00:00:00Z' / 2h`, out: `'2000-01-01T00:00:00Z' / 2h`},
+		{in: `4µ + '2000-01-01T00:00:00Z'`, out: `'2000-01-01T00:00:00.000004Z'`},
+		{in: `'2000-01-01T00:00:00Z' + 2000000000`, out: `'2000-01-01T00:00:02Z'`},
+		{in: `2000000000 + '2000-01-01T00:00:00Z'`, out: `'2000-01-01T00:00:02Z'`},
+		{in: `'2000-01-01T00:00:00Z' - 2000000000`, out: `'1999-12-31T23:59:58Z'`},
+		{in: `'2000-01-01T00:00:00Z' = '2000-01-01T00:00:00Z'`, out: `true`},
+		{in: `'2000-01-01T00:00:00.000000000Z' = '2000-01-01T00:00:00Z'`, out: `true`},
+		{in: `'2000-01-01T00:00:00Z' <> '2000-01-01T00:00:00Z'`, out: `false`},
+		{in: `'2000-01-01T00:00:00.000000000Z' <> '2000-01-01T00:00:00Z'`, out: `false`},
+		{in: `'2000-01-01T00:00:00Z' < '2000-01-01T00:00:00Z' + 1h`, out: `true`},
+		{in: `'2000-01-01T00:00:00.000000000Z' < '2000-01-01T00:00:00Z' + 1h`, out: `true`},
+		{in: `'2000-01-01T00:00:00Z' <= '2000-01-01T00:00:00Z' + 1h`, out: `true`},
+		{in: `'2000-01-01T00:00:00.000000000Z' <= '2000-01-01T00:00:00Z' + 1h`, out: `true`},
+		{in: `'2000-01-01T00:00:00Z' > '2000-01-01T00:00:00Z' - 1h`, out: `true`},
+		{in: `'2000-01-01T00:00:00.000000000Z' > '2000-01-01T00:00:00Z' - 1h`, out: `true`},
+		{in: `'2000-01-01T00:00:00Z' >= '2000-01-01T00:00:00Z' - 1h`, out: `true`},
+		{in: `'2000-01-01T00:00:00.000000000Z' >= '2000-01-01T00:00:00Z' - 1h`, out: `true`},
+		{in: `'2000-01-01T00:00:00Z' - ('2000-01-01T00:00:00Z' - 60s)`, out: `1m`},
+		{in: `'2000-01-01T00:00:00Z' AND '2000-01-01T00:00:00Z'`, out: `'2000-01-01T00:00:00Z' AND '2000-01-01T00:00:00Z'`},
 
 		// Duration literals.
 		{in: `10m + 1h - 60s`, out: `69m`},
@@ -1250,6 +1477,39 @@ func TestSelect_Privileges(t *testing.T) {
 	}
 }
 
+func TestSelect_SubqueryPrivileges(t *testing.T) {
+	stmt := &influxql.SelectStatement{
+		Target: &influxql.Target{
+			Measurement: &influxql.Measurement{Database: "db2"},
+		},
+		Sources: []influxql.Source{
+			&influxql.Measurement{Database: "db0"},
+			&influxql.SubQuery{
+				Statement: &influxql.SelectStatement{
+					Sources: []influxql.Source{
+						&influxql.Measurement{Database: "db1"},
+					},
+				},
+			},
+		},
+	}
+
+	exp := influxql.ExecutionPrivileges{
+		influxql.ExecutionPrivilege{Name: "db0", Privilege: influxql.ReadPrivilege},
+		influxql.ExecutionPrivilege{Name: "db1", Privilege: influxql.ReadPrivilege},
+		influxql.ExecutionPrivilege{Name: "db2", Privilege: influxql.WritePrivilege},
+	}
+
+	got, err := stmt.RequiredPrivileges()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !reflect.DeepEqual(exp, got) {
+		t.Errorf("exp: %v, got: %v", exp, got)
+	}
+}
+
 func TestSources_Names(t *testing.T) {
 	sources := influxql.Sources([]influxql.Source{
 		&influxql.Measurement{
@@ -1290,6 +1550,29 @@ func TestSources_HasSystemSource(t *testing.T) {
 	ok = sources.HasSystemSource()
 	if ok {
 		t.Errorf("expected to find no system source, found one")
+	}
+}
+
+// Parse statements that might appear valid but should return an error.
+// If allowed to execute, at least some of these statements would result in a panic.
+func TestParse_Errors(t *testing.T) {
+	for _, tt := range []struct {
+		tmpl string
+		good string
+		bad  string
+	}{
+		// Second argument to derivative must be duration
+		{tmpl: `SELECT derivative(f, %s) FROM m`, good: "1h", bad: "true"},
+	} {
+		good := fmt.Sprintf(tt.tmpl, tt.good)
+		if _, err := influxql.ParseStatement(good); err != nil {
+			t.Fatalf("statement %q should have parsed correctly but returned error: %s", good, err)
+		}
+
+		bad := fmt.Sprintf(tt.tmpl, tt.bad)
+		if _, err := influxql.ParseStatement(bad); err == nil {
+			t.Fatalf("statement %q should have resulted in a parse error but did not", bad)
+		}
 	}
 }
 

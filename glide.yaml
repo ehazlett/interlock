@@ -1,34 +1,44 @@
 package: github.com/ehazlett/interlock
 import:
 - package: github.com/BurntSushi/toml
+  version: ~0.3.0
 - package: github.com/Sirupsen/logrus
+  version: ~0.11.5
 - package: github.com/codegangsta/cli
+  version: ~1.19.1
 - package: github.com/docker/docker
+  version: ~17.4.0-ce-rc2
   subpackages:
-  - pkg/tlsconfig
-- package: github.com/docker/engine-api
-  subpackages:
+  - api/types
+  - api/types/container
+  - api/types/events
+  - api/types/filters
+  - api/types/network
   - client
-  - types
-  - types/container
-  - types/events
-  - types/filters
-  - types/network
+  - pkg/tlsconfig
 - package: github.com/docker/go-connections
+  version: ~0.2.1
   subpackages:
   - nat
 - package: github.com/docker/libkv
+  version: ~0.2.1
   subpackages:
   - store
   - store/consul
   - store/etcd
 - package: github.com/ehazlett/ttlcache
 - package: github.com/influxdata/influxdb
+  version: ~1.2.2
   subpackages:
   - client/v2
 - package: github.com/prometheus/client_golang
+  version: ~0.8.0
   subpackages:
   - prometheus
 - package: golang.org/x/net
   subpackages:
   - context
+- package: github.com/docker/distribution
+  version: ~2.6.1
+  subpackages:
+  - reference

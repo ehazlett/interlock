@@ -107,7 +107,10 @@ func (st *StressTest) resultsListen() {
 				resp.Tracer.Done()
 			default:
 				// Add the StressTest tags
-				pt := resp.AddTags(st.tags())
+				pt, err := resp.AddTags(st.tags())
+				if err != nil {
+					panic(err)
+				}
 				// Add the point to the batch
 				bp = st.batcher(pt, bp)
 				resp.Tracer.Done()
@@ -141,7 +144,7 @@ func (st *StressTest) batcher(pt *influx.Point, bp influx.BatchPoints) influx.Ba
 
 // Convinence database creation function
 func (st *StressTest) createDatabase(db string) {
-	query := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %v", db)
+	query := fmt.Sprintf("CREATE DATABASE %v", db)
 	res, err := st.ResultsClient.Query(influx.Query{Command: query})
 	if err != nil {
 		log.Fatalf("error: no running influx server at localhost:8086")

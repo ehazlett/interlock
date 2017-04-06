@@ -2,16 +2,14 @@ package influxql
 
 import (
 	"errors"
-	"expvar"
 	"fmt"
-	"io"
-	"io/ioutil"
-	"log"
 	"runtime/debug"
 	"sync"
+	"sync/atomic"
 	"time"
 
-	"github.com/influxdata/influxdb"
+	"github.com/influxdata/influxdb/models"
+	"github.com/uber-go/zap"
 )
 
 var (
@@ -25,25 +23,22 @@ var (
 	// ErrQueryInterrupted is an error returned when the query is interrupted.
 	ErrQueryInterrupted = errors.New("query interrupted")
 
-	// ErrMaxConcurrentQueriesReached is an error when a query cannot be run
-	// because the maximum number of queries has been reached.
-	ErrMaxConcurrentQueriesReached = errors.New("max concurrent queries reached")
+	// ErrQueryAborted is an error returned when the query is aborted.
+	ErrQueryAborted = errors.New("query aborted")
 
 	// ErrQueryEngineShutdown is an error sent when the query cannot be
 	// created because the query engine was shutdown.
 	ErrQueryEngineShutdown = errors.New("query engine shutdown")
 
-	// ErrMaxPointsReached is an error when a query hits the maximum number of
-	// points.
-	ErrMaxPointsReached = errors.New("max number of points reached")
-
-	// ErrQueryTimeoutReached is an error when a query hits the timeout.
-	ErrQueryTimeoutReached = errors.New("query timeout reached")
+	// ErrQueryTimeoutLimitExceeded is an error when a query hits the max time allowed to run.
+	ErrQueryTimeoutLimitExceeded = errors.New("query-timeout limit exceeded")
 )
 
 // Statistics for the QueryExecutor
 const (
 	statQueriesActive          = "queriesActive"   // Number of queries currently being executed
+	statQueriesExecuted        = "queriesExecuted" // Number of queries that have been executed (started).
+	statQueriesFinished        = "queriesFinished" // Number of queries that have finished.
 	statQueryExecutionDuration = "queryDurationNs" // Total (wall) time spent executing queries
 )
 
@@ -52,6 +47,17 @@ func ErrDatabaseNotFound(name string) error { return fmt.Errorf("database not fo
 
 // ErrMeasurementNotFound returns a measurement not found error for the given measurement name.
 func ErrMeasurementNotFound(name string) error { return fmt.Errorf("measurement not found: %s", name) }
+
+// ErrMaxSelectPointsLimitExceeded is an error when a query hits the maximum number of points.
+func ErrMaxSelectPointsLimitExceeded(n, limit int) error {
+	return fmt.Errorf("max-select-point limit exceeed: (%d/%d)", n, limit)
+}
+
+// ErrMaxConcurrentQueriesLimitExceeded is an error when a query cannot be run
+// because the maximum number of queries has been reached.
+func ErrMaxConcurrentQueriesLimitExceeded(n, limit int) error {
+	return fmt.Errorf("max-concurrent-queries limit exceeded(%d, %d)", n, limit)
+}
 
 // ExecutionOptions contains the options for executing a query.
 type ExecutionOptions struct {
@@ -66,6 +72,12 @@ type ExecutionOptions struct {
 
 	// Node to execute on.
 	NodeID uint64
+
+	// Quiet suppresses non-essential output from the query executor.
+	Quiet bool
+
+	// AbortCh is a channel that signals when results are no longer desired by the caller.
+	AbortCh <-chan struct{}
 }
 
 // ExecutionContext contains state that the query is currently executing with.
@@ -83,13 +95,37 @@ type ExecutionContext struct {
 	Results chan *Result
 
 	// Hold the query executor's logger.
-	Log *log.Logger
+	Log zap.Logger
 
 	// A channel that is closed when the query is interrupted.
 	InterruptCh <-chan struct{}
 
 	// Options used to start this query.
 	ExecutionOptions
+}
+
+// send sends a Result to the Results channel and will exit if the query has
+// been aborted.
+func (ctx *ExecutionContext) send(result *Result) error {
+	select {
+	case <-ctx.AbortCh:
+		return ErrQueryAborted
+	case ctx.Results <- result:
+	}
+	return nil
+}
+
+// Send sends a Result to the Results channel and will exit if the query has
+// been interrupted or aborted.
+func (ctx *ExecutionContext) Send(result *Result) error {
+	select {
+	case <-ctx.InterruptCh:
+		return ErrQueryInterrupted
+	case <-ctx.AbortCh:
+		return ErrQueryAborted
+	case ctx.Results <- result:
+	}
+	return nil
 }
 
 // StatementExecutor executes a statement within the QueryExecutor.
@@ -116,19 +152,41 @@ type QueryExecutor struct {
 
 	// Logger to use for all logging.
 	// Defaults to discarding all log output.
-	Logger *log.Logger
+	Logger zap.Logger
 
 	// expvar-based stats.
-	statMap *expvar.Map
+	stats *QueryStatistics
 }
 
 // NewQueryExecutor returns a new instance of QueryExecutor.
 func NewQueryExecutor() *QueryExecutor {
 	return &QueryExecutor{
 		TaskManager: NewTaskManager(),
-		Logger:      log.New(ioutil.Discard, "[query] ", log.LstdFlags),
-		statMap:     influxdb.NewStatistics("queryExecutor", "queryExecutor", nil),
+		Logger:      zap.New(zap.NullEncoder()),
+		stats:       &QueryStatistics{},
 	}
+}
+
+// QueryStatistics keeps statistics related to the QueryExecutor.
+type QueryStatistics struct {
+	ActiveQueries          int64
+	ExecutedQueries        int64
+	FinishedQueries        int64
+	QueryExecutionDuration int64
+}
+
+// Statistics returns statistics for periodic monitoring.
+func (e *QueryExecutor) Statistics(tags map[string]string) []models.Statistic {
+	return []models.Statistic{{
+		Name: "queryExecutor",
+		Tags: tags,
+		Values: map[string]interface{}{
+			statQueriesActive:          atomic.LoadInt64(&e.stats.ActiveQueries),
+			statQueriesExecuted:        atomic.LoadInt64(&e.stats.ExecutedQueries),
+			statQueriesFinished:        atomic.LoadInt64(&e.stats.FinishedQueries),
+			statQueryExecutionDuration: atomic.LoadInt64(&e.stats.QueryExecutionDuration),
+		},
+	}}
 }
 
 // Close kills all running queries and prevents new queries from being attached.
@@ -138,8 +196,8 @@ func (e *QueryExecutor) Close() error {
 
 // SetLogOutput sets the writer to which all logs are written. It must not be
 // called after Open is called.
-func (e *QueryExecutor) SetLogOutput(w io.Writer) {
-	e.Logger = log.New(w, "[query] ", log.LstdFlags)
+func (e *QueryExecutor) WithLogger(log zap.Logger) {
+	e.Logger = log.With(zap.String("service", "query"))
 	e.TaskManager.Logger = e.Logger
 }
 
@@ -154,15 +212,20 @@ func (e *QueryExecutor) executeQuery(query *Query, opt ExecutionOptions, closing
 	defer close(results)
 	defer e.recover(query, results)
 
-	e.statMap.Add(statQueriesActive, 1)
+	atomic.AddInt64(&e.stats.ActiveQueries, 1)
+	atomic.AddInt64(&e.stats.ExecutedQueries, 1)
 	defer func(start time.Time) {
-		e.statMap.Add(statQueriesActive, -1)
-		e.statMap.Add(statQueryExecutionDuration, time.Since(start).Nanoseconds())
+		atomic.AddInt64(&e.stats.ActiveQueries, -1)
+		atomic.AddInt64(&e.stats.FinishedQueries, 1)
+		atomic.AddInt64(&e.stats.QueryExecutionDuration, time.Since(start).Nanoseconds())
 	}(time.Now())
 
 	qid, task, err := e.TaskManager.AttachQuery(query, opt.Database, closing)
 	if err != nil {
-		results <- &Result{Err: err}
+		select {
+		case results <- &Result{Err: err}:
+		case <-opt.AbortCh:
+		}
 		return
 	}
 	defer e.TaskManager.KillQuery(qid)
@@ -178,6 +241,7 @@ func (e *QueryExecutor) executeQuery(query *Query, opt ExecutionOptions, closing
 	}
 
 	var i int
+LOOP:
 	for ; i < len(query.Statements); i++ {
 		ctx.StatementID = i
 		stmt := query.Statements[i]
@@ -187,6 +251,36 @@ func (e *QueryExecutor) executeQuery(query *Query, opt ExecutionOptions, closing
 		if defaultDB == "" {
 			if s, ok := stmt.(HasDefaultDatabase); ok {
 				defaultDB = s.DefaultDatabase()
+			}
+		}
+
+		// Do not let queries manually use the system measurements. If we find
+		// one, return an error. This prevents a person from using the
+		// measurement incorrectly and causing a panic.
+		if stmt, ok := stmt.(*SelectStatement); ok {
+			for _, s := range stmt.Sources {
+				switch s := s.(type) {
+				case *Measurement:
+					if IsSystemName(s.Name) {
+						command := "the appropriate meta command"
+						switch s.Name {
+						case "_fieldKeys":
+							command = "SHOW FIELD KEYS"
+						case "_measurements":
+							command = "SHOW MEASUREMENTS"
+						case "_series":
+							command = "SHOW SERIES"
+						case "_tagKeys":
+							command = "SHOW TAG KEYS"
+						case "_tags":
+							command = "SHOW TAG VALUES"
+						}
+						results <- &Result{
+							Err: fmt.Errorf("unable to use system source '%s': use %s instead", s.Name, command),
+						}
+						break LOOP
+					}
+				}
 			}
 		}
 
@@ -202,13 +296,17 @@ func (e *QueryExecutor) executeQuery(query *Query, opt ExecutionOptions, closing
 		// Normalize each statement if possible.
 		if normalizer, ok := e.StatementExecutor.(StatementNormalizer); ok {
 			if err := normalizer.NormalizeStatement(stmt, defaultDB); err != nil {
-				results <- &Result{Err: err}
+				if err := ctx.send(&Result{Err: err}); err == ErrQueryAborted {
+					return
+				}
 				break
 			}
 		}
 
 		// Log each normalized statement.
-		e.Logger.Println(stmt.String())
+		if !ctx.Quiet {
+			e.Logger.Info(stmt.String())
+		}
 
 		// Send any other statements to the underlying statement executor.
 		err = e.StatementExecutor.ExecuteStatement(stmt, ctx)
@@ -222,27 +320,46 @@ func (e *QueryExecutor) executeQuery(query *Query, opt ExecutionOptions, closing
 
 		// Send an error for this result if it failed for some reason.
 		if err != nil {
-			results <- &Result{
+			if err := ctx.send(&Result{
 				StatementID: i,
 				Err:         err,
+			}); err == ErrQueryAborted {
+				return
 			}
 			// Stop after the first error.
+			break
+		}
+
+		// Check if the query was interrupted during an uninterruptible statement.
+		interrupted := false
+		if ctx.InterruptCh != nil {
+			select {
+			case <-ctx.InterruptCh:
+				interrupted = true
+			default:
+				// Query has not been interrupted.
+			}
+		}
+
+		if interrupted {
 			break
 		}
 	}
 
 	// Send error results for any statements which were not executed.
 	for ; i < len(query.Statements)-1; i++ {
-		results <- &Result{
+		if err := ctx.send(&Result{
 			StatementID: i,
 			Err:         ErrNotExecuted,
+		}); err == ErrQueryAborted {
+			return
 		}
 	}
 }
 
 func (e *QueryExecutor) recover(query *Query, results chan *Result) {
 	if err := recover(); err != nil {
-		e.Logger.Printf("%s [panic:%s] %s", query.String(), err, debug.Stack())
+		e.Logger.Error(fmt.Sprintf("%s [panic:%s] %s", query.String(), err, debug.Stack()))
 		results <- &Result{
 			StatementID: -1,
 			Err:         fmt.Errorf("%s [panic:%s]", query.String(), err),

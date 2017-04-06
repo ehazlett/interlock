@@ -1,3 +1,4 @@
+// Pacage tsdb abstracts the various shard types supported by the influx_tsm command.
 package tsdb // import "github.com/influxdata/influxdb/cmd/influx_tsm/tsdb"
 
 import (
@@ -172,6 +173,10 @@ func (d *Database) Shards() ([]*ShardInfo, error) {
 
 		// Process each shard
 		shards, err := rpfd.Readdirnames(-1)
+		if err != nil {
+			return nil, err
+		}
+
 		for _, sh := range shards {
 			fmt, sz, err := shardFormat(filepath.Join(d.path, rp, sh))
 			if err != nil {
