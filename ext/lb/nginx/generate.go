@@ -13,6 +13,8 @@ import (
 func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (interface{}, error) {
 	var hosts []*Host
 	upstreamServers := map[string][]string{}
+    hostChecks := map[string]string{}
+    hostCheckIntervals := map[string]int{}
 	serverNames := map[string][]string{}
 	hostContextRoots := map[string]*ContextRoot{}
 	hostContextRootRewrites := map[string]bool{}
@@ -61,11 +63,34 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 		}
 		hostContextRootRewrites[domain] = utils.ContextRootRewrite(cInfo.Config)
 
+
 		// check if the first server name is there; if not, add
 		// this happens if there are multiple backend containers
 		if _, ok := serverNames[domain]; !ok {
 			serverNames[domain] = []string{domain}
 		}
+
+        healthCheck := utils.HealthCheck(cInfo.Config)
+        healthCheckInterval, err := utils.HealthCheckInterval(cInfo.Config)
+        if err != nil {
+            log().Errorf("error parsing health check interval: %s", err)
+            continue
+        }
+
+        if healthCheck != "" {
+            if val, ok := hostChecks[domain]; ok {
+                // check existing host check for different values
+                if val != healthCheck {
+                    log().Warnf("conflicting check specified for %s", domain)
+                }
+            } else {
+                hostChecks[domain] = healthCheck
+                hostCheckIntervals[domain] = healthCheckInterval
+                log().Debugf("using custom check for %s: %s", domain, healthCheck)
+            }
+
+            log().Debugf("check interval for %s: %d", domain, healthCheckInterval)
+        }
 
 		hostSSL[domain] = utils.SSLEnabled(cInfo.Config)
 		hostSSLOnly[domain] = utils.SSLOnly(cInfo.Config)
@@ -165,6 +190,8 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 			Port:               p.cfg.Port,
 			ContextRoot:        hostContextRoots[k],
 			ContextRootRewrite: hostContextRootRewrites[k],
+            Check:              hostChecks[k],
+            CheckInterval:      hostCheckIntervals[k],
 			SSLPort:            p.cfg.SSLPort,
 			SSL:                hostSSL[k],
 			SSLCert:            hostSSLCert[k],
@@ -189,6 +216,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 			Name:    k,
 			Servers: servers,
 		}
+
 		h.Upstream = up
 
 		hosts = append(hosts, h)

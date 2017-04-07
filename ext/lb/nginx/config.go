@@ -32,6 +32,8 @@ type Host struct {
 	Upstream           *Upstream
 	WebsocketEndpoints []string
 	IPHash             bool
+	Check              string
+    CheckInterval      int
 }
 type Config struct {
 	Hosts    []*Host

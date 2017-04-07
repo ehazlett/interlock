@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	DefaultHealthCheckInterval = 5000
+	DefaultHealthCheckInterval = 10000
 )
 
 func HealthCheck(config *ctypes.Config) string {
