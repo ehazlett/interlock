@@ -54,7 +54,7 @@ frontend http-default
     {{ if $host.Check }}option {{ $host.Check }}{{ end }}
     {{ if $host.SSLOnly }}redirect scheme https code 301 if !{ ssl_fc }{{ end }}
 	{{ if $host.SSLOnly }}http-response set-header Strict-Transport-Security "max-age=16000000; includeSubDomains; preload;"{{ end }}
-    {{ range $i,$up := $host.Upstreams }}server {{ $up.Container }} {{ $up.Addr }} check inter {{ $up.CheckInterval }}{{ if $host.SSLBackend }} ssl verify {{ $host.SSLBackendTLSVerify }} sni req.hdr(Host){{ end }}
+    {{ range $i,$up := $host.Upstreams }}server {{ $up.Container }} {{ $up.Addr }} check inter {{ $up.CheckInterval }}{{if eq $up.Protocol "proxy"}} send-proxy {{end}}{{ if $host.SSLBackend }} ssl verify {{ $host.SSLBackendTLSVerify }} sni req.hdr(Host){{ end }}
     {{ end }}
 {{ end }}
 `

@@ -19,6 +19,7 @@ compatibility.
 |`interlock.ssl_cert`               | nginx| name of the ssl certificate |
 |`interlock.ssl_cert_key`           | nginx| name of the ssl key |
 |`interlock.port`                   | haproxy, nginx| container port to use as the upstream |
+|`interlock.protocol`               | haproxy|
 |`interlock.context_root`           | haproxy, nginx| context path to use for upstreams |
 |`interlock.context_root_rewrite`   | haproxy, nginx| rewrite requests before sending to upstream |
 |`interlock.websocket_endpoint`     | nginx| endpoint to use for websocket support |

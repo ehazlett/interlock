@@ -27,6 +27,7 @@ type Upstream struct {
 	Container     string
 	Addr          string
 	CheckInterval int
+	Protocol      string
 }
 
 type Config struct {
