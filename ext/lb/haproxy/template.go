@@ -33,18 +33,18 @@ frontend http-default
     stats enable
     stats uri /haproxy?stats
     stats refresh 5s
-    {{ range $host := .Hosts }}{{ if ne $host.ContextRoot.Path "" }}acl url{{ $host.ContextRoot.Name }} path_beg {{ $host.ContextRoot.Path }}
-    use_backend ctx{{ $host.ContextRoot.Name }} if url{{ $host.ContextRoot.Name }}{{ else }}
-    acl is_{{ $host.Name }} hdr_beg(host) {{ $host.Domain }}
+    {{ range $host := .Hosts }}{{ if ne $host.ContextRoot.Path "" }}acl url{{ $host.ContextRoot.Name }} url_beg -i {{ $host.ContextRoot.Path }}
+    use_backend {{ $host.Name }} if url{{$host.ContextRoot.Name}}{{ end }}
+    acl is_{{ $host.Name }} hdr_dom(host) {{ $host.Domain }}
     use_backend {{ $host.Name }} if is_{{ $host.Name }}
     {{ end }}
-    {{ end }}
 
-{{ range $host := .Hosts }}{{ if ne $host.ContextRoot.Path "" }}backend ctx{{ $host.ContextRoot.Name }}
+{{ range $host := .Hosts }}{{ if ne $host.ContextRoot.Path "" }}
     acl missing_slash path_reg ^{{ $host.ContextRoot.Path }}[^/]*$
     redirect code 301 prefix / drop-query append-slash if missing_slash
-    {{ if $host.ContextRootRewrite }}reqrep ^([^\ :]*)\ {{ $host.ContextRoot.Path }}/(.*)     \1\ /\2{{ end }}{{ else }}
-    backend {{ $host.Name }}{{ end }}
+    {{ if $host.ContextRootRewrite }}acl ctx{{ $host.ContextRoot.Name }} path_beg -i {{ $host.ContextRoot.Path }}/
+    reqrep ^([^\ ]*)\ {{ $host.ContextRoot.Path }}/(.*)     \1\ /\2 {{ end }}{{ end }}
+    backend {{ $host.Name }}
     http-response add-header X-Request-Start %Ts.%ms
     http-request set-header X-Forwarded-Port %[dst_port]
     http-request add-header X-Forwarded-Proto https if { ssl_fc }
