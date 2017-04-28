@@ -9,12 +9,12 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
-	"github.com/docker/docker/pkg/tlsconfig"
 	"github.com/docker/libkv"
 	kvstore "github.com/docker/libkv/store"
 	"github.com/docker/libkv/store/consul"
 	"github.com/docker/libkv/store/etcd"
 	"github.com/ehazlett/interlock/config"
+	"github.com/ehazlett/interlock/pkg/tlsconfig"
 	"github.com/ehazlett/interlock/server"
 	"github.com/ehazlett/interlock/version"
 )

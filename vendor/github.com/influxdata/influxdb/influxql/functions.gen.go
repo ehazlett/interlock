@@ -6,7 +6,11 @@
 
 package influxql
 
-import "sort"
+import (
+	"math/rand"
+	"sort"
+	"time"
+)
 
 // FloatPointAggregator aggregates points to produce a single point.
 type FloatPointAggregator interface {
@@ -92,7 +96,7 @@ func NewFloatSliceFuncReducer(fn FloatReduceSliceFunc) *FloatSliceFuncReducer {
 // AggregateFloat copies the FloatPoint into the internal slice to be passed
 // to the reduce function when Emit is called.
 func (r *FloatSliceFuncReducer) AggregateFloat(p *FloatPoint) {
-	r.points = append(r.points, *p)
+	r.points = append(r.points, *p.Clone())
 }
 
 // AggregateFloatBulk performs a bulk copy of FloatPoints into the internal slice.
@@ -162,7 +166,7 @@ func NewFloatSliceFuncIntegerReducer(fn FloatReduceIntegerSliceFunc) *FloatSlice
 // AggregateFloat copies the FloatPoint into the internal slice to be passed
 // to the reduce function when Emit is called.
 func (r *FloatSliceFuncIntegerReducer) AggregateFloat(p *FloatPoint) {
-	r.points = append(r.points, *p)
+	r.points = append(r.points, *p.Clone())
 }
 
 // AggregateFloatBulk performs a bulk copy of FloatPoints into the internal slice.
@@ -232,7 +236,7 @@ func NewFloatSliceFuncStringReducer(fn FloatReduceStringSliceFunc) *FloatSliceFu
 // AggregateFloat copies the FloatPoint into the internal slice to be passed
 // to the reduce function when Emit is called.
 func (r *FloatSliceFuncStringReducer) AggregateFloat(p *FloatPoint) {
-	r.points = append(r.points, *p)
+	r.points = append(r.points, *p.Clone())
 }
 
 // AggregateFloatBulk performs a bulk copy of FloatPoints into the internal slice.
@@ -302,7 +306,7 @@ func NewFloatSliceFuncBooleanReducer(fn FloatReduceBooleanSliceFunc) *FloatSlice
 // AggregateFloat copies the FloatPoint into the internal slice to be passed
 // to the reduce function when Emit is called.
 func (r *FloatSliceFuncBooleanReducer) AggregateFloat(p *FloatPoint) {
-	r.points = append(r.points, *p)
+	r.points = append(r.points, *p.Clone())
 }
 
 // AggregateFloatBulk performs a bulk copy of FloatPoints into the internal slice.
@@ -375,6 +379,51 @@ func (r *FloatElapsedReducer) Emit() []IntegerPoint {
 		}
 	}
 	return nil
+}
+
+// FloatSampleReducer implements a reservoir sampling to calculate a random subset of points
+type FloatSampleReducer struct {
+	count int        // how many points we've iterated over
+	rng   *rand.Rand // random number generator for each reducer
+
+	points floatPoints // the reservoir
+}
+
+// NewFloatSampleReducer creates a new FloatSampleReducer
+func NewFloatSampleReducer(size int) *FloatSampleReducer {
+	return &FloatSampleReducer{
+		rng:    rand.New(rand.NewSource(time.Now().UnixNano())), // seed with current time as suggested by https://golang.org/pkg/math/rand/
+		points: make(floatPoints, size),
+	}
+}
+
+// AggregateFloat aggregates a point into the reducer.
+func (r *FloatSampleReducer) AggregateFloat(p *FloatPoint) {
+	r.count++
+	// Fill the reservoir with the first n points
+	if r.count-1 < len(r.points) {
+		p.CopyTo(&r.points[r.count-1])
+		return
+	}
+
+	// Generate a random integer between 1 and the count and
+	// if that number is less than the length of the slice
+	// replace the point at that index rnd with p.
+	rnd := r.rng.Intn(r.count)
+	if rnd < len(r.points) {
+		p.CopyTo(&r.points[rnd])
+	}
+}
+
+// Emit emits the reservoir sample as many points.
+func (r *FloatSampleReducer) Emit() []FloatPoint {
+	min := len(r.points)
+	if r.count < min {
+		min = r.count
+	}
+	pts := r.points[:min]
+	sort.Sort(pts)
+	return pts
 }
 
 // IntegerPointAggregator aggregates points to produce a single point.
@@ -461,7 +510,7 @@ func NewIntegerSliceFuncFloatReducer(fn IntegerReduceFloatSliceFunc) *IntegerSli
 // AggregateInteger copies the IntegerPoint into the internal slice to be passed
 // to the reduce function when Emit is called.
 func (r *IntegerSliceFuncFloatReducer) AggregateInteger(p *IntegerPoint) {
-	r.points = append(r.points, *p)
+	r.points = append(r.points, *p.Clone())
 }
 
 // AggregateIntegerBulk performs a bulk copy of IntegerPoints into the internal slice.
@@ -531,7 +580,7 @@ func NewIntegerSliceFuncReducer(fn IntegerReduceSliceFunc) *IntegerSliceFuncRedu
 // AggregateInteger copies the IntegerPoint into the internal slice to be passed
 // to the reduce function when Emit is called.
 func (r *IntegerSliceFuncReducer) AggregateInteger(p *IntegerPoint) {
-	r.points = append(r.points, *p)
+	r.points = append(r.points, *p.Clone())
 }
 
 // AggregateIntegerBulk performs a bulk copy of IntegerPoints into the internal slice.
@@ -601,7 +650,7 @@ func NewIntegerSliceFuncStringReducer(fn IntegerReduceStringSliceFunc) *IntegerS
 // AggregateInteger copies the IntegerPoint into the internal slice to be passed
 // to the reduce function when Emit is called.
 func (r *IntegerSliceFuncStringReducer) AggregateInteger(p *IntegerPoint) {
-	r.points = append(r.points, *p)
+	r.points = append(r.points, *p.Clone())
 }
 
 // AggregateIntegerBulk performs a bulk copy of IntegerPoints into the internal slice.
@@ -671,7 +720,7 @@ func NewIntegerSliceFuncBooleanReducer(fn IntegerReduceBooleanSliceFunc) *Intege
 // AggregateInteger copies the IntegerPoint into the internal slice to be passed
 // to the reduce function when Emit is called.
 func (r *IntegerSliceFuncBooleanReducer) AggregateInteger(p *IntegerPoint) {
-	r.points = append(r.points, *p)
+	r.points = append(r.points, *p.Clone())
 }
 
 // AggregateIntegerBulk performs a bulk copy of IntegerPoints into the internal slice.
@@ -744,6 +793,51 @@ func (r *IntegerElapsedReducer) Emit() []IntegerPoint {
 		}
 	}
 	return nil
+}
+
+// IntegerSampleReducer implements a reservoir sampling to calculate a random subset of points
+type IntegerSampleReducer struct {
+	count int        // how many points we've iterated over
+	rng   *rand.Rand // random number generator for each reducer
+
+	points integerPoints // the reservoir
+}
+
+// NewIntegerSampleReducer creates a new IntegerSampleReducer
+func NewIntegerSampleReducer(size int) *IntegerSampleReducer {
+	return &IntegerSampleReducer{
+		rng:    rand.New(rand.NewSource(time.Now().UnixNano())), // seed with current time as suggested by https://golang.org/pkg/math/rand/
+		points: make(integerPoints, size),
+	}
+}
+
+// AggregateInteger aggregates a point into the reducer.
+func (r *IntegerSampleReducer) AggregateInteger(p *IntegerPoint) {
+	r.count++
+	// Fill the reservoir with the first n points
+	if r.count-1 < len(r.points) {
+		p.CopyTo(&r.points[r.count-1])
+		return
+	}
+
+	// Generate a random integer between 1 and the count and
+	// if that number is less than the length of the slice
+	// replace the point at that index rnd with p.
+	rnd := r.rng.Intn(r.count)
+	if rnd < len(r.points) {
+		p.CopyTo(&r.points[rnd])
+	}
+}
+
+// Emit emits the reservoir sample as many points.
+func (r *IntegerSampleReducer) Emit() []IntegerPoint {
+	min := len(r.points)
+	if r.count < min {
+		min = r.count
+	}
+	pts := r.points[:min]
+	sort.Sort(pts)
+	return pts
 }
 
 // StringPointAggregator aggregates points to produce a single point.
@@ -830,7 +924,7 @@ func NewStringSliceFuncFloatReducer(fn StringReduceFloatSliceFunc) *StringSliceF
 // AggregateString copies the StringPoint into the internal slice to be passed
 // to the reduce function when Emit is called.
 func (r *StringSliceFuncFloatReducer) AggregateString(p *StringPoint) {
-	r.points = append(r.points, *p)
+	r.points = append(r.points, *p.Clone())
 }
 
 // AggregateStringBulk performs a bulk copy of StringPoints into the internal slice.
@@ -900,7 +994,7 @@ func NewStringSliceFuncIntegerReducer(fn StringReduceIntegerSliceFunc) *StringSl
 // AggregateString copies the StringPoint into the internal slice to be passed
 // to the reduce function when Emit is called.
 func (r *StringSliceFuncIntegerReducer) AggregateString(p *StringPoint) {
-	r.points = append(r.points, *p)
+	r.points = append(r.points, *p.Clone())
 }
 
 // AggregateStringBulk performs a bulk copy of StringPoints into the internal slice.
@@ -970,7 +1064,7 @@ func NewStringSliceFuncReducer(fn StringReduceSliceFunc) *StringSliceFuncReducer
 // AggregateString copies the StringPoint into the internal slice to be passed
 // to the reduce function when Emit is called.
 func (r *StringSliceFuncReducer) AggregateString(p *StringPoint) {
-	r.points = append(r.points, *p)
+	r.points = append(r.points, *p.Clone())
 }
 
 // AggregateStringBulk performs a bulk copy of StringPoints into the internal slice.
@@ -1040,7 +1134,7 @@ func NewStringSliceFuncBooleanReducer(fn StringReduceBooleanSliceFunc) *StringSl
 // AggregateString copies the StringPoint into the internal slice to be passed
 // to the reduce function when Emit is called.
 func (r *StringSliceFuncBooleanReducer) AggregateString(p *StringPoint) {
-	r.points = append(r.points, *p)
+	r.points = append(r.points, *p.Clone())
 }
 
 // AggregateStringBulk performs a bulk copy of StringPoints into the internal slice.
@@ -1113,6 +1207,51 @@ func (r *StringElapsedReducer) Emit() []IntegerPoint {
 		}
 	}
 	return nil
+}
+
+// StringSampleReducer implements a reservoir sampling to calculate a random subset of points
+type StringSampleReducer struct {
+	count int        // how many points we've iterated over
+	rng   *rand.Rand // random number generator for each reducer
+
+	points stringPoints // the reservoir
+}
+
+// NewStringSampleReducer creates a new StringSampleReducer
+func NewStringSampleReducer(size int) *StringSampleReducer {
+	return &StringSampleReducer{
+		rng:    rand.New(rand.NewSource(time.Now().UnixNano())), // seed with current time as suggested by https://golang.org/pkg/math/rand/
+		points: make(stringPoints, size),
+	}
+}
+
+// AggregateString aggregates a point into the reducer.
+func (r *StringSampleReducer) AggregateString(p *StringPoint) {
+	r.count++
+	// Fill the reservoir with the first n points
+	if r.count-1 < len(r.points) {
+		p.CopyTo(&r.points[r.count-1])
+		return
+	}
+
+	// Generate a random integer between 1 and the count and
+	// if that number is less than the length of the slice
+	// replace the point at that index rnd with p.
+	rnd := r.rng.Intn(r.count)
+	if rnd < len(r.points) {
+		p.CopyTo(&r.points[rnd])
+	}
+}
+
+// Emit emits the reservoir sample as many points.
+func (r *StringSampleReducer) Emit() []StringPoint {
+	min := len(r.points)
+	if r.count < min {
+		min = r.count
+	}
+	pts := r.points[:min]
+	sort.Sort(pts)
+	return pts
 }
 
 // BooleanPointAggregator aggregates points to produce a single point.
@@ -1199,7 +1338,7 @@ func NewBooleanSliceFuncFloatReducer(fn BooleanReduceFloatSliceFunc) *BooleanSli
 // AggregateBoolean copies the BooleanPoint into the internal slice to be passed
 // to the reduce function when Emit is called.
 func (r *BooleanSliceFuncFloatReducer) AggregateBoolean(p *BooleanPoint) {
-	r.points = append(r.points, *p)
+	r.points = append(r.points, *p.Clone())
 }
 
 // AggregateBooleanBulk performs a bulk copy of BooleanPoints into the internal slice.
@@ -1269,7 +1408,7 @@ func NewBooleanSliceFuncIntegerReducer(fn BooleanReduceIntegerSliceFunc) *Boolea
 // AggregateBoolean copies the BooleanPoint into the internal slice to be passed
 // to the reduce function when Emit is called.
 func (r *BooleanSliceFuncIntegerReducer) AggregateBoolean(p *BooleanPoint) {
-	r.points = append(r.points, *p)
+	r.points = append(r.points, *p.Clone())
 }
 
 // AggregateBooleanBulk performs a bulk copy of BooleanPoints into the internal slice.
@@ -1339,7 +1478,7 @@ func NewBooleanSliceFuncStringReducer(fn BooleanReduceStringSliceFunc) *BooleanS
 // AggregateBoolean copies the BooleanPoint into the internal slice to be passed
 // to the reduce function when Emit is called.
 func (r *BooleanSliceFuncStringReducer) AggregateBoolean(p *BooleanPoint) {
-	r.points = append(r.points, *p)
+	r.points = append(r.points, *p.Clone())
 }
 
 // AggregateBooleanBulk performs a bulk copy of BooleanPoints into the internal slice.
@@ -1409,7 +1548,7 @@ func NewBooleanSliceFuncReducer(fn BooleanReduceSliceFunc) *BooleanSliceFuncRedu
 // AggregateBoolean copies the BooleanPoint into the internal slice to be passed
 // to the reduce function when Emit is called.
 func (r *BooleanSliceFuncReducer) AggregateBoolean(p *BooleanPoint) {
-	r.points = append(r.points, *p)
+	r.points = append(r.points, *p.Clone())
 }
 
 // AggregateBooleanBulk performs a bulk copy of BooleanPoints into the internal slice.
@@ -1482,4 +1621,49 @@ func (r *BooleanElapsedReducer) Emit() []IntegerPoint {
 		}
 	}
 	return nil
+}
+
+// BooleanSampleReducer implements a reservoir sampling to calculate a random subset of points
+type BooleanSampleReducer struct {
+	count int        // how many points we've iterated over
+	rng   *rand.Rand // random number generator for each reducer
+
+	points booleanPoints // the reservoir
+}
+
+// NewBooleanSampleReducer creates a new BooleanSampleReducer
+func NewBooleanSampleReducer(size int) *BooleanSampleReducer {
+	return &BooleanSampleReducer{
+		rng:    rand.New(rand.NewSource(time.Now().UnixNano())), // seed with current time as suggested by https://golang.org/pkg/math/rand/
+		points: make(booleanPoints, size),
+	}
+}
+
+// AggregateBoolean aggregates a point into the reducer.
+func (r *BooleanSampleReducer) AggregateBoolean(p *BooleanPoint) {
+	r.count++
+	// Fill the reservoir with the first n points
+	if r.count-1 < len(r.points) {
+		p.CopyTo(&r.points[r.count-1])
+		return
+	}
+
+	// Generate a random integer between 1 and the count and
+	// if that number is less than the length of the slice
+	// replace the point at that index rnd with p.
+	rnd := r.rng.Intn(r.count)
+	if rnd < len(r.points) {
+		p.CopyTo(&r.points[rnd])
+	}
+}
+
+// Emit emits the reservoir sample as many points.
+func (r *BooleanSampleReducer) Emit() []BooleanPoint {
+	min := len(r.points)
+	if r.count < min {
+		min = r.count
+	}
+	pts := r.points[:min]
+	sort.Sort(pts)
+	return pts
 }

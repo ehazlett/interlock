@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/docker/engine-api/types"
+	"github.com/docker/docker/api/types"
 	"github.com/ehazlett/interlock/ext/lb/utils"
 	"golang.org/x/net/context"
 )
@@ -45,14 +45,8 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 			continue
 		}
 
-		// we check if a context root is passed and overwrite the
-		// domain component
-		if contextRoot != "" {
-			domain = contextRootName
-		} else {
-			if hostname != domain && hostname != "" {
-				domain = fmt.Sprintf("%s.%s", hostname, domain)
-			}
+		if hostname != domain && hostname != "" {
+			domain = fmt.Sprintf("%s.%s", hostname, domain)
 		}
 
 		hostContextRoots[domain] = &ContextRoot{
@@ -97,7 +91,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 		if n, ok := utils.OverlayEnabled(cInfo.Config); ok {
 			log().Debugf("configuring docker network: name=%s", n)
 
-			network, err := p.client.NetworkInspect(context.Background(), n)
+			network, err := p.client.NetworkInspect(context.Background(), n, false)
 			if err != nil {
 				log().Error(err)
 				continue

@@ -1,14 +1,14 @@
-hash: 90fc7553fa1658284c3cc774fdb984790b405250c9029dd885c78df300339e33
-updated: 2016-06-29T16:57:58.537130518-04:00
+hash: cc496dc3880d0b01f3e3b75e881c7c9346e025ef5294eb4fd2b1fb2fcacbbae3
+updated: 2017-04-06T16:58:55.146024942-04:00
 imports:
 - name: github.com/beorn7/perks
   version: 3ac7bf7a47d159a033b107610db8a1b6575507a4
   subpackages:
   - quantile
 - name: github.com/BurntSushi/toml
-  version: f0aeabca5a127c4078abb8c8d64298b147264b55
+  version: b26d9c308763d68093482582cea63d69be07a0f0
 - name: github.com/codegangsta/cli
-  version: 1efa31f08b9333f1bd4882d61f9d668a70cd902e
+  version: 0bdeddeeb0f650497d603c4ad7b20cfe685682f6
 - name: github.com/coreos/etcd
   version: b7d0497c478da5ce8968c17d627cbbac1680924c
   subpackages:
@@ -16,32 +16,33 @@ imports:
   - pkg/pathutil
   - pkg/types
 - name: github.com/docker/distribution
-  version: c24b072e7d3b3b81b03d46ed84443b5181beeb9c
+  version: a25b9ef0c9fe242ac04bb20d3a028442b7d266b6
   subpackages:
-  - reference
   - digest
+  - reference
 - name: github.com/docker/docker
-  version: a1fff2ca5afa15ae092668a06b55ae2dc4e039d7
+  version: 2f35d73b7dc7a9e234ea06f6145a26c37472c775
   subpackages:
-  - pkg/tlsconfig
-- name: github.com/docker/engine-api
-  version: 25941ecf6e8351810e8530c60de8dda7d5e1baba
-  subpackages:
+  - api
+  - api/types
+  - api/types/blkiodev
+  - api/types/container
+  - api/types/events
+  - api/types/filters
+  - api/types/image
+  - api/types/mount
+  - api/types/network
+  - api/types/registry
+  - api/types/strslice
+  - api/types/swarm
+  - api/types/time
+  - api/types/versions
+  - api/types/volume
   - client
-  - types
-  - types/container
-  - types/events
-  - types/filters
-  - types/network
-  - client/transport
-  - client/transport/cancellable
-  - types/reference
-  - types/registry
-  - types/swarm
-  - types/time
-  - types/versions
-  - types/blkiodev
-  - types/strslice
+  - pkg/ioutils
+  - pkg/longpath
+  - pkg/system
+  - pkg/tlsconfig
 - name: github.com/docker/go-connections
   version: 990a1a1a70b0da4c4cb70e117971a4f0babfbf1a
   subpackages:
@@ -51,15 +52,17 @@ imports:
 - name: github.com/docker/go-units
   version: f2d77a61e3c169b43402a0a1e84f06daf29b8190
 - name: github.com/docker/libkv
-  version: 7283ef27ed32fe267388510a91709b307bb9942c
+  version: aabc039ad04deb721e234f99cd1b4aa28ac71a40
   subpackages:
   - store
   - store/consul
   - store/etcd
+- name: github.com/docker/libtrust
+  version: fa567046d9b14f6aa788882a950d69651d230b21
 - name: github.com/ehazlett/ttlcache
   version: 9f221f68554a95645a171d5f9504be8fc100a881
 - name: github.com/golang/protobuf
-  version: b3e26a40c2321140ad7c7d031030d3c9e3cdecc7
+  version: 8d92cf5fc15a4382f8964b08e1f42a75c0591aa3
   subpackages:
   - proto
 - name: github.com/hashicorp/consul
@@ -74,7 +77,7 @@ imports:
   - coordinate
   - serf
 - name: github.com/influxdata/influxdb
-  version: 5aae28e14fa5feec895161085dfa070317eb9644
+  version: 1bcf3ae74c6b9c4897dab68d513d056277eb24f7
   subpackages:
   - client/v2
   - models
@@ -89,10 +92,13 @@ imports:
   version: 629e35666d31f743090452416c8df207d9fdbd34
   subpackages:
   - libcontainer/user
+- name: github.com/pkg/errors
+  version: 645ef00459ed84a119197bfb8d8205042c6df63d
 - name: github.com/prometheus/client_golang
-  version: 9f1ed1ed4a5f754c9b626e5cf8ec1ea7d622e017
+  version: c5b7fccd204277076155f10851dad72b76a49317
   subpackages:
   - prometheus
+  - prometheus/push
 - name: github.com/prometheus/client_model
   version: fa8ad6fec33561be4280a8f0514318c79d7f6cb6
   subpackages:
@@ -106,7 +112,7 @@ imports:
 - name: github.com/prometheus/procfs
   version: abf152e5f3e97f2fafac028d2cc06c1feb87ffa5
 - name: github.com/Sirupsen/logrus
-  version: f3cfb454f4c209e6668c95216c4744b8fddb2356
+  version: ba1b36c82c5e05c4f912a88eab0dcd91a171688f
 - name: github.com/ugorji/go
   version: b94837a2404ab90efe9289e77a70694c355739cb
   subpackages:
@@ -115,6 +121,7 @@ imports:
   version: 4876518f9e71663000c348837735820161a42df7
   subpackages:
   - context
+  - context/ctxhttp
   - proxy
 - name: golang.org/x/sys
   version: 20457ee8ea8546920d3f4e19e405da45250dc5a5

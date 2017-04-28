@@ -26,13 +26,14 @@ func rewriteShowFieldKeysStatement(stmt *ShowFieldKeysStatement) (Statement, err
 			{Expr: &VarRef{Val: "fieldKey"}},
 			{Expr: &VarRef{Val: "fieldType"}},
 		}),
-		Sources:    rewriteSources(stmt.Sources, "_fieldKeys"),
+		Sources:    rewriteSources(stmt.Sources, "_fieldKeys", stmt.Database),
 		Condition:  rewriteSourcesCondition(stmt.Sources, nil),
 		Offset:     stmt.Offset,
 		Limit:      stmt.Limit,
 		SortFields: stmt.SortFields,
 		OmitTime:   true,
 		Dedupe:     true,
+		IsRawQuery: true,
 	}, nil
 }
 
@@ -46,20 +47,12 @@ func rewriteShowMeasurementsStatement(stmt *ShowMeasurementsStatement) (Statemen
 	if stmt.Source != nil {
 		condition = rewriteSourcesCondition(Sources([]Source{stmt.Source}), stmt.Condition)
 	}
-
-	return &SelectStatement{
-		Fields: Fields([]*Field{
-			{Expr: &VarRef{Val: "_name"}, Alias: "name"},
-		}),
-		Sources: Sources([]Source{
-			&Measurement{Name: "_measurements"},
-		}),
+	return &ShowMeasurementsStatement{
+		Database:   stmt.Database,
 		Condition:  condition,
-		Offset:     stmt.Offset,
 		Limit:      stmt.Limit,
+		Offset:     stmt.Offset,
 		SortFields: stmt.SortFields,
-		OmitTime:   true,
-		Dedupe:     true,
 	}, nil
 }
 
@@ -73,13 +66,14 @@ func rewriteShowSeriesStatement(stmt *ShowSeriesStatement) (Statement, error) {
 		Fields: []*Field{
 			{Expr: &VarRef{Val: "key"}},
 		},
-		Sources:    rewriteSources(stmt.Sources, "_series"),
+		Sources:    rewriteSources(stmt.Sources, "_series", stmt.Database),
 		Condition:  rewriteSourcesCondition(stmt.Sources, stmt.Condition),
 		Offset:     stmt.Offset,
 		Limit:      stmt.Limit,
 		SortFields: stmt.SortFields,
 		OmitTime:   true,
 		Dedupe:     true,
+		IsRawQuery: true,
 	}, nil
 }
 
@@ -129,18 +123,14 @@ func rewriteShowTagValuesStatement(stmt *ShowTagValuesStatement) (Statement, err
 	}
 	condition = rewriteSourcesCondition(stmt.Sources, condition)
 
-	return &SelectStatement{
-		Fields: []*Field{
-			{Expr: &VarRef{Val: "_tagKey"}, Alias: "key"},
-			{Expr: &VarRef{Val: "value"}},
-		},
-		Sources:    rewriteSources(stmt.Sources, "_tags"),
+	return &ShowTagValuesStatement{
+		Database:   stmt.Database,
+		Op:         stmt.Op,
+		TagKeyExpr: stmt.TagKeyExpr,
 		Condition:  condition,
-		Offset:     stmt.Offset,
-		Limit:      stmt.Limit,
 		SortFields: stmt.SortFields,
-		OmitTime:   true,
-		Dedupe:     true,
+		Limit:      stmt.Limit,
+		Offset:     stmt.Offset,
 	}, nil
 }
 
@@ -154,34 +144,41 @@ func rewriteShowTagKeysStatement(stmt *ShowTagKeysStatement) (Statement, error) 
 		Fields: []*Field{
 			{Expr: &VarRef{Val: "tagKey"}},
 		},
-		Sources:    rewriteSources(stmt.Sources, "_tagKeys"),
+		Sources:    rewriteSources(stmt.Sources, "_tagKeys", stmt.Database),
 		Condition:  rewriteSourcesCondition(stmt.Sources, stmt.Condition),
 		Offset:     stmt.Offset,
 		Limit:      stmt.Limit,
 		SortFields: stmt.SortFields,
 		OmitTime:   true,
 		Dedupe:     true,
+		IsRawQuery: true,
 	}, nil
-
 }
 
 // rewriteSources rewrites sources with previous database and retention policy
-func rewriteSources(sources Sources, measurementName string) Sources {
+func rewriteSources(sources Sources, measurementName, defaultDatabase string) Sources {
 	newSources := Sources{}
 	for _, src := range sources {
 		if src == nil {
 			continue
 		}
 		mm := src.(*Measurement)
+		database := mm.Database
+		if database == "" {
+			database = defaultDatabase
+		}
 		newSources = append(newSources,
 			&Measurement{
-				Database:        mm.Database,
+				Database:        database,
 				RetentionPolicy: mm.RetentionPolicy,
 				Name:            measurementName,
 			})
 	}
 	if len(newSources) <= 0 {
-		return append(newSources, &Measurement{Name: measurementName})
+		return append(newSources, &Measurement{
+			Database: defaultDatabase,
+			Name:     measurementName,
+		})
 	}
 	return newSources
 }

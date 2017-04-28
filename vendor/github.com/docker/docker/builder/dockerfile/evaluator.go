@@ -20,11 +20,13 @@
 package dockerfile
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/docker/docker/builder/dockerfile/command"
 	"github.com/docker/docker/builder/dockerfile/parser"
+	runconfigopts "github.com/docker/docker/runconfig/opts"
 )
 
 // Environment variable interpolation will happen on these statements only.
@@ -93,7 +95,7 @@ func init() {
 // such as `RUN` in ONBUILD RUN foo. There is special case logic in here to
 // deal with that, at least until it becomes more of a general concern with new
 // features.
-func (b *Builder) dispatch(stepN int, ast *parser.Node) error {
+func (b *Builder) dispatch(stepN int, stepTotal int, ast *parser.Node) error {
 	cmd := ast.Value
 	upperCasedCmd := strings.ToUpper(cmd)
 
@@ -107,7 +109,7 @@ func (b *Builder) dispatch(stepN int, ast *parser.Node) error {
 	original := ast.Original
 	flags := ast.Flags
 	strList := []string{}
-	msg := fmt.Sprintf("Step %d : %s", stepN+1, upperCasedCmd)
+	msg := fmt.Sprintf("Step %d/%d : %s", stepN+1, stepTotal, upperCasedCmd)
 
 	if len(ast.Flags) > 0 {
 		msg += " " + strings.Join(ast.Flags, " ")
@@ -115,7 +117,7 @@ func (b *Builder) dispatch(stepN int, ast *parser.Node) error {
 
 	if cmd == "onbuild" {
 		if ast.Next == nil {
-			return fmt.Errorf("ONBUILD requires at least one argument")
+			return errors.New("ONBUILD requires at least one argument")
 		}
 		ast = ast.Next.Children[0]
 		strList = append(strList, ast.Value)
@@ -139,27 +141,9 @@ func (b *Builder) dispatch(stepN int, ast *parser.Node) error {
 	msgList := make([]string, n)
 
 	var i int
-	// Append the build-time args to config-environment.
-	// This allows builder config to override the variables, making the behavior similar to
-	// a shell script i.e. `ENV foo bar` overrides value of `foo` passed in build
-	// context. But `ENV foo $foo` will use the value from build context if one
-	// isn't already been defined by a previous ENV primitive.
-	// Note, we get this behavior because we know that ProcessWord() will
-	// stop on the first occurrence of a variable name and not notice
-	// a subsequent one. So, putting the buildArgs list after the Config.Env
-	// list, in 'envs', is safe.
-	envs := b.runConfig.Env
-	for key, val := range b.options.BuildArgs {
-		if !b.isBuildArgAllowed(key) {
-			// skip build-args that are not in allowed list, meaning they have
-			// not been defined by an "ARG" Dockerfile command yet.
-			// This is an error condition but only if there is no "ARG" in the entire
-			// Dockerfile, so we'll generate any necessary errors after we parsed
-			// the entire file (see 'leftoverArgs' processing in evaluator.go )
-			continue
-		}
-		envs = append(envs, fmt.Sprintf("%s=%s", key, val))
-	}
+	// Append build args to runConfig environment variables
+	envs := append(b.runConfig.Env, b.buildArgsWithoutConfigEnv()...)
+
 	for ast.Next != nil {
 		ast = ast.Next
 		var str string
@@ -169,13 +153,13 @@ func (b *Builder) dispatch(stepN int, ast *parser.Node) error {
 			var words []string
 
 			if allowWordExpansion[cmd] {
-				words, err = ProcessWords(str, envs)
+				words, err = ProcessWords(str, envs, b.directive.EscapeToken)
 				if err != nil {
 					return err
 				}
 				strList = append(strList, words...)
 			} else {
-				str, err = ProcessWord(str, envs)
+				str, err = ProcessWord(str, envs, b.directive.EscapeToken)
 				if err != nil {
 					return err
 				}
@@ -197,6 +181,69 @@ func (b *Builder) dispatch(stepN int, ast *parser.Node) error {
 		b.flags = NewBFlags()
 		b.flags.Args = flags
 		return f(b, strList, attrs, original)
+	}
+
+	return fmt.Errorf("Unknown instruction: %s", upperCasedCmd)
+}
+
+// buildArgsWithoutConfigEnv returns a list of key=value pairs for all the build
+// args that are not overriden by runConfig environment variables.
+func (b *Builder) buildArgsWithoutConfigEnv() []string {
+	envs := []string{}
+	configEnv := runconfigopts.ConvertKVStringsToMap(b.runConfig.Env)
+
+	for key, val := range b.options.BuildArgs {
+		if !b.isBuildArgAllowed(key) {
+			// skip build-args that are not in allowed list, meaning they have
+			// not been defined by an "ARG" Dockerfile command yet.
+			// This is an error condition but only if there is no "ARG" in the entire
+			// Dockerfile, so we'll generate any necessary errors after we parsed
+			// the entire file (see 'leftoverArgs' processing in evaluator.go )
+			continue
+		}
+		if _, ok := configEnv[key]; !ok && val != nil {
+			envs = append(envs, fmt.Sprintf("%s=%s", key, *val))
+		}
+	}
+	return envs
+}
+
+// checkDispatch does a simple check for syntax errors of the Dockerfile.
+// Because some of the instructions can only be validated through runtime,
+// arg, env, etc., this syntax check will not be complete and could not replace
+// the runtime check. Instead, this function is only a helper that allows
+// user to find out the obvious error in Dockerfile earlier on.
+// onbuild bool: indicate if instruction XXX is part of `ONBUILD XXX` trigger
+func (b *Builder) checkDispatch(ast *parser.Node, onbuild bool) error {
+	cmd := ast.Value
+	upperCasedCmd := strings.ToUpper(cmd)
+
+	// To ensure the user is given a decent error message if the platform
+	// on which the daemon is running does not support a builder command.
+	if err := platformSupports(strings.ToLower(cmd)); err != nil {
+		return err
+	}
+
+	// The instruction itself is ONBUILD, we will make sure it follows with at
+	// least one argument
+	if upperCasedCmd == "ONBUILD" {
+		if ast.Next == nil {
+			return errors.New("ONBUILD requires at least one argument")
+		}
+	}
+
+	// The instruction is part of ONBUILD trigger (not the instruction itself)
+	if onbuild {
+		switch upperCasedCmd {
+		case "ONBUILD":
+			return errors.New("Chaining ONBUILD via `ONBUILD ONBUILD` isn't allowed")
+		case "MAINTAINER", "FROM":
+			return fmt.Errorf("%s isn't allowed as an ONBUILD trigger", upperCasedCmd)
+		}
+	}
+
+	if _, ok := evaluateTable[cmd]; ok {
+		return nil
 	}
 
 	return fmt.Errorf("Unknown instruction: %s", upperCasedCmd)

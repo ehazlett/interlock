@@ -3,7 +3,7 @@ package server
 import (
 	"strings"
 
-	engineClient "github.com/docker/engine-api/client"
+	engineClient "github.com/docker/docker/client"
 	"github.com/ehazlett/interlock/client"
 )
 

@@ -1,4 +1,3 @@
-BUILDTAGS=interlock
 CGO_ENABLED=0
 GOOS=linux
 GOARCH=amd64
@@ -11,33 +10,32 @@ BUILD?=-dev
 all: image
 
 deps:
-	@glide install
+	@glide i
+# this causes an import conflict with tests.  remove this vendor. le sigh
+	@rm -rf vendor/github.com/docker/docker/vendor/github.com/docker/go-connections
 
 build: build-static
 
 build-app:
-	@cd cmd/$(APP) && go build -ldflags "-w -X github.com/$(REPO)/version.GitCommit=$(COMMIT) -X github.com/$(REPO)/version.Build=$(BUILD)" .
+	@cd cmd/$(APP) && go build -v -ldflags "-w -X github.com/$(REPO)/version.GitCommit=$(COMMIT) -X github.com/$(REPO)/version.Build=$(BUILD)" .
 	@echo "Built $$(./cmd/$(APP)/$(APP) -v)"
 
 build-static:
-	@cd cmd/$(APP) && go build -a -tags "netgo static_build" -installsuffix netgo -ldflags "-w -X github.com/$(REPO)/version.GitCommit=$(COMMIT) -X github.com/$(REPO)/version.Build=$(BUILD)" .
+	@cd cmd/$(APP) && go build -v -a -tags "netgo static_build" -installsuffix netgo -ldflags "-w -X github.com/$(REPO)/version.GitCommit=$(COMMIT) -X github.com/$(REPO)/version.Build=$(BUILD)" .
 	@echo "Built $$(./cmd/$(APP)/$(APP) -v)"
 
-build-image:
-	@echo "Building image with $$(./cmd/$(APP)/$(APP) -v)"
+image:
 	@docker build $(BUILD_ARGS) -t $(REPO):$(TAG) .
 	@echo "Image created: $(REPO):$(TAG)"
 
-build-container:
-	@docker build $(BUILD_ARGS) -t interlock-build -f Dockerfile.build .
-	@docker run -it -e BUILD -e TAG --name interlock-build -ti interlock-build make deps build
-	@docker cp interlock-build:/go/src/github.com/$(REPO)/cmd/$(APP)/$(APP) ./cmd/$(APP)/$(APP)
-	@docker rm -fv interlock-build
+integration: image
+	# TODO
+
+test-integration:
+	@go test -v $(TEST_ARGS) ./test/integration/...
 
 test:
-	@go test -v -cover -race `go list ./... | grep -v /vendor/`
-
-image: build-container build-image
+	@go test -v -cover -race $(TEST_ARGS) $$(glide novendor | grep -v ./test)
 
 clean:
 	@rm cmd/$(APP)/$(APP)

@@ -18,7 +18,7 @@ const (
 
 	// DefaultCacheMaxMemorySize is the maximum size a shard's cache can
 	// reach before it starts rejecting writes.
-	DefaultCacheMaxMemorySize = 500 * 1024 * 1024 // 500MB
+	DefaultCacheMaxMemorySize = 1024 * 1024 * 1024 // 1GB
 
 	// DefaultCacheSnapshotMemorySize is the size at which the engine will
 	// snapshot the cache and write it to a TSM file, freeing up memory
@@ -27,25 +27,30 @@ const (
 	// DefaultCacheSnapshotWriteColdDuration is the length of time at which
 	// the engine will snapshot the cache and write it to a new TSM file if
 	// the shard hasn't received writes or deletes
-	DefaultCacheSnapshotWriteColdDuration = time.Duration(time.Hour)
+	DefaultCacheSnapshotWriteColdDuration = time.Duration(10 * time.Minute)
 
 	// DefaultCompactFullWriteColdDuration is the duration at which the engine
 	// will compact all TSM files in a shard if it hasn't received a write or delete
-	DefaultCompactFullWriteColdDuration = time.Duration(24 * time.Hour)
+	DefaultCompactFullWriteColdDuration = time.Duration(4 * time.Hour)
 
 	// DefaultMaxPointsPerBlock is the maximum number of points in an encoded
 	// block in a TSM file
 	DefaultMaxPointsPerBlock = 1000
+
+	// DefaultMaxSeriesPerDatabase is the maximum number of series a node can hold per database.
+	DefaultMaxSeriesPerDatabase = 1000000
+
+	// DefaultMaxValuesPerTag is the maximum number of values a tag can have within a measurement.
+	DefaultMaxValuesPerTag = 100000
 )
 
 // Config holds the configuration for the tsbd package.
 type Config struct {
 	Dir    string `toml:"dir"`
-	Engine string `toml:"engine"`
+	Engine string `toml:"-"`
 
 	// General WAL configuration options
-	WALDir            string `toml:"wal-dir"`
-	WALLoggingEnabled bool   `toml:"wal-logging-enabled"`
+	WALDir string `toml:"wal-dir"`
 
 	// Query logging
 	QueryLogEnabled bool `toml:"query-log-enabled"`
@@ -55,17 +60,26 @@ type Config struct {
 	CacheSnapshotMemorySize        uint64        `toml:"cache-snapshot-memory-size"`
 	CacheSnapshotWriteColdDuration toml.Duration `toml:"cache-snapshot-write-cold-duration"`
 	CompactFullWriteColdDuration   toml.Duration `toml:"compact-full-write-cold-duration"`
-	MaxPointsPerBlock              int           `toml:"max-points-per-block"`
 
-	DataLoggingEnabled bool `toml:"data-logging-enabled"`
+	// Limits
+
+	// MaxSeriesPerDatabase is the maximum number of series a node can hold per database.
+	// When this limit is exceeded, writes return a 'max series per database exceeded' error.
+	// A value of 0 disables the limit.
+	MaxSeriesPerDatabase int `toml:"max-series-per-database"`
+
+	// MaxValuesPerTag is the maximum number of tag values a single tag key can have within
+	// a measurement.  When the limit is execeeded, writes return an error.
+	// A value of 0 disables the limit.
+	MaxValuesPerTag int `toml:"max-values-per-tag"`
+
+	TraceLoggingEnabled bool `toml:"trace-logging-enabled"`
 }
 
 // NewConfig returns the default configuration for tsdb.
 func NewConfig() Config {
 	return Config{
 		Engine: DefaultEngine,
-
-		WALLoggingEnabled: true,
 
 		QueryLogEnabled: true,
 
@@ -74,7 +88,10 @@ func NewConfig() Config {
 		CacheSnapshotWriteColdDuration: toml.Duration(DefaultCacheSnapshotWriteColdDuration),
 		CompactFullWriteColdDuration:   toml.Duration(DefaultCompactFullWriteColdDuration),
 
-		DataLoggingEnabled: true,
+		MaxSeriesPerDatabase: DefaultMaxSeriesPerDatabase,
+		MaxValuesPerTag:      DefaultMaxValuesPerTag,
+
+		TraceLoggingEnabled: false,
 	}
 }
 

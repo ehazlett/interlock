@@ -1,3 +1,5 @@
+// Package client implements a now-deprecated client for InfluxDB;
+// use github.com/influxdata/influxdb/client/v2 instead.
 package client // import "github.com/influxdata/influxdb/client"
 
 import (
@@ -87,13 +89,15 @@ func ParseConnectionString(path string, ssl bool) (url.URL, error) {
 // UserAgent: If not provided, will default "InfluxDBClient",
 // Timeout: If not provided, will default to 0 (no timeout)
 type Config struct {
-	URL       url.URL
-	Username  string
-	Password  string
-	UserAgent string
-	Timeout   time.Duration
-	Precision string
-	UnsafeSsl bool
+	URL              url.URL
+	UnixSocket       string
+	Username         string
+	Password         string
+	UserAgent        string
+	Timeout          time.Duration
+	Precision        string
+	WriteConsistency string
+	UnsafeSsl        bool
 }
 
 // NewConfig will create a config to be used in connecting to the client
@@ -106,6 +110,7 @@ func NewConfig() Config {
 // Client is used to make calls to the server.
 type Client struct {
 	url        url.URL
+	unixSocket string
 	username   string
 	password   string
 	httpClient *http.Client
@@ -137,8 +142,18 @@ func NewClient(c Config) (*Client, error) {
 		TLSClientConfig: tlsConfig,
 	}
 
+	if c.UnixSocket != "" {
+		// No need for compression in local communications.
+		tr.DisableCompression = true
+
+		tr.Dial = func(_, _ string) (net.Conn, error) {
+			return net.Dial("unix", c.UnixSocket)
+		}
+	}
+
 	client := Client{
 		url:        c.URL,
+		unixSocket: c.UnixSocket,
 		username:   c.Username,
 		password:   c.Password,
 		httpClient: &http.Client{Timeout: c.Timeout, Transport: tr},
@@ -498,17 +513,36 @@ func (r *Response) Error() error {
 	return nil
 }
 
+// duplexReader reads responses and writes it to another writer while
+// satisfying the reader interface.
+type duplexReader struct {
+	r io.Reader
+	w io.Writer
+}
+
+func (r *duplexReader) Read(p []byte) (n int, err error) {
+	n, err = r.r.Read(p)
+	if err == nil {
+		r.w.Write(p[:n])
+	}
+	return n, err
+}
+
 // ChunkedResponse represents a response from the server that
 // uses chunking to stream the output.
 type ChunkedResponse struct {
-	dec *json.Decoder
+	dec    *json.Decoder
+	duplex *duplexReader
+	buf    bytes.Buffer
 }
 
 // NewChunkedResponse reads a stream and produces responses from the stream.
 func NewChunkedResponse(r io.Reader) *ChunkedResponse {
-	dec := json.NewDecoder(r)
-	dec.UseNumber()
-	return &ChunkedResponse{dec: dec}
+	resp := &ChunkedResponse{}
+	resp.duplex = &duplexReader{r: r, w: &resp.buf}
+	resp.dec = json.NewDecoder(resp.duplex)
+	resp.dec.UseNumber()
+	return resp
 }
 
 // NextResponse reads the next line of the stream and returns a response.
@@ -518,8 +552,13 @@ func (r *ChunkedResponse) NextResponse() (*Response, error) {
 		if err == io.EOF {
 			return nil, nil
 		}
-		return nil, err
+		// A decoding error happened. This probably means the server crashed
+		// and sent a last-ditch error message to us. Ensure we have read the
+		// entirety of the connection to get any remaining error text.
+		io.Copy(ioutil.Discard, r.duplex)
+		return nil, errors.New(strings.TrimSpace(r.buf.String()))
 	}
+	r.buf.Reset()
 	return &response, nil
 }
 
@@ -562,7 +601,7 @@ func (p *Point) MarshalJSON() ([]byte, error) {
 // MarshalString renders string representation of a Point with specified
 // precision. The default precision is nanoseconds.
 func (p *Point) MarshalString() string {
-	pt, err := models.NewPoint(p.Measurement, p.Tags, p.Fields, p.Time)
+	pt, err := models.NewPoint(p.Measurement, models.NewTags(p.Tags), p.Fields, p.Time)
 	if err != nil {
 		return "# ERROR: " + err.Error() + " " + p.Measurement
 	}
@@ -727,6 +766,9 @@ func (bp *BatchPoints) UnmarshalJSON(b []byte) error {
 
 // Addr provides the current url as a string of the server the client is connected to.
 func (c *Client) Addr() string {
+	if c.unixSocket != "" {
+		return c.unixSocket
+	}
 	return c.url.String()
 }
 
