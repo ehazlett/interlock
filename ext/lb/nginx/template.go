@@ -68,15 +68,6 @@ http {
                 return 503;
             }
 
-	    {{ range $host := .Hosts }}
-	    {{ if ne $host.ContextRoot.Path "" }}
-	    location {{ $host.ContextRoot.Path }} {
-		{{ if $host.ContextRootRewrite }}rewrite ^([^.]*[^/])$ $1/ permanent;
-		rewrite  ^{{ $host.ContextRoot.Path }}/(.*)  /$1 break;{{ end }}
-		proxy_pass http://ctx{{ $host.ContextRoot.Name }};
-	    }
-	    {{ end }}
-	    {{ end }}
             location /nginx_status {
                 stub_status on;
                 access_log off;
@@ -84,13 +75,6 @@ http {
     }
 
     {{ range $host := .Hosts }}
-    {{ if ne $host.ContextRoot.Path "" }}
-    upstream ctx{{ $host.ContextRoot.Name }} {
-        zone ctx{{ $host.Upstream.Name }}_backend 64k;
-
-        {{ range $up := $host.Upstream.Servers }}server {{ $up.Addr }};
-        {{ end }}
-    }{{ else }}
     upstream {{ $host.Upstream.Name }} {
         {{ if $host.IPHash }}ip_hash; {{else}}zone {{ $host.Upstream.Name }}_backend 64k;{{ end }}
 
@@ -99,6 +83,14 @@ http {
     }
     server {
         listen {{ $host.Port }};
+
+	{{ if ne $host.ContextRoot.Path "" }}
+	location {{ $host.ContextRoot.Path }} {
+	    {{ if $host.ContextRootRewrite }}rewrite ^([^.]*[^/])$ $1/ permanent;
+	    rewrite  ^{{ $host.ContextRoot.Path }}/(.*)  /$1 break;{{ end }}
+	    proxy_pass http://{{ $host.Upstream.Name }};
+	}
+	{{ end }}
 
         server_name{{ range $name := $host.ServerNames }} {{ $name }}{{ end }};
         {{ if $host.SSLOnly }}return 302 https://$server_name$request_uri;{{ else }}
@@ -119,7 +111,6 @@ http {
             access_log off;
         }
 
-        {{ end }}
         {{ end }}
     }
     {{ if $host.SSL }}
