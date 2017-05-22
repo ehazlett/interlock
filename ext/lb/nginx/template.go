@@ -81,18 +81,25 @@ http {
         {{ range $up := $host.Upstream.Servers }}server {{ $up.Addr }};
         {{ end }}
     }
+    {{ range $k, $ctxroot := $host.ContextRoots }}
+    upstream ctx{{ $k }} {
+        {{ if $host.IPHash }}ip_hash; {{else}}zone ctx{{ $ctxroot.Name }}_backend 64k;{{ end }}
+	{{ range $d := $ctxroot.Upstreams }}server {{ $d }};
+	{{ end }}
+    } {{ end }}
+
     server {
         listen {{ $host.Port }};
+        server_name{{ range $name := $host.ServerNames }} {{ $name }}{{ end }};
 
-	{{ if ne $host.ContextRoot.Path "" }}
-	location {{ $host.ContextRoot.Path }} {
-	    {{ if $host.ContextRootRewrite }}rewrite ^([^.]*[^/])$ $1/ permanent;
-	    rewrite  ^{{ $host.ContextRoot.Path }}/(.*)  /$1 break;{{ end }}
-	    proxy_pass http://{{ $host.Upstream.Name }};
+	{{ range $ctxroot := $host.ContextRoots }}
+	location {{ $ctxroot.Path }} {
+	    {{ if $ctxroot.Rewrite }}rewrite ^([^.]*[^/])$ $1/ permanent;
+	    rewrite  ^{{ $ctxroot.Path }}/(.*)  /$1 break;{{ end }}
+	    proxy_pass http://ctx{{ $ctxroot.Name }};
 	}
 	{{ end }}
 
-        server_name{{ range $name := $host.ServerNames }} {{ $name }}{{ end }};
         {{ if $host.SSLOnly }}return 302 https://$server_name$request_uri;{{ else }}
         location / {
             {{ if $host.SSLBackend }}proxy_pass https://{{ $host.Upstream.Name }};{{ else }}proxy_pass http://{{ $host.Upstream.Name }};{{ end }}

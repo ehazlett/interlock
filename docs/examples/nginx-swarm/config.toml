@@ -5,7 +5,6 @@ DockerURL = "tcp://127.0.0.1:3375"
 Name = "nginx"
 ConfigPath = "/etc/nginx/nginx.conf"
 PidPath = "/var/run/nginx.pid"
-TemplatePath = "/etc/interlock/nginx.conf.template"
 BackendOverrideAddress = "172.17.0.1"
 MaxConn = 1024
 Port = 80
