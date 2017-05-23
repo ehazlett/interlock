@@ -75,12 +75,14 @@ http {
     }
 
     {{ range $host := .Hosts }}
+    {{ if $host.Upstream.Servers }}
     upstream {{ $host.Upstream.Name }} {
         {{ if $host.IPHash }}ip_hash; {{else}}zone {{ $host.Upstream.Name }}_backend 64k;{{ end }}
 
         {{ range $up := $host.Upstream.Servers }}server {{ $up.Addr }};
         {{ end }}
     }
+    {{ end }}
     {{ range $k, $ctxroot := $host.ContextRoots }}
     upstream ctx{{ $k }} {
         {{ if $host.IPHash }}ip_hash; {{else}}zone ctx{{ $ctxroot.Name }}_backend 64k;{{ end }}
@@ -101,9 +103,11 @@ http {
 	{{ end }}
 
         {{ if $host.SSLOnly }}return 302 https://$server_name$request_uri;{{ else }}
+	{{ if $host.Upstream.Servers }}
         location / {
             {{ if $host.SSLBackend }}proxy_pass https://{{ $host.Upstream.Name }};{{ else }}proxy_pass http://{{ $host.Upstream.Name }};{{ end }}
         }
+	{{ end }}
 
         {{ range $ws := $host.WebsocketEndpoints }}
         location {{ $ws }} {
@@ -148,7 +152,7 @@ http {
     }
     {{ end }}
 
-    {{ end }} {{/* end context root */}}
+    {{ end }}
     {{ end }} {{/* end host range */}}
 
     include {{ .Config.ConfigBasePath }}/conf.d/*.conf;

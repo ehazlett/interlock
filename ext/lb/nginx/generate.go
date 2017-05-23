@@ -35,13 +35,10 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 			continue
 		}
 
+		contextRoot := utils.ContextRoot(cInfo.Config)
+
 		hostname := utils.Hostname(cInfo.Config)
 		domain := utils.Domain(cInfo.Config)
-
-		// context root
-		contextRoot := utils.ContextRoot(cInfo.Config)
-		contextRootName := fmt.Sprintf("%s_%s", domain, strings.Replace(contextRoot, "/", "_", -1))
-		contextRootRewrite := utils.ContextRootRewrite(cInfo.Config)
 
 		if domain == "" && contextRoot == "" {
 			continue
@@ -50,6 +47,10 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 		if hostname != domain && hostname != "" {
 			domain = fmt.Sprintf("%s.%s", hostname, domain)
 		}
+
+		// context root
+		contextRootName := fmt.Sprintf("%s_%s", domain, strings.Replace(contextRoot, "/", "_", -1))
+		contextRootRewrite := utils.ContextRootRewrite(cInfo.Config)
 
 		// check if the first server name is there; if not, add
 		// this happens if there are multiple backend containers
@@ -166,6 +167,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 		}
 
 		if contextRoot == "" {
+			log().Debugf("adding upstream %s: upstream=%s", domain, addr)
 			upstreamServers[domain] = append(upstreamServers[domain], addr)
 		}
 
