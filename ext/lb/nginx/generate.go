@@ -16,7 +16,6 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 	upstreamServers := map[string][]string{}
 	serverNames := map[string][]string{}
 	hostContextRoots := map[string]map[string]*ContextRoot{}
-	//hostContextUpstreams := map[string][]*ContextRootUpstream{}
 	hostSSL := map[string]bool{}
 	hostSSLCert := map[string]string{}
 	hostSSLCertKey := map[string]string{}
@@ -138,12 +137,6 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 			}
 
 			hc.Upstreams = append(hc.Upstreams, addr)
-
-			//log().Debugf("adding contextroot upstream: %s=%s", contextRootName, addr)
-			//hostContextUpstreams[domain] = append(hostContextUpstreams[domain], &ContextRootUpstream{
-			//	Name:     contextRootName,
-			//	Upstream: addr,
-			//})
 		}
 
 		// "parse" multiple labels for websocket endpoints
