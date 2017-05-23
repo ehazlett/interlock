@@ -14,15 +14,16 @@ type Upstream struct {
 }
 
 type ContextRoot struct {
-	Name string
-	Path string
+	Name      string
+	Path      string
+	Rewrite   bool
+	Upstreams []string
 }
 
 type Host struct {
 	ServerNames        []string
 	Port               int
-	ContextRoot        *ContextRoot
-	ContextRootRewrite bool
+	ContextRoots       map[string]*ContextRoot
 	SSLPort            int
 	SSL                bool
 	SSLCert            string
