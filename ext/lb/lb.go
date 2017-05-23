@@ -13,11 +13,11 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/engine-api/client"
-	"github.com/docker/engine-api/types"
-	etypes "github.com/docker/engine-api/types/events"
-	ntypes "github.com/docker/engine-api/types/network"
+	"github.com/docker/docker/api/types"
+	ntypes "github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/client"
 	"github.com/ehazlett/interlock/config"
+	"github.com/ehazlett/interlock/events"
 	"github.com/ehazlett/interlock/ext"
 	"github.com/ehazlett/interlock/ext/lb/haproxy"
 	"github.com/ehazlett/interlock/ext/lb/nginx"
@@ -108,20 +108,20 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *client.Client) (*LoadBal
 		lbUpdateChan <- true
 	})
 
-	// load nodeID
-	nodeID, err := utils.GetNodeID()
+	// load containerID for the following nodeID
+	containerID, err := utils.GetContainerID()
 	if err != nil {
 		return nil, err
 	}
 
-	log().Infof("interlock node: id=%s", nodeID)
+	log().Infof("interlock node: container id=%s", containerID)
 
 	extension := &LoadBalancer{
 		cfg:    c,
 		client: client,
 		cache:  cache,
 		lock:   &sync.Mutex{},
-		nodeID: nodeID,
+		nodeID: containerID,
 	}
 
 	// select backend
@@ -200,10 +200,10 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *client.Client) (*LoadBal
 			start := time.Now()
 
 			log().Debug("updating load balancers")
-
 			opts := types.ContainerListOptions{
 				All: true,
 			}
+			log().Debug("getting container list")
 			containers, err := client.ContainerList(context.Background(), opts)
 			if err != nil {
 				errChan <- err
@@ -277,7 +277,7 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *client.Client) (*LoadBal
 
 			for _, cnt := range containers {
 				// always include self container
-				if cnt.ID == nodeID && cnt.State == "running" {
+				if cnt.ID == containerID && cnt.State == "running" {
 					interlockNodes = append(interlockNodes, cnt)
 					continue
 				}
@@ -415,7 +415,7 @@ func (l *LoadBalancer) SaveConfig(configPath string, cfg interface{}, proxyConta
 	return nil
 }
 
-func (l *LoadBalancer) HandleEvent(event *etypes.Message) error {
+func (l *LoadBalancer) HandleEvent(event *events.Message) error {
 	reload := false
 
 	// container event
@@ -546,7 +546,7 @@ func (l *LoadBalancer) isExposedContainer(id string) bool {
 }
 
 func (l *LoadBalancer) isContainerConnected(id string, net string) (bool, error) {
-	network, err := l.client.NetworkInspect(context.Background(), net)
+	network, err := l.client.NetworkInspect(context.Background(), net, false)
 	if err != nil {
 		return false, err
 	}

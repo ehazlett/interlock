@@ -1,12 +1,8 @@
-<!--[metadata]>
-+++
-title = "HTTP API V2"
-description = "Specification for the Registry API."
-keywords = ["registry, on-prem, images, tags, repository, distribution, api, advanced"]
-[menu.main]
-parent="smn_registry_ref"
-+++
-<![end-metadata]-->
+---
+title: "HTTP API V2"
+description: "Specification for the Registry API."
+keywords: ["registry, on-prem, images, tags, repository, distribution, api, advanced"]
+---
 
 # Docker Registry HTTP API V2
 
@@ -126,6 +122,13 @@ reference and shouldn't be used outside the specification other than to
 identify a set of modifications.
 
 <dl>
+  <dt>l</dt>
+  <dd>
+    <ul>
+      <li>Document TOOMANYREQUESTS error code.</li>
+    </ul>
+  </dd>
+
   <dt>k</dt>
   <dd>
     <ul>
@@ -241,7 +244,7 @@ enforce this. The rules for a repository name are as follows:
    must match the regular expression `[a-z0-9]+(?:[._-][a-z0-9]+)*`.
 2. If a repository  name has two or more path components, they must be
    separated by a forward slash ("/").
-3. The total length of a repository name, including slashes, must be less the
+3. The total length of a repository name, including slashes, must be less than
    256 characters.
 
 These name requirements _only_ apply to the registry API and should accept a
@@ -1236,6 +1239,43 @@ The error codes that may be included in the response body are enumerated below:
 
 
 
+###### On Failure: Too Many Requests
+
+```
+429 Too Many Requests
+Content-Length: <length>
+Content-Type: application/json; charset=utf-8
+
+{
+	"errors:" [
+	    {
+            "code": <error code>,
+            "message": "<error message>",
+            "detail": ...
+        },
+        ...
+    ]
+}
+```
+
+The client made too many requests within a time interval.
+
+The following headers will be returned on the response:
+
+|Name|Description|
+|----|-----------|
+|`Content-Length`|Length of the JSON response body.|
+
+
+
+The error codes that may be included in the response body are enumerated below:
+
+|Code|Message|Description|
+|----|-------|-----------|
+| `TOOMANYREQUESTS` | too many requests | Returned when a client attempts to contact a service too many times |
+
+
+
 
 
 ### Tags
@@ -1411,6 +1451,43 @@ The error codes that may be included in the response body are enumerated below:
 
 
 
+###### On Failure: Too Many Requests
+
+```
+429 Too Many Requests
+Content-Length: <length>
+Content-Type: application/json; charset=utf-8
+
+{
+	"errors:" [
+	    {
+            "code": <error code>,
+            "message": "<error message>",
+            "detail": ...
+        },
+        ...
+    ]
+}
+```
+
+The client made too many requests within a time interval.
+
+The following headers will be returned on the response:
+
+|Name|Description|
+|----|-----------|
+|`Content-Length`|Length of the JSON response body.|
+
+
+
+The error codes that may be included in the response body are enumerated below:
+
+|Code|Message|Description|
+|----|-------|-----------|
+| `TOOMANYREQUESTS` | too many requests | Returned when a client attempts to contact a service too many times |
+
+
+
 ##### Tags Paginated
 
 ```
@@ -1570,6 +1647,43 @@ The error codes that may be included in the response body are enumerated below:
 |Code|Message|Description|
 |----|-------|-----------|
 | `DENIED` | requested access to the resource is denied | The access controller denied access for the operation on a resource. |
+
+
+
+###### On Failure: Too Many Requests
+
+```
+429 Too Many Requests
+Content-Length: <length>
+Content-Type: application/json; charset=utf-8
+
+{
+	"errors:" [
+	    {
+            "code": <error code>,
+            "message": "<error message>",
+            "detail": ...
+        },
+        ...
+    ]
+}
+```
+
+The client made too many requests within a time interval.
+
+The following headers will be returned on the response:
+
+|Name|Description|
+|----|-----------|
+|`Content-Length`|Length of the JSON response body.|
+
+
+
+The error codes that may be included in the response body are enumerated below:
+
+|Code|Message|Description|
+|----|-------|-----------|
+| `TOOMANYREQUESTS` | too many requests | Returned when a client attempts to contact a service too many times |
 
 
 
@@ -1785,6 +1899,43 @@ The error codes that may be included in the response body are enumerated below:
 
 
 
+###### On Failure: Too Many Requests
+
+```
+429 Too Many Requests
+Content-Length: <length>
+Content-Type: application/json; charset=utf-8
+
+{
+	"errors:" [
+	    {
+            "code": <error code>,
+            "message": "<error message>",
+            "detail": ...
+        },
+        ...
+    ]
+}
+```
+
+The client made too many requests within a time interval.
+
+The following headers will be returned on the response:
+
+|Name|Description|
+|----|-----------|
+|`Content-Length`|Length of the JSON response body.|
+
+
+
+The error codes that may be included in the response body are enumerated below:
+
+|Code|Message|Description|
+|----|-------|-----------|
+| `TOOMANYREQUESTS` | too many requests | Returned when a client attempts to contact a service too many times |
+
+
+
 
 #### PUT Manifest
 
@@ -1994,6 +2145,43 @@ The error codes that may be included in the response body are enumerated below:
 |Code|Message|Description|
 |----|-------|-----------|
 | `DENIED` | requested access to the resource is denied | The access controller denied access for the operation on a resource. |
+
+
+
+###### On Failure: Too Many Requests
+
+```
+429 Too Many Requests
+Content-Length: <length>
+Content-Type: application/json; charset=utf-8
+
+{
+	"errors:" [
+	    {
+            "code": <error code>,
+            "message": "<error message>",
+            "detail": ...
+        },
+        ...
+    ]
+}
+```
+
+The client made too many requests within a time interval.
+
+The following headers will be returned on the response:
+
+|Name|Description|
+|----|-----------|
+|`Content-Length`|Length of the JSON response body.|
+
+
+
+The error codes that may be included in the response body are enumerated below:
+
+|Code|Message|Description|
+|----|-------|-----------|
+| `TOOMANYREQUESTS` | too many requests | Returned when a client attempts to contact a service too many times |
 
 
 
@@ -2226,6 +2414,43 @@ The error codes that may be included in the response body are enumerated below:
 |Code|Message|Description|
 |----|-------|-----------|
 | `DENIED` | requested access to the resource is denied | The access controller denied access for the operation on a resource. |
+
+
+
+###### On Failure: Too Many Requests
+
+```
+429 Too Many Requests
+Content-Length: <length>
+Content-Type: application/json; charset=utf-8
+
+{
+	"errors:" [
+	    {
+            "code": <error code>,
+            "message": "<error message>",
+            "detail": ...
+        },
+        ...
+    ]
+}
+```
+
+The client made too many requests within a time interval.
+
+The following headers will be returned on the response:
+
+|Name|Description|
+|----|-----------|
+|`Content-Length`|Length of the JSON response body.|
+
+
+
+The error codes that may be included in the response body are enumerated below:
+
+|Code|Message|Description|
+|----|-------|-----------|
+| `TOOMANYREQUESTS` | too many requests | Returned when a client attempts to contact a service too many times |
 
 
 
@@ -2529,6 +2754,43 @@ The error codes that may be included in the response body are enumerated below:
 
 
 
+###### On Failure: Too Many Requests
+
+```
+429 Too Many Requests
+Content-Length: <length>
+Content-Type: application/json; charset=utf-8
+
+{
+	"errors:" [
+	    {
+            "code": <error code>,
+            "message": "<error message>",
+            "detail": ...
+        },
+        ...
+    ]
+}
+```
+
+The client made too many requests within a time interval.
+
+The following headers will be returned on the response:
+
+|Name|Description|
+|----|-----------|
+|`Content-Length`|Length of the JSON response body.|
+
+
+
+The error codes that may be included in the response body are enumerated below:
+
+|Code|Message|Description|
+|----|-------|-----------|
+| `TOOMANYREQUESTS` | too many requests | Returned when a client attempts to contact a service too many times |
+
+
+
 ##### Fetch Blob Part
 
 ```
@@ -2759,6 +3021,43 @@ The error codes that may be included in the response body are enumerated below:
 |Code|Message|Description|
 |----|-------|-----------|
 | `DENIED` | requested access to the resource is denied | The access controller denied access for the operation on a resource. |
+
+
+
+###### On Failure: Too Many Requests
+
+```
+429 Too Many Requests
+Content-Length: <length>
+Content-Type: application/json; charset=utf-8
+
+{
+	"errors:" [
+	    {
+            "code": <error code>,
+            "message": "<error message>",
+            "detail": ...
+        },
+        ...
+    ]
+}
+```
+
+The client made too many requests within a time interval.
+
+The following headers will be returned on the response:
+
+|Name|Description|
+|----|-----------|
+|`Content-Length`|Length of the JSON response body.|
+
+
+
+The error codes that may be included in the response body are enumerated below:
+
+|Code|Message|Description|
+|----|-------|-----------|
+| `TOOMANYREQUESTS` | too many requests | Returned when a client attempts to contact a service too many times |
 
 
 
@@ -3003,6 +3302,43 @@ The error codes that may be included in the response body are enumerated below:
 
 
 
+###### On Failure: Too Many Requests
+
+```
+429 Too Many Requests
+Content-Length: <length>
+Content-Type: application/json; charset=utf-8
+
+{
+	"errors:" [
+	    {
+            "code": <error code>,
+            "message": "<error message>",
+            "detail": ...
+        },
+        ...
+    ]
+}
+```
+
+The client made too many requests within a time interval.
+
+The following headers will be returned on the response:
+
+|Name|Description|
+|----|-----------|
+|`Content-Length`|Length of the JSON response body.|
+
+
+
+The error codes that may be included in the response body are enumerated below:
+
+|Code|Message|Description|
+|----|-------|-----------|
+| `TOOMANYREQUESTS` | too many requests | Returned when a client attempts to contact a service too many times |
+
+
+
 
 
 ### Initiate Blob Upload
@@ -3216,6 +3552,43 @@ The error codes that may be included in the response body are enumerated below:
 
 
 
+###### On Failure: Too Many Requests
+
+```
+429 Too Many Requests
+Content-Length: <length>
+Content-Type: application/json; charset=utf-8
+
+{
+	"errors:" [
+	    {
+            "code": <error code>,
+            "message": "<error message>",
+            "detail": ...
+        },
+        ...
+    ]
+}
+```
+
+The client made too many requests within a time interval.
+
+The following headers will be returned on the response:
+
+|Name|Description|
+|----|-----------|
+|`Content-Length`|Length of the JSON response body.|
+
+
+
+The error codes that may be included in the response body are enumerated below:
+
+|Code|Message|Description|
+|----|-------|-----------|
+| `TOOMANYREQUESTS` | too many requests | Returned when a client attempts to contact a service too many times |
+
+
+
 ##### Initiate Resumable Blob Upload
 
 ```
@@ -3393,6 +3766,43 @@ The error codes that may be included in the response body are enumerated below:
 |Code|Message|Description|
 |----|-------|-----------|
 | `DENIED` | requested access to the resource is denied | The access controller denied access for the operation on a resource. |
+
+
+
+###### On Failure: Too Many Requests
+
+```
+429 Too Many Requests
+Content-Length: <length>
+Content-Type: application/json; charset=utf-8
+
+{
+	"errors:" [
+	    {
+            "code": <error code>,
+            "message": "<error message>",
+            "detail": ...
+        },
+        ...
+    ]
+}
+```
+
+The client made too many requests within a time interval.
+
+The following headers will be returned on the response:
+
+|Name|Description|
+|----|-----------|
+|`Content-Length`|Length of the JSON response body.|
+
+
+
+The error codes that may be included in the response body are enumerated below:
+
+|Code|Message|Description|
+|----|-------|-----------|
+| `TOOMANYREQUESTS` | too many requests | Returned when a client attempts to contact a service too many times |
 
 
 
@@ -3591,6 +4001,43 @@ The error codes that may be included in the response body are enumerated below:
 |Code|Message|Description|
 |----|-------|-----------|
 | `DENIED` | requested access to the resource is denied | The access controller denied access for the operation on a resource. |
+
+
+
+###### On Failure: Too Many Requests
+
+```
+429 Too Many Requests
+Content-Length: <length>
+Content-Type: application/json; charset=utf-8
+
+{
+	"errors:" [
+	    {
+            "code": <error code>,
+            "message": "<error message>",
+            "detail": ...
+        },
+        ...
+    ]
+}
+```
+
+The client made too many requests within a time interval.
+
+The following headers will be returned on the response:
+
+|Name|Description|
+|----|-----------|
+|`Content-Length`|Length of the JSON response body.|
+
+
+
+The error codes that may be included in the response body are enumerated below:
+
+|Code|Message|Description|
+|----|-------|-----------|
+| `TOOMANYREQUESTS` | too many requests | Returned when a client attempts to contact a service too many times |
 
 
 
@@ -3826,6 +4273,43 @@ The error codes that may be included in the response body are enumerated below:
 
 
 
+###### On Failure: Too Many Requests
+
+```
+429 Too Many Requests
+Content-Length: <length>
+Content-Type: application/json; charset=utf-8
+
+{
+	"errors:" [
+	    {
+            "code": <error code>,
+            "message": "<error message>",
+            "detail": ...
+        },
+        ...
+    ]
+}
+```
+
+The client made too many requests within a time interval.
+
+The following headers will be returned on the response:
+
+|Name|Description|
+|----|-----------|
+|`Content-Length`|Length of the JSON response body.|
+
+
+
+The error codes that may be included in the response body are enumerated below:
+
+|Code|Message|Description|
+|----|-------|-----------|
+| `TOOMANYREQUESTS` | too many requests | Returned when a client attempts to contact a service too many times |
+
+
+
 
 #### PATCH Blob Upload
 
@@ -4054,6 +4538,43 @@ The error codes that may be included in the response body are enumerated below:
 |Code|Message|Description|
 |----|-------|-----------|
 | `DENIED` | requested access to the resource is denied | The access controller denied access for the operation on a resource. |
+
+
+
+###### On Failure: Too Many Requests
+
+```
+429 Too Many Requests
+Content-Length: <length>
+Content-Type: application/json; charset=utf-8
+
+{
+	"errors:" [
+	    {
+            "code": <error code>,
+            "message": "<error message>",
+            "detail": ...
+        },
+        ...
+    ]
+}
+```
+
+The client made too many requests within a time interval.
+
+The following headers will be returned on the response:
+
+|Name|Description|
+|----|-----------|
+|`Content-Length`|Length of the JSON response body.|
+
+
+
+The error codes that may be included in the response body are enumerated below:
+
+|Code|Message|Description|
+|----|-------|-----------|
+| `TOOMANYREQUESTS` | too many requests | Returned when a client attempts to contact a service too many times |
 
 
 
@@ -4296,6 +4817,43 @@ The error codes that may be included in the response body are enumerated below:
 
 
 
+###### On Failure: Too Many Requests
+
+```
+429 Too Many Requests
+Content-Length: <length>
+Content-Type: application/json; charset=utf-8
+
+{
+	"errors:" [
+	    {
+            "code": <error code>,
+            "message": "<error message>",
+            "detail": ...
+        },
+        ...
+    ]
+}
+```
+
+The client made too many requests within a time interval.
+
+The following headers will be returned on the response:
+
+|Name|Description|
+|----|-----------|
+|`Content-Length`|Length of the JSON response body.|
+
+
+
+The error codes that may be included in the response body are enumerated below:
+
+|Code|Message|Description|
+|----|-------|-----------|
+| `TOOMANYREQUESTS` | too many requests | Returned when a client attempts to contact a service too many times |
+
+
+
 
 #### PUT Blob Upload
 
@@ -4530,6 +5088,43 @@ The error codes that may be included in the response body are enumerated below:
 
 
 
+###### On Failure: Too Many Requests
+
+```
+429 Too Many Requests
+Content-Length: <length>
+Content-Type: application/json; charset=utf-8
+
+{
+	"errors:" [
+	    {
+            "code": <error code>,
+            "message": "<error message>",
+            "detail": ...
+        },
+        ...
+    ]
+}
+```
+
+The client made too many requests within a time interval.
+
+The following headers will be returned on the response:
+
+|Name|Description|
+|----|-----------|
+|`Content-Length`|Length of the JSON response body.|
+
+
+
+The error codes that may be included in the response body are enumerated below:
+
+|Code|Message|Description|
+|----|-------|-----------|
+| `TOOMANYREQUESTS` | too many requests | Returned when a client attempts to contact a service too many times |
+
+
+
 
 #### DELETE Blob Upload
 
@@ -4749,6 +5344,43 @@ The error codes that may be included in the response body are enumerated below:
 |Code|Message|Description|
 |----|-------|-----------|
 | `DENIED` | requested access to the resource is denied | The access controller denied access for the operation on a resource. |
+
+
+
+###### On Failure: Too Many Requests
+
+```
+429 Too Many Requests
+Content-Length: <length>
+Content-Type: application/json; charset=utf-8
+
+{
+	"errors:" [
+	    {
+            "code": <error code>,
+            "message": "<error message>",
+            "detail": ...
+        },
+        ...
+    ]
+}
+```
+
+The client made too many requests within a time interval.
+
+The following headers will be returned on the response:
+
+|Name|Description|
+|----|-----------|
+|`Content-Length`|Length of the JSON response body.|
+
+
+
+The error codes that may be included in the response body are enumerated below:
+
+|Code|Message|Description|
+|----|-------|-----------|
+| `TOOMANYREQUESTS` | too many requests | Returned when a client attempts to contact a service too many times |
 
 
 

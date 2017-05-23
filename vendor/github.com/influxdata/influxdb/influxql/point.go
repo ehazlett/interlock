@@ -5,14 +5,16 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"math"
 	"sort"
 
 	"github.com/gogo/protobuf/proto"
 	internal "github.com/influxdata/influxdb/influxql/internal"
 )
 
-// ZeroTime is the Unix nanosecond timestamp for time.Time{}.
-const ZeroTime = int64(-6795364578871345152)
+// ZeroTime is the Unix nanosecond timestamp for no time.
+// This time is not used by the query engine or the storage engine as a valid time.
+const ZeroTime = int64(math.MinInt64)
 
 // Point represents a value in a series that occurred at a given time.
 type Point interface {
@@ -76,7 +78,7 @@ func NewTags(m map[string]string) Tags {
 	}
 }
 
-// newTagsID returns a new instance of Tags parses from a tag id.
+// newTagsID returns a new instance of Tags by parsing the given tag ID.
 func newTagsID(id string) Tags {
 	m := decodeTags([]byte(id))
 	if len(m) == 0 {
@@ -279,6 +281,15 @@ func decodeAux(pb []*internal.Aux) []interface{} {
 		}
 	}
 	return aux
+}
+
+func cloneAux(src []interface{}) []interface{} {
+	if src == nil {
+		return src
+	}
+	dest := make([]interface{}, len(src))
+	copy(dest, src)
+	return dest
 }
 
 // PointDecoder decodes generic points from a reader.

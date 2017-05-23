@@ -22,7 +22,8 @@ You can use the `Makefile` to build the binary.  For example:
 This will build the binary in `cmd/interlock/interlock`.
 
 There is also a Docker image target in the makefile.  You can build it with
-`make image`.
+`make image`.  Note: you will need at least Docker version 17.05 to build the
+image as we take advantage of multistage builds.
 
 # License
 Licensed under the Apache License, Version 2.0. See LICENSE for full license text.

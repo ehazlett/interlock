@@ -3,7 +3,7 @@ package utils
 import (
 	"testing"
 
-	ctypes "github.com/docker/engine-api/types/container"
+	ctypes "github.com/docker/docker/api/types/container"
 )
 
 func TestDomain(t *testing.T) {

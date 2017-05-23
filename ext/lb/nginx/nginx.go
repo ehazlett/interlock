@@ -5,10 +5,10 @@ import (
 	"path/filepath"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/docker/engine-api/client"
-	"github.com/docker/engine-api/types"
-	etypes "github.com/docker/engine-api/types/events"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
 	"github.com/ehazlett/interlock/config"
+	"github.com/ehazlett/interlock/events"
 	"golang.org/x/net/context"
 )
 
@@ -43,7 +43,7 @@ func (p *NginxLoadBalancer) Name() string {
 	return pluginName
 }
 
-func (p *NginxLoadBalancer) HandleEvent(event *etypes.Message) error {
+func (p *NginxLoadBalancer) HandleEvent(event *events.Message) error {
 	return nil
 }
 

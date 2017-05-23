@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/docker/docker/pkg/integration/checker"
+	"github.com/docker/docker/integration-cli/checker"
 	"github.com/go-check/check"
 )
 
@@ -23,7 +23,6 @@ import (
 
 // Test for error when SRC does not exist.
 func (s *DockerSuite) TestCpToErrSrcNotExists(c *check.C) {
-	testRequires(c, DaemonIsLinux)
 	containerID := makeTestContainer(c, testContainerOptions{})
 
 	tmpDir := getTestDir(c, "test-cp-to-err-src-not-exists")
@@ -41,7 +40,6 @@ func (s *DockerSuite) TestCpToErrSrcNotExists(c *check.C) {
 // Test for error when SRC ends in a trailing
 // path separator but it exists as a file.
 func (s *DockerSuite) TestCpToErrSrcNotDir(c *check.C) {
-	testRequires(c, DaemonIsLinux)
 	containerID := makeTestContainer(c, testContainerOptions{})
 
 	tmpDir := getTestDir(c, "test-cp-to-err-src-not-dir")
@@ -59,7 +57,7 @@ func (s *DockerSuite) TestCpToErrSrcNotDir(c *check.C) {
 }
 
 // Test for error when SRC is a valid file or directory,
-// bu the DST parent directory does not exist.
+// but the DST parent directory does not exist.
 func (s *DockerSuite) TestCpToErrDstParentNotExists(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 	containerID := makeTestContainer(c, testContainerOptions{addContent: true})
@@ -81,6 +79,7 @@ func (s *DockerSuite) TestCpToErrDstParentNotExists(c *check.C) {
 	// Try with a directory source.
 	srcPath = cpPath(tmpDir, "dir1")
 
+	err = runDockerCp(c, srcPath, dstPath)
 	c.Assert(err, checker.NotNil)
 
 	c.Assert(isCpNotExist(err), checker.True, check.Commentf("expected IsNotExist error, but got %T: %s", err, err))
@@ -227,7 +226,6 @@ func (s *DockerSuite) TestCpToSymlinkDestination(c *check.C) {
 //    exist. This should create a file with the name DST and copy the
 //    contents of the source file into it.
 func (s *DockerSuite) TestCpToCaseA(c *check.C) {
-	testRequires(c, DaemonIsLinux)
 	containerID := makeTestContainer(c, testContainerOptions{
 		workDir: "/root", command: makeCatFileCommand("itWorks.txt"),
 	})
@@ -249,7 +247,6 @@ func (s *DockerSuite) TestCpToCaseA(c *check.C) {
 //    exist. This should cause an error because the copy operation cannot
 //    create a directory when copying a single file.
 func (s *DockerSuite) TestCpToCaseB(c *check.C) {
-	testRequires(c, DaemonIsLinux)
 	containerID := makeTestContainer(c, testContainerOptions{
 		command: makeCatFileCommand("testDir/file1"),
 	})
@@ -344,7 +341,6 @@ func (s *DockerSuite) TestCpToCaseD(c *check.C) {
 //    directory. Ensure this works whether DST has a trailing path separator or
 //    not.
 func (s *DockerSuite) TestCpToCaseE(c *check.C) {
-	testRequires(c, DaemonIsLinux)
 	containerID := makeTestContainer(c, testContainerOptions{
 		command: makeCatFileCommand("/testDir/file1-1"),
 	})
@@ -449,7 +445,6 @@ func (s *DockerSuite) TestCpToCaseG(c *check.C) {
 //    directory (but not the directory itself) into the DST directory. Ensure
 //    this works whether DST has a trailing path separator or not.
 func (s *DockerSuite) TestCpToCaseH(c *check.C) {
-	testRequires(c, DaemonIsLinux)
 	containerID := makeTestContainer(c, testContainerOptions{
 		command: makeCatFileCommand("/testDir/file1-1"),
 	})

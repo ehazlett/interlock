@@ -8,3 +8,5 @@
 _You can erase any checkboxes below this note if they are not applicable to your Pull Request._
 - [ ] [InfluxQL Spec](https://github.com/influxdata/influxdb/blob/master/influxql/README.md) updated
 - [ ] Provide example syntax
+- [ ] Update man page when modifying a command
+- [ ] [InfluxData Documentation](https://github.com/influxdata/docs.influxdata.com): issue filed or pull request submitted \<link to issue or pull request\>

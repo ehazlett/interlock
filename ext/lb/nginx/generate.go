@@ -5,17 +5,17 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/docker/engine-api/types"
+	"github.com/docker/docker/api/types"
 	"github.com/ehazlett/interlock/ext/lb/utils"
 	"golang.org/x/net/context"
 )
 
 func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (interface{}, error) {
 	var hosts []*Host
+	upstreamHosts := map[string]struct{}{}
 	upstreamServers := map[string][]string{}
 	serverNames := map[string][]string{}
-	hostContextRoots := map[string]*ContextRoot{}
-	hostContextRootRewrites := map[string]bool{}
+	hostContextRoots := map[string]map[string]*ContextRoot{}
 	hostSSL := map[string]bool{}
 	hostSSLCert := map[string]string{}
 	hostSSLCertKey := map[string]string{}
@@ -34,32 +34,22 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 			continue
 		}
 
+		contextRoot := utils.ContextRoot(cInfo.Config)
+
 		hostname := utils.Hostname(cInfo.Config)
 		domain := utils.Domain(cInfo.Config)
-
-		// context root
-		contextRoot := utils.ContextRoot(cInfo.Config)
-		contextRootName := strings.Replace(contextRoot, "/", "_", -1)
 
 		if domain == "" && contextRoot == "" {
 			continue
 		}
 
-		// we check if a context root is passed and overwrite the
-		// domain component
-		if contextRoot != "" {
-			domain = contextRootName
-		} else {
-			if hostname != domain && hostname != "" {
-				domain = fmt.Sprintf("%s.%s", hostname, domain)
-			}
+		if hostname != domain && hostname != "" {
+			domain = fmt.Sprintf("%s.%s", hostname, domain)
 		}
 
-		hostContextRoots[domain] = &ContextRoot{
-			Name: contextRootName,
-			Path: contextRoot,
-		}
-		hostContextRootRewrites[domain] = utils.ContextRootRewrite(cInfo.Config)
+		// context root
+		contextRootName := fmt.Sprintf("%s_%s", domain, strings.Replace(contextRoot, "/", "_", -1))
+		contextRootRewrite := utils.ContextRootRewrite(cInfo.Config)
 
 		// check if the first server name is there; if not, add
 		// this happens if there are multiple backend containers
@@ -97,7 +87,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 		if n, ok := utils.OverlayEnabled(cInfo.Config); ok {
 			log().Debugf("configuring docker network: name=%s", n)
 
-			network, err := p.client.NetworkInspect(context.Background(), n)
+			network, err := p.client.NetworkInspect(context.Background(), n, false)
 			if err != nil {
 				log().Error(err)
 				continue
@@ -130,6 +120,25 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 			}
 		}
 
+		if contextRoot != "" {
+			if _, ok := hostContextRoots[domain]; !ok {
+				hostContextRoots[domain] = map[string]*ContextRoot{}
+			}
+			hc, ok := hostContextRoots[domain][contextRootName]
+			if !ok {
+				hostContextRoots[domain][contextRootName] = &ContextRoot{
+					Name:      contextRootName,
+					Path:      contextRoot,
+					Rewrite:   contextRootRewrite,
+					Upstreams: []string{},
+				}
+
+				hc = hostContextRoots[domain][contextRootName]
+			}
+
+			hc.Upstreams = append(hc.Upstreams, addr)
+		}
+
 		// "parse" multiple labels for websocket endpoints
 		websocketEndpoints := utils.WebsocketEndpoints(cInfo.Config)
 
@@ -148,23 +157,23 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 		for _, alias := range aliasDomains {
 			log().Debugf("adding alias %s for %s", alias, cntId)
 			serverNames[domain] = append(serverNames[domain], alias)
-			hostContextRoots[alias] = &ContextRoot{
-				Name: contextRootName,
-				Path: contextRoot,
-			}
 		}
 
-		log().Infof("%s: upstream=%s", domain, addr)
+		if contextRoot == "" {
+			log().Debugf("adding upstream %s: upstream=%s", domain, addr)
+			upstreamServers[domain] = append(upstreamServers[domain], addr)
+		}
 
-		upstreamServers[domain] = append(upstreamServers[domain], addr)
+		upstreamHosts[domain] = struct{}{}
+		log().Infof("%s: upstream=%s", domain, addr)
 	}
 
-	for k, v := range upstreamServers {
+	for k, _ := range upstreamHosts {
+		log().Debugf("%s contextroots=%+v", k, hostContextRoots[k])
 		h := &Host{
 			ServerNames:        serverNames[k],
 			Port:               p.cfg.Port,
-			ContextRoot:        hostContextRoots[k],
-			ContextRootRewrite: hostContextRootRewrites[k],
+			ContextRoots:       hostContextRoots[k],
 			SSLPort:            p.cfg.SSLPort,
 			SSL:                hostSSL[k],
 			SSLCert:            hostSSLCert[k],
@@ -177,7 +186,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 
 		servers := []*Server{}
 
-		for _, s := range v {
+		for _, s := range upstreamServers[k] {
 			srv := &Server{
 				Addr: s,
 			}

@@ -1,9 +1,13 @@
 package tsm1
 
-import "sync"
+import (
+	"sync"
+
+	"github.com/influxdata/influxdb/pkg/pool"
+)
 
 var (
-	bufPool          sync.Pool
+	bufPool          = pool.NewBytes(10)
 	float64ValuePool sync.Pool
 	integerValuePool sync.Pool
 	booleanValuePool sync.Pool
@@ -12,15 +16,7 @@ var (
 
 // getBuf returns a buffer with length size from the buffer pool.
 func getBuf(size int) []byte {
-	x := bufPool.Get()
-	if x == nil {
-		return make([]byte, size)
-	}
-	buf := x.([]byte)
-	if cap(buf) < size {
-		return make([]byte, size)
-	}
-	return buf[:size]
+	return bufPool.Get(size)
 }
 
 // putBuf returns a buffer to the pool.
@@ -43,7 +39,7 @@ func getFloat64Values(size int) []Value {
 
 	for i, v := range buf {
 		if v == nil {
-			buf[i] = &FloatValue{}
+			buf[i] = FloatValue{}
 		}
 	}
 	return buf[:size]
@@ -69,7 +65,7 @@ func getIntegerValues(size int) []Value {
 
 	for i, v := range buf {
 		if v == nil {
-			buf[i] = &IntegerValue{}
+			buf[i] = IntegerValue{}
 		}
 	}
 	return buf[:size]
@@ -95,7 +91,7 @@ func getBooleanValues(size int) []Value {
 
 	for i, v := range buf {
 		if v == nil {
-			buf[i] = &BooleanValue{}
+			buf[i] = BooleanValue{}
 		}
 	}
 	return buf[:size]
@@ -121,7 +117,7 @@ func getStringValues(size int) []Value {
 
 	for i, v := range buf {
 		if v == nil {
-			buf[i] = &StringValue{}
+			buf[i] = StringValue{}
 		}
 	}
 	return buf[:size]
@@ -134,13 +130,13 @@ func putBooleanValues(buf []Value) {
 func putValue(buf []Value) {
 	if len(buf) > 0 {
 		switch buf[0].(type) {
-		case *FloatValue:
+		case FloatValue:
 			putFloat64Values(buf)
-		case *IntegerValue:
+		case IntegerValue:
 			putIntegerValues(buf)
-		case *BooleanValue:
+		case BooleanValue:
 			putBooleanValues(buf)
-		case *StringValue:
+		case StringValue:
 			putStringValues(buf)
 		}
 	}

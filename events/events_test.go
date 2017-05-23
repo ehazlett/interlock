@@ -3,11 +3,11 @@ package events
 import (
 	"testing"
 
-	etypes "github.com/docker/engine-api/types/events"
+	etypes "github.com/docker/docker/api/types/events"
 )
 
 func TestEventHandler(t *testing.T) {
-	tChan := make(chan *etypes.Message)
+	tChan := make(chan *Message)
 
 	errChan := make(chan error)
 
@@ -22,8 +22,10 @@ func TestEventHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	testEvent := &etypes.Message{
-		Type: "testevent",
+	testEvent := &Message{
+		etypes.Message{
+			Type: "testevent",
+		},
 	}
 
 	go h.Handle(testEvent, errChan, nil)

@@ -30,6 +30,8 @@ type ExtensionConfig struct {
 	SSLOpts                       string           // haproxy
 	SSLDefaultDHParam             int              // haproxy
 	SSLServerVerify               string           // haproxy
+	DHParam                       bool             // nginx
+	DHParamPath                   string           // nginx
 	NginxPlusEnabled              bool             // nginx
 	User                          string           // nginx
 	WorkerProcesses               int              // nginx

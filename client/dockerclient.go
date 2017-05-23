@@ -10,12 +10,12 @@ import (
 	"path/filepath"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/docker/engine-api/client"
+	"github.com/docker/docker/client"
 	"github.com/ehazlett/interlock/version"
 )
 
 const (
-	apiVersion = "1.21"
+	apiVersion = "1.26"
 )
 
 func GetTLSConfig(caCert, cert, key []byte, allowInsecure bool) (*tls.Config, error) {

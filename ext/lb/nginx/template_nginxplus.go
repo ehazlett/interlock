@@ -20,7 +20,7 @@ http {
     server_names_hash_bucket_size 128;
     client_max_body_size 2048M;
 
-    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+    log_format  main  '$remote_addr - $remote_user [$upstream_addr] [$time_local] "$request" '
                       '$status $body_bytes_sent "$http_referer" '
                       '"$http_user_agent" "$http_x_forwarded_for"';
 
@@ -49,66 +49,78 @@ http {
     send_timeout {{ .Config.SendTimeout }};
 
     # ssl
+    ssl_prefer_server_ciphers on;
     ssl_ciphers {{ .Config.SSLCiphers }};
     ssl_protocols {{ .Config.SSLProtocols }};
+    {{ if .Config.DHParam}}ssl_dhparam {{ .Config.DHParamPath }};{{ end }}
 
     map $http_upgrade $connection_upgrade {
         default upgrade;
         ''      close;
     }
 
-    # default host return 503
     server {
             listen {{ .Config.Port }};
             server_name _;
-
-	    root /usr/share/nginx/html;
 
 	    # nginxplus
     	    location = / {
     	        return 301 /status.html;
     	    }
     	    location = /status.html { }
-	    # end nginxplus
 
-    	    location /status {
+	    location /status {
     	        status;
     	    }
-	    {{ range $host := .Hosts }}
-	    {{ if ne $host.ContextRoot.Path "" }}
-	    location {{ $host.ContextRoot.Path }} {
-		{{ if $host.ContextRootRewrite }}rewrite ^([^.]*[^/])$ $1/ permanent;
-		rewrite  ^{{ $host.ContextRoot.Path }}/(.*)  /$1 break;{{ end }}
-		proxy_pass http://ctx{{ $host.ContextRoot.Name }};
-	    }
-	    {{ end }}
-	    {{ end }}
+	    # end nginxplus
+
+            location /nginx_status {
+                stub_status on;
+                access_log off;
+            }
     }
 
     {{ range $host := .Hosts }}
-    {{ if ne $host.ContextRoot.Path "" }}
-    upstream ctx{{ $host.ContextRoot.Name }} {
-        zone ctx{{ $host.Upstream.Name }}_backend 64k;
-
-        {{ range $up := $host.Upstream.Servers }}server {{ $up.Addr }};
-        {{ end }}
-    }{{ else }}
+    {{ if $host.Upstream.Servers }}
     upstream {{ $host.Upstream.Name }} {
         {{ if $host.IPHash }}ip_hash; {{else}}zone {{ $host.Upstream.Name }}_backend 64k;{{ end }}
 
         {{ range $up := $host.Upstream.Servers }}server {{ $up.Addr }};
         {{ end }}
     }
+    {{ end }}
+    {{ range $k, $ctxroot := $host.ContextRoots }}
+    upstream ctx{{ $k }} {
+        {{ if $host.IPHash }}ip_hash; {{else}}zone ctx{{ $ctxroot.Name }}_backend 64k;{{ end }}
+	{{ range $d := $ctxroot.Upstreams }}server {{ $d }};
+	{{ end }}
+    } {{ end }}
+
     server {
         listen {{ $host.Port }};
-
         server_name{{ range $name := $host.ServerNames }} {{ $name }}{{ end }};
+
+	# nginxplus
+	status_zone {{ $host.Upstream.Name  }}_backend;
+	location /status {
+	    status;
+	}
+	# end nginxplus
+
+	{{ range $ctxroot := $host.ContextRoots }}
+	location {{ $ctxroot.Path }} {
+	    {{ if $ctxroot.Rewrite }}rewrite ^([^.]*[^/])$ $1/ permanent;
+	    rewrite  ^{{ $ctxroot.Path }}/(.*)  /$1 break;{{ end }}
+	    proxy_pass http://ctx{{ $ctxroot.Name }};
+	}
+	{{ end }}
+
         {{ if $host.SSLOnly }}return 302 https://$server_name$request_uri;{{ else }}
+	{{ if $host.Upstream.Servers }}
         location / {
             {{ if $host.SSLBackend }}proxy_pass https://{{ $host.Upstream.Name }};{{ else }}proxy_pass http://{{ $host.Upstream.Name }};{{ end }}
         }
-
-        status_zone {{ $host.Upstream.Name }}_backend;
+	{{ end }}
 
         {{ range $ws := $host.WebsocketEndpoints }}
         location {{ $ws }} {
@@ -118,11 +130,11 @@ http {
             proxy_set_header Connection $connection_upgrade;
         }
 
-    	location /status {
-    	    status;
-    	}
+        location /nginx_status {
+            stub_status on;
+            access_log off;
+        }
 
-        {{ end }}
         {{ end }}
     }
     {{ if $host.SSL }}
@@ -153,7 +165,7 @@ http {
     }
     {{ end }}
 
-    {{ end }} {{/* end context root */}}
+    {{ end }}
     {{ end }} {{/* end host range */}}
 
     include {{ .Config.ConfigBasePath }}/conf.d/*.conf;

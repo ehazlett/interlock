@@ -1,23 +1,21 @@
+// Package graphite provides a service for InfluxDB to ingest data via the graphite protocol.
 package graphite // import "github.com/influxdata/influxdb/services/graphite"
 
 import (
 	"bufio"
-	"expvar"
 	"fmt"
-	"io"
-	"log"
 	"math"
 	"net"
-	"os"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
-	"github.com/influxdata/influxdb"
 	"github.com/influxdata/influxdb/models"
 	"github.com/influxdata/influxdb/monitor/diagnostics"
 	"github.com/influxdata/influxdb/services/meta"
 	"github.com/influxdata/influxdb/tsdb"
+	"github.com/uber-go/zap"
 )
 
 const udpBufferSize = 65536
@@ -46,8 +44,6 @@ func (c *tcpConnection) Close() {
 
 // Service represents a Graphite service.
 type Service struct {
-	mu sync.Mutex
-
 	bindAddress     string
 	database        string
 	retentionPolicy string
@@ -60,8 +56,10 @@ type Service struct {
 	batcher *tsdb.PointBatcher
 	parser  *Parser
 
-	logger           *log.Logger
-	statMap          *expvar.Map
+	logger      zap.Logger
+	stats       *Statistics
+	defaultTags models.StatisticTags
+
 	tcpConnectionsMu sync.Mutex
 	tcpConnections   map[string]*tcpConnection
 	diagsKey         string
@@ -70,8 +68,11 @@ type Service struct {
 	addr    net.Addr
 	udpConn *net.UDPConn
 
-	wg   sync.WaitGroup
-	done chan struct{}
+	wg sync.WaitGroup
+
+	mu    sync.RWMutex
+	ready bool          // Has the required database been created?
+	done  chan struct{} // Is the service closing or closed?
 
 	Monitor interface {
 		RegisterDiagnosticsClient(name string, client diagnostics.Client)
@@ -82,8 +83,8 @@ type Service struct {
 	}
 	MetaClient interface {
 		CreateDatabase(name string) (*meta.DatabaseInfo, error)
-		CreateDatabaseWithRetentionPolicy(name string, rpi *meta.RetentionPolicyInfo) (*meta.DatabaseInfo, error)
-		CreateRetentionPolicy(database string, rpi *meta.RetentionPolicyInfo) (*meta.RetentionPolicyInfo, error)
+		CreateDatabaseWithRetentionPolicy(name string, spec *meta.RetentionPolicySpec) (*meta.DatabaseInfo, error)
+		CreateRetentionPolicy(database string, spec *meta.RetentionPolicySpec, makeDefault bool) (*meta.RetentionPolicyInfo, error)
 		Database(name string) *meta.DatabaseInfo
 		RetentionPolicy(database, name string) (*meta.RetentionPolicyInfo, error)
 	}
@@ -103,9 +104,10 @@ func NewService(c Config) (*Service, error) {
 		batchPending:    d.BatchPending,
 		udpReadBuffer:   d.UDPReadBuffer,
 		batchTimeout:    time.Duration(d.BatchTimeout),
-		logger:          log.New(os.Stderr, fmt.Sprintf("[graphite] %s ", d.BindAddress), log.LstdFlags),
+		logger:          zap.New(zap.NullEncoder()),
+		stats:           &Statistics{},
+		defaultTags:     models.StatisticTags{"proto": d.Protocol, "bind": d.BindAddress},
 		tcpConnections:  make(map[string]*tcpConnection),
-		done:            make(chan struct{}),
 		diagsKey:        strings.Join([]string{"graphite", d.Protocol, d.BindAddress}, ":"),
 	}
 
@@ -127,31 +129,16 @@ func (s *Service) Open() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	s.logger.Printf("Starting graphite service, batch size %d, batch timeout %s", s.batchSize, s.batchTimeout)
+	if !s.closed() {
+		return nil // Already open.
+	}
+	s.done = make(chan struct{})
 
-	// Configure expvar monitoring. It's OK to do this even if the service fails to open and
-	// should be done before any data could arrive for the service.
-	tags := map[string]string{"proto": s.protocol, "bind": s.bindAddress}
-	s.statMap = influxdb.NewStatistics(s.diagsKey, "graphite", tags)
+	s.logger.Info(fmt.Sprintf("Starting graphite service, batch size %d, batch timeout %s", s.batchSize, s.batchTimeout))
 
 	// Register diagnostics if a Monitor service is available.
 	if s.Monitor != nil {
 		s.Monitor.RegisterDiagnosticsClient(s.diagsKey, s)
-	}
-
-	if db := s.MetaClient.Database(s.database); db != nil {
-		if rp, _ := s.MetaClient.RetentionPolicy(s.database, s.retentionPolicy); rp == nil {
-			rpi := meta.NewRetentionPolicyInfo(s.retentionPolicy)
-			if _, err := s.MetaClient.CreateRetentionPolicy(s.database, rpi); err != nil {
-				s.logger.Printf("Failed to ensure target retention policy %s exists: %s", s.database, err.Error())
-			}
-		}
-	} else {
-		rpi := meta.NewRetentionPolicyInfo(s.retentionPolicy)
-		if _, err := s.MetaClient.CreateDatabaseWithRetentionPolicy(s.database, rpi); err != nil {
-			s.logger.Printf("Failed to ensure target database %s exists: %s", s.database, err.Error())
-			return err
-		}
 	}
 
 	s.batcher = tsdb.NewPointBatcher(s.batchSize, s.batchPending, s.batchTimeout)
@@ -173,7 +160,7 @@ func (s *Service) Open() error {
 		return err
 	}
 
-	s.logger.Printf("Listening on %s: %s", strings.ToUpper(s.protocol), s.addr.String())
+	s.logger.Info(fmt.Sprintf("Listening on %s: %s", strings.ToUpper(s.protocol), s.addr.String()))
 	return nil
 }
 func (s *Service) closeAllConnections() {
@@ -188,6 +175,11 @@ func (s *Service) closeAllConnections() {
 func (s *Service) Close() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
+	if s.closed() {
+		return nil // Already closed.
+	}
+	close(s.done)
 
 	s.closeAllConnections()
 
@@ -206,17 +198,97 @@ func (s *Service) Close() error {
 		s.Monitor.DeregisterDiagnosticsClient(s.diagsKey)
 	}
 
-	close(s.done)
 	s.wg.Wait()
 	s.done = nil
 
 	return nil
 }
 
-// SetLogOutput sets the writer to which all logs are written. It must not be
-// called after Open is called.
-func (s *Service) SetLogOutput(w io.Writer) {
-	s.logger = log.New(w, "[graphite] ", log.LstdFlags)
+// Closed returns true if the service is currently closed.
+func (s *Service) Closed() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.closed()
+}
+
+func (s *Service) closed() bool {
+	select {
+	case <-s.done:
+		// Service is closing.
+		return true
+	default:
+	}
+	return s.done == nil
+}
+
+// createInternalStorage ensures that the required database has been created.
+func (s *Service) createInternalStorage() error {
+	s.mu.RLock()
+	ready := s.ready
+	s.mu.RUnlock()
+	if ready {
+		return nil
+	}
+
+	if db := s.MetaClient.Database(s.database); db != nil {
+		if rp, _ := s.MetaClient.RetentionPolicy(s.database, s.retentionPolicy); rp == nil {
+			spec := meta.RetentionPolicySpec{Name: s.retentionPolicy}
+			if _, err := s.MetaClient.CreateRetentionPolicy(s.database, &spec, true); err != nil {
+				return err
+			}
+		}
+	} else {
+		spec := meta.RetentionPolicySpec{Name: s.retentionPolicy}
+		if _, err := s.MetaClient.CreateDatabaseWithRetentionPolicy(s.database, &spec); err != nil {
+			return err
+		}
+	}
+
+	// The service is now ready.
+	s.mu.Lock()
+	s.ready = true
+	s.mu.Unlock()
+	return nil
+}
+
+// WithLogger sets the logger on the service.
+func (s *Service) WithLogger(log zap.Logger) {
+	s.logger = log.With(
+		zap.String("service", "graphite"),
+		zap.String("addr", s.bindAddress),
+	)
+}
+
+// Statistics maintains statistics for the graphite service.
+type Statistics struct {
+	PointsReceived      int64
+	BytesReceived       int64
+	PointsParseFail     int64
+	PointsNaNFail       int64
+	BatchesTransmitted  int64
+	PointsTransmitted   int64
+	BatchesTransmitFail int64
+	ActiveConnections   int64
+	HandledConnections  int64
+}
+
+// Statistics returns statistics for periodic monitoring.
+func (s *Service) Statistics(tags map[string]string) []models.Statistic {
+	return []models.Statistic{{
+		Name: "graphite",
+		Tags: s.defaultTags.Merge(tags),
+		Values: map[string]interface{}{
+			statPointsReceived:      atomic.LoadInt64(&s.stats.PointsReceived),
+			statBytesReceived:       atomic.LoadInt64(&s.stats.BytesReceived),
+			statPointsParseFail:     atomic.LoadInt64(&s.stats.PointsParseFail),
+			statPointsNaNFail:       atomic.LoadInt64(&s.stats.PointsNaNFail),
+			statBatchesTransmitted:  atomic.LoadInt64(&s.stats.BatchesTransmitted),
+			statPointsTransmitted:   atomic.LoadInt64(&s.stats.PointsTransmitted),
+			statBatchesTransmitFail: atomic.LoadInt64(&s.stats.BatchesTransmitFail),
+			statConnectionsActive:   atomic.LoadInt64(&s.stats.ActiveConnections),
+			statConnectionsHandled:  atomic.LoadInt64(&s.stats.HandledConnections),
+		},
+	}}
 }
 
 // Addr returns the address the Service binds to.
@@ -238,11 +310,11 @@ func (s *Service) openTCPServer() (net.Addr, error) {
 		for {
 			conn, err := s.ln.Accept()
 			if opErr, ok := err.(*net.OpError); ok && !opErr.Temporary() {
-				s.logger.Println("graphite TCP listener closed")
+				s.logger.Info("graphite TCP listener closed")
 				return
 			}
 			if err != nil {
-				s.logger.Println("error accepting TCP connection", err.Error())
+				s.logger.Info("error accepting TCP connection", zap.Error(err))
 				continue
 			}
 
@@ -257,10 +329,10 @@ func (s *Service) openTCPServer() (net.Addr, error) {
 func (s *Service) handleTCPConnection(conn net.Conn) {
 	defer s.wg.Done()
 	defer conn.Close()
-	defer s.statMap.Add(statConnectionsActive, -1)
+	defer atomic.AddInt64(&s.stats.ActiveConnections, -1)
 	defer s.untrackConnection(conn)
-	s.statMap.Add(statConnectionsActive, 1)
-	s.statMap.Add(statConnectionsHandled, 1)
+	atomic.AddInt64(&s.stats.ActiveConnections, 1)
+	atomic.AddInt64(&s.stats.HandledConnections, 1)
 	s.trackConnection(conn)
 
 	reader := bufio.NewReader(conn)
@@ -275,8 +347,8 @@ func (s *Service) handleTCPConnection(conn net.Conn) {
 		// Trim the buffer, even though there should be no padding
 		line := strings.TrimSpace(string(buf))
 
-		s.statMap.Add(statPointsReceived, 1)
-		s.statMap.Add(statBytesReceived, int64(len(buf)))
+		atomic.AddInt64(&s.stats.PointsReceived, 1)
+		atomic.AddInt64(&s.stats.BytesReceived, int64(len(buf)))
 		s.handleLine(line)
 	}
 }
@@ -330,8 +402,8 @@ func (s *Service) openUDPServer() (net.Addr, error) {
 			for _, line := range lines {
 				s.handleLine(line)
 			}
-			s.statMap.Add(statPointsReceived, int64(len(lines)))
-			s.statMap.Add(statBytesReceived, int64(n))
+			atomic.AddInt64(&s.stats.PointsReceived, int64(len(lines)))
+			atomic.AddInt64(&s.stats.BytesReceived, int64(n))
 		}
 	}()
 	return s.udpConn.LocalAddr(), nil
@@ -349,12 +421,12 @@ func (s *Service) handleLine(line string) {
 		case *UnsupportedValueError:
 			// Graphite ignores NaN values with no error.
 			if math.IsNaN(err.Value) {
-				s.statMap.Add(statPointsNaNFail, 1)
+				atomic.AddInt64(&s.stats.PointsNaNFail, 1)
 				return
 			}
 		}
-		s.logger.Printf("unable to parse line: %s: %s", line, err)
-		s.statMap.Add(statPointsParseFail, 1)
+		s.logger.Info(fmt.Sprintf("unable to parse line: %s: %s", line, err))
+		atomic.AddInt64(&s.stats.PointsParseFail, 1)
 		return
 	}
 
@@ -367,12 +439,18 @@ func (s *Service) processBatches(batcher *tsdb.PointBatcher) {
 	for {
 		select {
 		case batch := <-batcher.Out():
+			// Will attempt to create database if not yet created.
+			if err := s.createInternalStorage(); err != nil {
+				s.logger.Info(fmt.Sprintf("Required database or retention policy do not yet exist: %s", err.Error()))
+				continue
+			}
+
 			if err := s.PointsWriter.WritePoints(s.database, s.retentionPolicy, models.ConsistencyLevelAny, batch); err == nil {
-				s.statMap.Add(statBatchesTransmitted, 1)
-				s.statMap.Add(statPointsTransmitted, int64(len(batch)))
+				atomic.AddInt64(&s.stats.BatchesTransmitted, 1)
+				atomic.AddInt64(&s.stats.PointsTransmitted, int64(len(batch)))
 			} else {
-				s.logger.Printf("failed to write point batch to database %q: %s", s.database, err)
-				s.statMap.Add(statBatchesTransmitFail, 1)
+				s.logger.Info(fmt.Sprintf("failed to write point batch to database %q: %s", s.database, err))
+				atomic.AddInt64(&s.stats.BatchesTransmitFail, 1)
 			}
 
 		case <-s.done:

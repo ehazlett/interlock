@@ -5,7 +5,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/influxdata/influxdb/influxql"
+	"github.com/influxdata/influxdb/pkg/deep"
 )
 
 func almostEqual(got, exp float64) bool {
@@ -382,5 +384,115 @@ func TestHoltWinters_MaxTime(t *testing.T) {
 		if exp, got := forecasted[i].Value, points[i].Value; !almostEqual(got, exp) {
 			t.Errorf("unexpected value on points[%d] got %v exp %v", i, got, exp)
 		}
+	}
+}
+
+// TestSample_AllSamplesSeen attempts to verify that it is possible
+// to get every subsample in a reasonable number of iterations.
+//
+// The idea here is that 30 iterations should be enough to hit every possible
+// sequence at least once.
+func TestSample_AllSamplesSeen(t *testing.T) {
+	ps := []influxql.FloatPoint{
+		{Time: 1, Value: 1},
+		{Time: 2, Value: 2},
+		{Time: 3, Value: 3},
+	}
+
+	// List of all the possible subsamples
+	samples := [][]influxql.FloatPoint{
+		{
+			{Time: 1, Value: 1},
+			{Time: 2, Value: 2},
+		},
+		{
+			{Time: 1, Value: 1},
+			{Time: 3, Value: 3},
+		},
+		{
+			{Time: 2, Value: 2},
+			{Time: 3, Value: 3},
+		},
+	}
+
+	// 30 iterations should be sufficient to guarantee that
+	// we hit every possible subsample.
+	for i := 0; i < 30; i++ {
+		s := influxql.NewFloatSampleReducer(2)
+		for _, p := range ps {
+			s.AggregateFloat(&p)
+		}
+
+		points := s.Emit()
+
+		for i, sample := range samples {
+			// if we find a sample that it matches, remove it from
+			// this list of possible samples
+			if deep.Equal(sample, points) {
+				samples = append(samples[:i], samples[i+1:]...)
+				break
+			}
+		}
+
+		// if samples is empty we've seen every sample, so we're done
+		if len(samples) == 0 {
+			return
+		}
+
+		// The FloatSampleReducer is seeded with time.Now().UnixNano(), and without this sleep,
+		// this test will fail on machines where UnixNano doesn't return full resolution.
+		// Specifically, some Windows machines will only return timestamps accurate to 100ns.
+		// While iterating through this test without an explicit sleep,
+		// we would only see one or two unique seeds across all the calls to NewFloatSampleReducer.
+		time.Sleep(time.Millisecond)
+	}
+
+	// If we missed a sample, report the error
+	if len(samples) != 0 {
+		t.Fatalf("expected all samples to be seen; unseen samples: %#v", samples)
+	}
+}
+
+func TestSample_SampleSizeLessThanNumPoints(t *testing.T) {
+	s := influxql.NewFloatSampleReducer(2)
+
+	ps := []influxql.FloatPoint{
+		{Time: 1, Value: 1},
+		{Time: 2, Value: 2},
+		{Time: 3, Value: 3},
+	}
+
+	for _, p := range ps {
+		s.AggregateFloat(&p)
+	}
+
+	points := s.Emit()
+
+	if exp, got := 2, len(points); exp != got {
+		t.Fatalf("unexpected number of points emitted: got %d exp %d", got, exp)
+	}
+}
+
+func TestSample_SampleSizeGreaterThanNumPoints(t *testing.T) {
+	s := influxql.NewFloatSampleReducer(4)
+
+	ps := []influxql.FloatPoint{
+		{Time: 1, Value: 1},
+		{Time: 2, Value: 2},
+		{Time: 3, Value: 3},
+	}
+
+	for _, p := range ps {
+		s.AggregateFloat(&p)
+	}
+
+	points := s.Emit()
+
+	if exp, got := len(ps), len(points); exp != got {
+		t.Fatalf("unexpected number of points emitted: got %d exp %d", got, exp)
+	}
+
+	if !deep.Equal(ps, points) {
+		t.Fatalf("unexpected points: %s", spew.Sdump(points))
 	}
 }

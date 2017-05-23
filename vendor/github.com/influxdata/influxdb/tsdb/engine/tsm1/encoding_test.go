@@ -287,6 +287,40 @@ func TestValues_MergeFloat(t *testing.T) {
 		},
 		{
 			a: []tsm1.Value{
+				tsm1.NewValue(0, 0.0),
+				tsm1.NewValue(1, 1.1),
+				tsm1.NewValue(2, 2.1),
+			},
+			b: []tsm1.Value{
+				tsm1.NewValue(2, 2.2),
+				tsm1.NewValue(2, 2.2), // duplicate data
+			},
+			exp: []tsm1.Value{
+				tsm1.NewValue(0, 0.0),
+				tsm1.NewValue(1, 1.1),
+				tsm1.NewValue(2, 2.2),
+			},
+		},
+		{
+			a: []tsm1.Value{
+				tsm1.NewValue(0, 0.0),
+				tsm1.NewValue(1, 1.1),
+				tsm1.NewValue(1, 1.1), // duplicate data
+				tsm1.NewValue(2, 2.1),
+			},
+			b: []tsm1.Value{
+				tsm1.NewValue(2, 2.2),
+				tsm1.NewValue(2, 2.2), // duplicate data
+			},
+			exp: []tsm1.Value{
+				tsm1.NewValue(0, 0.0),
+				tsm1.NewValue(1, 1.1),
+				tsm1.NewValue(2, 2.2),
+			},
+		},
+
+		{
+			a: []tsm1.Value{
 				tsm1.NewValue(1, 1.1),
 			},
 			b: []tsm1.Value{
@@ -454,14 +488,19 @@ func TestValues_MergeFloat(t *testing.T) {
 
 	for i, test := range tests {
 		got := tsm1.Values(test.a).Merge(test.b)
-		spew.Dump(got)
 
 		if exp, got := len(test.exp), len(got); exp != got {
 			t.Fatalf("test(%d): value length mismatch: exp %v, got %v", i, exp, got)
 		}
 
+		dedup := tsm1.Values(append(test.a, test.b...)).Deduplicate()
+
 		for i := range test.exp {
 			if exp, got := test.exp[i].String(), got[i].String(); exp != got {
+				t.Fatalf("value mismatch:\n exp %v\n got %v", exp, got)
+			}
+
+			if exp, got := test.exp[i].String(), dedup[i].String(); exp != got {
 				t.Fatalf("value mismatch:\n exp %v\n got %v", exp, got)
 			}
 		}
@@ -470,7 +509,7 @@ func TestValues_MergeFloat(t *testing.T) {
 
 func TestIntegerValues_Merge(t *testing.T) {
 	integerValue := func(t int64, f int64) tsm1.IntegerValue {
-		return *(tsm1.NewValue(t, f).(*tsm1.IntegerValue))
+		return tsm1.NewValue(t, f).(tsm1.IntegerValue)
 	}
 
 	tests := []struct {
@@ -593,8 +632,14 @@ func TestIntegerValues_Merge(t *testing.T) {
 			t.Fatalf("test(%d): value length mismatch: exp %v, got %v", i, exp, got)
 		}
 
+		dedup := tsm1.IntegerValues(append(test.a, test.b...)).Deduplicate()
+
 		for i := range test.exp {
 			if exp, got := test.exp[i].String(), got[i].String(); exp != got {
+				t.Fatalf("value mismatch:\n exp %v\n got %v", exp, got)
+			}
+
+			if exp, got := test.exp[i].String(), dedup[i].String(); exp != got {
 				t.Fatalf("value mismatch:\n exp %v\n got %v", exp, got)
 			}
 		}
@@ -603,7 +648,7 @@ func TestIntegerValues_Merge(t *testing.T) {
 
 func TestFloatValues_Merge(t *testing.T) {
 	floatValue := func(t int64, f float64) tsm1.FloatValue {
-		return *(tsm1.NewValue(t, f).(*tsm1.FloatValue))
+		return tsm1.NewValue(t, f).(tsm1.FloatValue)
 	}
 
 	tests := []struct {
@@ -722,8 +767,14 @@ func TestFloatValues_Merge(t *testing.T) {
 			t.Fatalf("test(%d): value length mismatch: exp %v, got %v", i, exp, got)
 		}
 
+		dedup := tsm1.FloatValues(append(test.a, test.b...)).Deduplicate()
+
 		for i := range test.exp {
 			if exp, got := test.exp[i].String(), got[i].String(); exp != got {
+				t.Fatalf("value mismatch:\n exp %v\n got %v", exp, got)
+			}
+
+			if exp, got := test.exp[i].String(), dedup[i].String(); exp != got {
 				t.Fatalf("value mismatch:\n exp %v\n got %v", exp, got)
 			}
 		}
@@ -732,7 +783,7 @@ func TestFloatValues_Merge(t *testing.T) {
 
 func TestBooleanValues_Merge(t *testing.T) {
 	booleanValue := func(t int64, f bool) tsm1.BooleanValue {
-		return *(tsm1.NewValue(t, f).(*tsm1.BooleanValue))
+		return tsm1.NewValue(t, f).(tsm1.BooleanValue)
 	}
 
 	tests := []struct {
@@ -851,8 +902,14 @@ func TestBooleanValues_Merge(t *testing.T) {
 			t.Fatalf("test(%d): value length mismatch: exp %v, got %v", i, exp, got)
 		}
 
+		dedup := tsm1.BooleanValues(append(test.a, test.b...)).Deduplicate()
+
 		for i := range test.exp {
 			if exp, got := test.exp[i].String(), got[i].String(); exp != got {
+				t.Fatalf("value mismatch:\n exp %v\n got %v", exp, got)
+			}
+
+			if exp, got := test.exp[i].String(), dedup[i].String(); exp != got {
 				t.Fatalf("value mismatch:\n exp %v\n got %v", exp, got)
 			}
 		}
@@ -861,7 +918,7 @@ func TestBooleanValues_Merge(t *testing.T) {
 
 func TestStringValues_Merge(t *testing.T) {
 	stringValue := func(t int64, f string) tsm1.StringValue {
-		return *(tsm1.NewValue(t, f).(*tsm1.StringValue))
+		return tsm1.NewValue(t, f).(tsm1.StringValue)
 	}
 
 	tests := []struct {
@@ -984,8 +1041,14 @@ func TestStringValues_Merge(t *testing.T) {
 			t.Fatalf("test(%d): value length mismatch: exp %v, got %v", i, exp, got)
 		}
 
+		dedup := tsm1.StringValues(append(test.a, test.b...)).Deduplicate()
+
 		for i := range test.exp {
 			if exp, got := test.exp[i].String(), got[i].String(); exp != got {
+				t.Fatalf("value mismatch:\n exp %v\n got %v", exp, got)
+			}
+
+			if exp, got := test.exp[i].String(), dedup[i].String(); exp != got {
 				t.Fatalf("value mismatch:\n exp %v\n got %v", exp, got)
 			}
 		}
@@ -1062,7 +1125,7 @@ func BenchmarkDecodeBlock_Float_TypeSpecific(b *testing.B) {
 	decodedValues := make([]tsm1.FloatValue, len(values))
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err = tsm1.DecodeFloatBlock(bytes, &tsm1.TimeDecoder{}, &tsm1.FloatDecoder{}, &decodedValues)
+		_, err = tsm1.DecodeFloatBlock(bytes, &decodedValues)
 		if err != nil {
 			b.Fatalf("unexpected error decoding block: %v", err)
 		}
@@ -1131,7 +1194,7 @@ func BenchmarkDecodeBlock_Integer_TypeSpecific(b *testing.B) {
 	decodedValues := make([]tsm1.IntegerValue, len(values))
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err = tsm1.DecodeIntegerBlock(bytes, &tsm1.TimeDecoder{}, &tsm1.IntegerDecoder{}, &decodedValues)
+		_, err = tsm1.DecodeIntegerBlock(bytes, &decodedValues)
 		if err != nil {
 			b.Fatalf("unexpected error decoding block: %v", err)
 		}
@@ -1200,7 +1263,7 @@ func BenchmarkDecodeBlock_Boolean_TypeSpecific(b *testing.B) {
 	decodedValues := make([]tsm1.BooleanValue, len(values))
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err = tsm1.DecodeBooleanBlock(bytes, &tsm1.TimeDecoder{}, &tsm1.BooleanDecoder{}, &decodedValues)
+		_, err = tsm1.DecodeBooleanBlock(bytes, &decodedValues)
 		if err != nil {
 			b.Fatalf("unexpected error decoding block: %v", err)
 		}
@@ -1269,7 +1332,7 @@ func BenchmarkDecodeBlock_String_TypeSpecific(b *testing.B) {
 	decodedValues := make([]tsm1.StringValue, len(values))
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err = tsm1.DecodeStringBlock(bytes, &tsm1.TimeDecoder{}, &tsm1.StringDecoder{}, &decodedValues)
+		_, err = tsm1.DecodeStringBlock(bytes, &decodedValues)
 		if err != nil {
 			b.Fatalf("unexpected error decoding block: %v", err)
 		}
@@ -1305,5 +1368,71 @@ func BenchmarkValues_Merge(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		tsm1.Values(a).Merge(c)
+	}
+}
+
+func BenchmarkValues_EncodeInteger(b *testing.B) {
+	valueCount := 1024
+	times := getTimes(valueCount, 60, time.Second)
+	a := make([]tsm1.Value, len(times))
+
+	for i, t := range times {
+		a[i] = tsm1.NewValue(t, int64(i))
+	}
+
+	buf := make([]byte, 1024*8)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		tsm1.Values(a).Encode(buf)
+	}
+}
+
+func BenchmarkValues_EncodeFloat(b *testing.B) {
+	valueCount := 1024
+	times := getTimes(valueCount, 60, time.Second)
+	a := make([]tsm1.Value, len(times))
+
+	for i, t := range times {
+		a[i] = tsm1.NewValue(t, float64(i))
+	}
+
+	buf := make([]byte, 1024*8)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		tsm1.Values(a).Encode(buf)
+	}
+}
+func BenchmarkValues_EncodeString(b *testing.B) {
+	valueCount := 1024
+	times := getTimes(valueCount, 60, time.Second)
+	a := make([]tsm1.Value, len(times))
+
+	for i, t := range times {
+		a[i] = tsm1.NewValue(t, fmt.Sprintf("%d", i))
+	}
+
+	buf := make([]byte, 1024*8)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		tsm1.Values(a).Encode(buf)
+	}
+}
+func BenchmarkValues_EncodeBool(b *testing.B) {
+	valueCount := 1024
+	times := getTimes(valueCount, 60, time.Second)
+	a := make([]tsm1.Value, len(times))
+
+	for i, t := range times {
+		if i%2 == 0 {
+			a[i] = tsm1.NewValue(t, true)
+		} else {
+			a[i] = tsm1.NewValue(t, false)
+		}
+	}
+
+	buf := make([]byte, 1024*8)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		tsm1.Values(a).Encode(buf)
 	}
 }

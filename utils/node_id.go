@@ -3,12 +3,14 @@ package utils
 import (
 	"bufio"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 )
 
-func GetNodeID() (string, error) {
-	f, err := os.Open("/proc/self/cgroup")
+func GetContainerID() (string, error) {
+	cgroup := "/proc/self/cgroup"
+	f, err := os.Open(cgroup)
 	if err != nil {
 		return "", fmt.Errorf("unable to detect cgroup.  are you sure you are in a container? error: %s", err)
 	}
@@ -33,11 +35,15 @@ func GetNodeID() (string, error) {
 		}
 
 		id = dataParts[2]
+
+		if id != "" {
+			return strings.TrimSpace(id), nil
+		}
 	}
 
-	if id == "" {
-		return "", fmt.Errorf("unable to get node id")
+	content, err := ioutil.ReadFile(cgroup)
+	if err != nil {
+		return "", err
 	}
-
-	return strings.TrimSpace(id), nil
+	return "", fmt.Errorf("unable to get container id: %s", string(content))
 }

@@ -1,3 +1,4 @@
+// Package backup is the backup subcommand for the influxd command.
 package backup
 
 import (
@@ -300,24 +301,34 @@ func (cmd *Command) download(req *snapshotter.Request, path string) error {
 	}
 	defer f.Close()
 
-	// Connect to snapshotter service.
-	conn, err := tcp.Dial("tcp", cmd.host, snapshotter.MuxHeader)
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
+	for i := 0; i < 10; i++ {
+		if err = func() error {
+			// Connect to snapshotter service.
+			conn, err := tcp.Dial("tcp", cmd.host, snapshotter.MuxHeader)
+			if err != nil {
+				return err
+			}
+			defer conn.Close()
 
-	// Write the request
-	if err := json.NewEncoder(conn).Encode(req); err != nil {
-		return fmt.Errorf("encode snapshot request: %s", err)
+			// Write the request
+			if err := json.NewEncoder(conn).Encode(req); err != nil {
+				return fmt.Errorf("encode snapshot request: %s", err)
+			}
+
+			// Read snapshot from the connection
+			if n, err := io.Copy(f, conn); err != nil || n == 0 {
+				return fmt.Errorf("copy backup to file: err=%v, n=%d", err, n)
+			}
+			return nil
+		}(); err == nil {
+			break
+		} else if err != nil {
+			cmd.Logger.Printf("Download shard %v failed %s.  Retrying (%d)...\n", req.ShardID, err, i)
+			time.Sleep(time.Second)
+		}
 	}
 
-	// Read snapshot from the connection
-	if _, err := io.Copy(f, conn); err != nil {
-		return fmt.Errorf("copy backup to file: %s", err)
-	}
-
-	return nil
+	return err
 }
 
 // requestInfo will request the database or retention policy information from the host
@@ -345,21 +356,21 @@ func (cmd *Command) requestInfo(request *snapshotter.Request) (*snapshotter.Resp
 
 // printUsage prints the usage message to STDERR.
 func (cmd *Command) printUsage() {
-	fmt.Fprintf(cmd.Stdout, `usage: influxd backup [flags] PATH
+	fmt.Fprintf(cmd.Stdout, `Downloads a snapshot of a data node and saves it to disk.
 
-Downloads a snapshot of a data node and saves it to disk.
+Usage: influxd backup [flags] PATH
 
-	-host <host:port>
-		The host to connect to snapshot. Defaults to 127.0.0.1:8088.
-	-database <name>
-		The database to backup.
-	-retention <name>
-		Optional. The retention policy to backup.
-	-shard <id>
-		Optional. The shard id to backup. If specified, retention is required.
-	-since <2015-12-24T08:12:23>
-		Optional. Do an incremental backup since the passed in RFC3339
-		formatted time.
+    -host <host:port>
+            The host to connect to snapshot. Defaults to 127.0.0.1:8088.
+    -database <name>
+            The database to backup.
+    -retention <name>
+            Optional. The retention policy to backup.
+    -shard <id>
+            Optional. The shard id to backup. If specified, retention is required.
+    -since <2015-12-24T08:12:23>
+            Optional. Do an incremental backup since the passed in RFC3339
+            formatted time.
 
 `)
 }
