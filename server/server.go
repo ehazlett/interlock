@@ -256,13 +256,14 @@ func (s *Server) runPoller(d time.Duration) {
 	t := time.NewTicker(d)
 	go func() {
 		for range t.C {
+			log.Debug("poller tick")
 			opts := types.ContainerListOptions{
 				All:  false,
 				Size: false,
 			}
 			containers, err := s.client.ContainerList(context.Background(), opts)
 			if err != nil {
-				log.Warnf("unable to get containers: %s", err)
+				log.Warnf("poller: unable to get containers: %s", err)
 				continue
 			}
 
