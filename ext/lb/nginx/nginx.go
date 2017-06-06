@@ -102,18 +102,10 @@ func (p *NginxLoadBalancer) Reload(proxyContainers []types.Container) error {
 		defer aResp.Conn.Close()
 
 		// wait for exec to finish
-		var res types.ContainerExecInspect
-		for {
-			r, err := p.client.ContainerExecInspect(context.Background(), resp.ID)
-			if err != nil {
-				log().Errorf("error reloading container (exec inspect): id=%s err=%s", cnt.ID[:12], err)
-				continue
-			}
-
-			if !r.Running {
-				res = r
-				break
-			}
+		res, err := p.waitForExec(resp.ID)
+		if err != nil {
+			log().Errorf("error reloading container (exec attach): id=%s err=%s", cnt.ID[:12], err)
+			continue
 		}
 
 		if res.ExitCode != 0 {
@@ -122,7 +114,21 @@ func (p *NginxLoadBalancer) Reload(proxyContainers []types.Container) error {
 				log().Error("error reloading container: unable to read output from exec")
 				continue
 			}
+			// restore
+			log().Warn("restoring proxy config")
+			if err := p.restoreConfig(cnt.ID); err != nil {
+				log().Errorf("error reloading container: error restoring config: %s", err)
+				continue
+			}
 			log().Errorf("error reloading container, invalid proxy configuration: %s", strings.TrimSpace(out))
+			continue
+		}
+
+		// backup config
+		if err := p.backupConfig(cnt.ID); err != nil {
+			log().WithFields(logrus.Fields{
+				"id": cnt.ID,
+			}).Errorf("error backing up config: skipping update")
 			continue
 		}
 
@@ -130,4 +136,77 @@ func (p *NginxLoadBalancer) Reload(proxyContainers []types.Container) error {
 	}
 
 	return nil
+}
+
+func (p *NginxLoadBalancer) backupConfig(id string) error {
+	resp, err := p.client.ContainerExecCreate(context.Background(), id, types.ExecConfig{
+		User: "root",
+		Cmd: []string{
+			"cp",
+			"-f",
+			p.cfg.ConfigPath,
+			p.cfg.ConfigPath + ".interlock",
+		},
+		Detach:       false,
+		AttachStdout: true,
+		AttachStderr: true,
+	})
+	if err != nil {
+		return err
+	}
+
+	if err := p.client.ContainerExecStart(context.Background(), resp.ID, types.ExecStartCheck{}); err != nil {
+		return err
+	}
+
+	if _, err := p.waitForExec(resp.ID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *NginxLoadBalancer) restoreConfig(id string) error {
+	resp, err := p.client.ContainerExecCreate(context.Background(), id, types.ExecConfig{
+		User: "root",
+		Cmd: []string{
+			"cp",
+			"-f",
+			p.cfg.ConfigPath + ".interlock",
+			p.cfg.ConfigPath,
+		},
+		Detach:       false,
+		AttachStdout: true,
+		AttachStderr: true,
+	})
+	if err != nil {
+		return err
+	}
+
+	if err := p.client.ContainerExecStart(context.Background(), resp.ID, types.ExecStartCheck{}); err != nil {
+		return err
+	}
+
+	if _, err := p.waitForExec(resp.ID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *NginxLoadBalancer) waitForExec(execID string) (types.ContainerExecInspect, error) {
+	var res types.ContainerExecInspect
+	for {
+		r, err := p.client.ContainerExecInspect(context.Background(), execID)
+		if err != nil {
+			return res, err
+		}
+
+		if !r.Running {
+			res = r
+			break
+		}
+	}
+
+	return res, nil
 }
