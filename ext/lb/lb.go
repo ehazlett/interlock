@@ -14,6 +14,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/filters"
 	ntypes "github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 	"github.com/ehazlett/interlock/config"
@@ -200,8 +201,14 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *client.Client) (*LoadBal
 			start := time.Now()
 
 			log().Debug("updating load balancers")
+
+			optFilters := filters.NewArgs()
+			optFilters.Add("status", "running")
+			optFilters.Add("label", "interlock.hostname")
 			opts := types.ContainerListOptions{
-				All: true,
+				All:     false,
+				Size:    false,
+				Filters: optFilters,
 			}
 			log().Debug("getting container list")
 			containers, err := client.ContainerList(context.Background(), opts)
@@ -282,16 +289,8 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *client.Client) (*LoadBal
 					continue
 				}
 
-				cInfo, err := client.ContainerInspect(context.Background(), cnt.ID)
-				if err != nil {
-					log().Errorf("unable to inspect interlock container: %s", err)
-					continue
-				}
-
-				if strings.Index(cInfo.Config.Image, "interlock") > 0 {
-					if _, ok := cInfo.Config.Labels[ext.InterlockAppLabel]; ok {
-						interlockNodes = append(interlockNodes, cnt)
-					}
+				if _, ok := cnt.Labels[ext.InterlockAppLabel]; ok {
+					interlockNodes = append(interlockNodes, cnt)
 				}
 			}
 
@@ -326,8 +325,12 @@ func (l *LoadBalancer) Name() string {
 }
 
 func (l *LoadBalancer) ProxyContainers(name string) ([]types.Container, error) {
+	optFilters := filters.NewArgs()
+	optFilters.Add("status", "running")
+	optFilters.Add("label", "interlock.ext.name="+name)
 	opts := types.ContainerListOptions{
-		All: true,
+		All:     false,
+		Filters: optFilters,
 	}
 	containers, err := l.client.ContainerList(context.Background(), opts)
 	if err != nil {

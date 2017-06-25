@@ -1,11 +1,11 @@
 package utils
 
 import (
-	ctypes "github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types"
 	"github.com/ehazlett/interlock/ext"
 )
 
-func ContextRoot(config *ctypes.Config) string {
+func ContextRoot(config types.Container) string {
 	if v, ok := config.Labels[ext.InterlockContextRootLabel]; ok {
 		return v
 	}
@@ -13,7 +13,7 @@ func ContextRoot(config *ctypes.Config) string {
 	return ""
 }
 
-func ContextRootRewrite(config *ctypes.Config) bool {
+func ContextRootRewrite(config types.Container) bool {
 	if _, ok := config.Labels[ext.InterlockContextRootRewriteLabel]; ok {
 		return true
 	}

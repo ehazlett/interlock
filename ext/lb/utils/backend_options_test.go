@@ -3,12 +3,12 @@ package utils
 import (
 	"testing"
 
-	ctypes "github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types"
 	"github.com/ehazlett/interlock/ext"
 )
 
 func TestBackendOptions(t *testing.T) {
-	cfg := &ctypes.Config{
+	cfg := types.Container{
 		Labels: map[string]string{
 			ext.InterlockBackendOptionLabel + ".0": "foo=bar",
 			ext.InterlockBackendOptionLabel + ".1": "bar=baz",
@@ -23,7 +23,7 @@ func TestBackendOptions(t *testing.T) {
 }
 
 func TestBackendOptionsNoLabels(t *testing.T) {
-	cfg := &ctypes.Config{
+	cfg := types.Container{
 		Labels: map[string]string{},
 	}
 

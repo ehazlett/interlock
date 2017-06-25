@@ -3,12 +3,12 @@ package utils
 import (
 	"testing"
 
-	ctypes "github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types"
 	"github.com/ehazlett/interlock/ext"
 )
 
 func TestWebsocketEndpoints(t *testing.T) {
-	cfg := &ctypes.Config{
+	cfg := types.Container{
 		Labels: map[string]string{
 			ext.InterlockWebsocketEndpointLabel + ".0": "foo.bar",
 			ext.InterlockWebsocketEndpointLabel + ".1": "bar.baz",
@@ -23,7 +23,7 @@ func TestWebsocketEndpoints(t *testing.T) {
 }
 
 func TestWebsocketEndpointsNoLabels(t *testing.T) {
-	cfg := &ctypes.Config{
+	cfg := types.Container{
 		Labels: map[string]string{},
 	}
 

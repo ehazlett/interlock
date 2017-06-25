@@ -3,11 +3,11 @@ package utils
 import (
 	"strings"
 
-	ctypes "github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types"
 	"github.com/ehazlett/interlock/ext"
 )
 
-func WebsocketEndpoints(config *ctypes.Config) []string {
+func WebsocketEndpoints(config types.Container) []string {
 	websocketEndpoints := []string{}
 
 	for l, v := range config.Labels {

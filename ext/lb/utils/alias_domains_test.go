@@ -3,12 +3,12 @@ package utils
 import (
 	"testing"
 
-	ctypes "github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types"
 	"github.com/ehazlett/interlock/ext"
 )
 
 func TestAliasDomains(t *testing.T) {
-	cfg := &ctypes.Config{
+	cfg := types.Container{
 		Labels: map[string]string{
 			ext.InterlockAliasDomainLabel + ".0": "foo.bar",
 			ext.InterlockAliasDomainLabel + ".1": "bar.baz",
@@ -23,7 +23,7 @@ func TestAliasDomains(t *testing.T) {
 }
 
 func TestAliasDomainsNoLabels(t *testing.T) {
-	cfg := &ctypes.Config{
+	cfg := types.Container{
 		Labels: map[string]string{},
 	}
 

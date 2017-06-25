@@ -3,11 +3,11 @@ package utils
 import (
 	"strings"
 
-	ctypes "github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types"
 	"github.com/ehazlett/interlock/ext"
 )
 
-func BackendOptions(config *ctypes.Config) []string {
+func BackendOptions(config types.Container) []string {
 	options := []string{}
 
 	for l, v := range config.Labels {

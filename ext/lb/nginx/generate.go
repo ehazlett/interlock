@@ -28,16 +28,10 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 	for _, c := range containers {
 		cntId := c.ID[:12]
 		// load interlock data
-		cInfo, err := p.client.ContainerInspect(context.Background(), c.ID)
-		if err != nil {
-			log().Errorf("unable to inspect container for upstream: %s", err)
-			continue
-		}
+		contextRoot := utils.ContextRoot(c)
 
-		contextRoot := utils.ContextRoot(cInfo.Config)
-
-		hostname := utils.Hostname(cInfo.Config)
-		domain := utils.Domain(cInfo.Config)
+		hostname := utils.Hostname(c)
+		domain := utils.Domain(c)
 
 		if domain == "" && contextRoot == "" {
 			continue
@@ -49,7 +43,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 
 		// context root
 		contextRootName := fmt.Sprintf("%s_%s", domain, strings.Replace(contextRoot, "/", "_", -1))
-		contextRootRewrite := utils.ContextRootRewrite(cInfo.Config)
+		contextRootRewrite := utils.ContextRootRewrite(c)
 
 		// check if the first server name is there; if not, add
 		// this happens if there are multiple backend containers
@@ -57,16 +51,16 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 			serverNames[domain] = []string{domain}
 		}
 
-		hostSSL[domain] = utils.SSLEnabled(cInfo.Config)
-		hostSSLOnly[domain] = utils.SSLOnly(cInfo.Config)
-		hostIPHash[domain] = utils.IPHash(cInfo.Config)
+		hostSSL[domain] = utils.SSLEnabled(c)
+		hostSSLOnly[domain] = utils.SSLOnly(c)
+		hostIPHash[domain] = utils.IPHash(c)
 		// check ssl backend
-		hostSSLBackend[domain] = utils.SSLBackend(cInfo.Config)
+		hostSSLBackend[domain] = utils.SSLBackend(c)
 
 		// set cert paths
 		baseCertPath := p.cfg.SSLCertPath
 
-		certName := utils.SSLCertName(cInfo.Config)
+		certName := utils.SSLCertName(c)
 
 		if certName != "" {
 			certPath := filepath.Join(baseCertPath, certName)
@@ -74,7 +68,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 			hostSSLCert[domain] = certPath
 		}
 
-		certKeyName := utils.SSLCertKey(cInfo.Config)
+		certKeyName := utils.SSLCertKey(c)
 		if certKeyName != "" {
 			keyPath := filepath.Join(baseCertPath, certKeyName)
 			log().Infof("ssl key for %s: %s", domain, keyPath)
@@ -84,7 +78,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 		addr := ""
 
 		// check for networking
-		if n, ok := utils.OverlayEnabled(cInfo.Config); ok {
+		if n, ok := utils.OverlayEnabled(c); ok {
 			log().Debugf("configuring docker network: name=%s", n)
 
 			network, err := p.client.NetworkInspect(context.Background(), n, false)
@@ -93,7 +87,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 				continue
 			}
 
-			addr, err = utils.BackendOverlayAddress(network, cInfo)
+			addr, err = utils.BackendOverlayAddress(network, c)
 			if err != nil {
 				log().Error(err)
 				continue
@@ -101,23 +95,18 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 
 			networks[n] = ""
 		} else {
-			portsExposed := false
-			for _, portBindings := range cInfo.NetworkSettings.Ports {
-				if len(portBindings) != 0 {
-					portsExposed = true
-					break
-				}
-			}
-			if !portsExposed {
+			if len(c.Ports) == 0 {
 				log().Warnf("%s: no ports exposed", cntId)
 				continue
 			}
 
-			addr, err = utils.BackendAddress(cInfo, p.cfg.BackendOverrideAddress)
+			a, err := utils.BackendAddress(c, p.cfg.BackendOverrideAddress)
 			if err != nil {
 				log().Error(err)
 				continue
 			}
+
+			addr = a
 		}
 
 		if contextRoot != "" {
@@ -140,7 +129,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 		}
 
 		// "parse" multiple labels for websocket endpoints
-		websocketEndpoints := utils.WebsocketEndpoints(cInfo.Config)
+		websocketEndpoints := utils.WebsocketEndpoints(c)
 
 		log().Debugf("websocket endpoints: %v", websocketEndpoints)
 
@@ -150,7 +139,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 		}
 
 		// "parse" multiple labels for alias domains
-		aliasDomains := utils.AliasDomains(cInfo.Config)
+		aliasDomains := utils.AliasDomains(c)
 
 		log().Debugf("alias domains: %v", aliasDomains)
 

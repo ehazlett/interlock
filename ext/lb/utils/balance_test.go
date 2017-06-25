@@ -3,14 +3,14 @@ package utils
 import (
 	"testing"
 
-	ctypes "github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types"
 	"github.com/ehazlett/interlock/ext"
 )
 
 func TestBalanceAlgorithm(t *testing.T) {
 	testAlgo := "foo"
 
-	cfg := &ctypes.Config{
+	cfg := types.Container{
 		Labels: map[string]string{
 			ext.InterlockBalanceAlgorithmLabel: testAlgo,
 		},
@@ -24,7 +24,7 @@ func TestBalanceAlgorithm(t *testing.T) {
 }
 
 func TestBalanceAlgorithmDefault(t *testing.T) {
-	cfg := &ctypes.Config{
+	cfg := types.Container{
 		Labels: map[string]string{},
 	}
 

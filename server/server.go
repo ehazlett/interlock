@@ -13,6 +13,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/docker/docker/api/types"
 	etypes "github.com/docker/docker/api/types/events"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 	"github.com/ehazlett/interlock/config"
 	"github.com/ehazlett/interlock/events"
@@ -212,8 +213,7 @@ func (s *Server) waitForSwarm() {
 	log.Info("waiting for event stream to become ready")
 
 	for {
-		options := types.ContainerListOptions{All: true}
-		if _, err := s.client.ContainerList(context.Background(), options); err == nil {
+		if _, err := s.client.Info(context.Background()); err == nil {
 			log.Info("event stream appears to have recovered; restarting handler")
 			return
 		}
@@ -257,9 +257,12 @@ func (s *Server) runPoller(d time.Duration) {
 	go func() {
 		for range t.C {
 			log.Debug("poller tick")
+			optFilters := filters.NewArgs()
+			optFilters.Add("status", "running")
 			opts := types.ContainerListOptions{
-				All:  false,
-				Size: false,
+				All:     false,
+				Size:    false,
+				Filters: optFilters,
 			}
 			containers, err := s.client.ContainerList(context.Background(), opts)
 			if err != nil {

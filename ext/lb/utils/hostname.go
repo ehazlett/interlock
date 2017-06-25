@@ -1,12 +1,12 @@
 package utils
 
 import (
-	ctypes "github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types"
 	"github.com/ehazlett/interlock/ext"
 )
 
-func Hostname(config *ctypes.Config) string {
-	hostname := config.Hostname
+func Hostname(config types.Container) string {
+	hostname := "unknown"
 
 	if v, ok := config.Labels[ext.InterlockHostnameLabel]; ok {
 		hostname = v
