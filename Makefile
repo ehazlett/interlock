@@ -17,15 +17,17 @@ deps:
 build: build-static
 
 build-app:
+	@echo " -> Building $(TAG)$(BUILD)"
 	@cd cmd/$(APP) && go build -v -ldflags "-w -X github.com/$(REPO)/version.GitCommit=$(COMMIT) -X github.com/$(REPO)/version.Build=$(BUILD)" .
 	@echo "Built $$(./cmd/$(APP)/$(APP) -v)"
 
 build-static:
+	@echo " -> Building $(TAG)$(BUILD)"
 	@cd cmd/$(APP) && go build -v -a -tags "netgo static_build" -installsuffix netgo -ldflags "-w -X github.com/$(REPO)/version.GitCommit=$(COMMIT) -X github.com/$(REPO)/version.Build=$(BUILD)" .
 	@echo "Built $$(./cmd/$(APP)/$(APP) -v)"
 
 image:
-	@docker build $(BUILD_ARGS) -t $(REPO):$(TAG) .
+	@docker build --build-arg TAG=$(TAG) --build-arg BUILD=$(BUILD) -t $(REPO):$(TAG) .
 	@echo "Image created: $(REPO):$(TAG)"
 
 integration: image
