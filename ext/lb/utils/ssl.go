@@ -1,7 +1,7 @@
 package utils
 
 import (
-	ctypes "github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types"
 	"github.com/ehazlett/interlock/ext"
 )
 
@@ -9,7 +9,7 @@ const (
 	DefaultSSLBackendTLSVerify = "none"
 )
 
-func SSLEnabled(config *ctypes.Config) bool {
+func SSLEnabled(config types.Container) bool {
 	if _, ok := config.Labels[ext.InterlockSSLLabel]; ok {
 		return true
 	}
@@ -17,7 +17,7 @@ func SSLEnabled(config *ctypes.Config) bool {
 	return false
 }
 
-func SSLOnly(config *ctypes.Config) bool {
+func SSLOnly(config types.Container) bool {
 	if _, ok := config.Labels[ext.InterlockSSLOnlyLabel]; ok {
 		return true
 	}
@@ -25,7 +25,7 @@ func SSLOnly(config *ctypes.Config) bool {
 	return false
 }
 
-func SSLBackend(config *ctypes.Config) bool {
+func SSLBackend(config types.Container) bool {
 	if _, ok := config.Labels[ext.InterlockSSLBackendLabel]; ok {
 		return true
 	}
@@ -33,7 +33,7 @@ func SSLBackend(config *ctypes.Config) bool {
 	return false
 }
 
-func SSLCertName(config *ctypes.Config) string {
+func SSLCertName(config types.Container) string {
 	if v, ok := config.Labels[ext.InterlockSSLCertLabel]; ok {
 		return v
 	}
@@ -41,7 +41,7 @@ func SSLCertName(config *ctypes.Config) string {
 	return ""
 }
 
-func SSLCertKey(config *ctypes.Config) string {
+func SSLCertKey(config types.Container) string {
 	if v, ok := config.Labels[ext.InterlockSSLCertKeyLabel]; ok {
 		return v
 	}
@@ -49,7 +49,7 @@ func SSLCertKey(config *ctypes.Config) string {
 	return ""
 }
 
-func SSLBackendTLSVerify(config *ctypes.Config) string {
+func SSLBackendTLSVerify(config types.Container) string {
 	verify := DefaultSSLBackendTLSVerify
 
 	if v, ok := config.Labels[ext.InterlockSSLBackendTLSVerifyLabel]; ok {

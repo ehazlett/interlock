@@ -24,19 +24,14 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []types.Container) 
 
 	networks := map[string]string{}
 
-	for _, cnt := range containers {
-		cntId := cnt.ID[:12]
+	for _, c := range containers {
+		cntId := c.ID[:12]
 		// load interlock data
-		cInfo, err := p.client.ContainerInspect(context.Background(), cntId)
-		if err != nil {
-			return nil, err
-		}
-
-		hostname := utils.Hostname(cInfo.Config)
-		domain := utils.Domain(cInfo.Config)
+		hostname := utils.Hostname(c)
+		domain := utils.Domain(c)
 
 		// context root
-		contextRoot := utils.ContextRoot(cInfo.Config)
+		contextRoot := utils.ContextRoot(c)
 		contextRootName := strings.Replace(contextRoot, "/", "_", -1)
 
 		if domain == "" && contextRoot == "" {
@@ -51,10 +46,10 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []types.Container) 
 			Name: contextRootName,
 			Path: contextRoot,
 		}
-		hostContextRootRewrites[domain] = utils.ContextRootRewrite(cInfo.Config)
+		hostContextRootRewrites[domain] = utils.ContextRootRewrite(c)
 
-		healthCheck := utils.HealthCheck(cInfo.Config)
-		healthCheckInterval, err := utils.HealthCheckInterval(cInfo.Config)
+		healthCheck := utils.HealthCheck(c)
+		healthCheckInterval, err := utils.HealthCheckInterval(c)
 		if err != nil {
 			log().Errorf("error parsing health check interval: %s", err)
 			continue
@@ -74,35 +69,26 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []types.Container) 
 			log().Debugf("check interval for %s: %d", domain, healthCheckInterval)
 		}
 
-		hostBalanceAlgorithms[domain] = utils.BalanceAlgorithm(cInfo.Config)
+		hostBalanceAlgorithms[domain] = utils.BalanceAlgorithm(c)
 
-		backendOptions := utils.BackendOptions(cInfo.Config)
+		backendOptions := utils.BackendOptions(c)
 
 		if len(backendOptions) > 0 {
 			hostBackendOptions[domain] = backendOptions
 			log().Debugf("using backend options for %s: %s", domain, strings.Join(backendOptions, ","))
 		}
 
-		hostSSLOnly[domain] = utils.SSLOnly(cInfo.Config)
+		hostSSLOnly[domain] = utils.SSLOnly(c)
 
 		// ssl backend
-		hostSSLBackend[domain] = utils.SSLBackend(cInfo.Config)
-		hostSSLBackendTLSVerify[domain] = utils.SSLBackendTLSVerify(cInfo.Config)
+		hostSSLBackend[domain] = utils.SSLBackend(c)
+		hostSSLBackendTLSVerify[domain] = utils.SSLBackendTLSVerify(c)
 
 		addr := ""
 
 		// check for networking
-		if n, ok := utils.OverlayEnabled(cInfo.Config); ok {
+		if n, ok := utils.OverlayEnabled(c); ok {
 			log().Debugf("configuring docker network: name=%s", n)
-
-			// FIXME: for some reason the request from dockerclient
-			// is not returning a populated Networks object
-			// so we hack this by inspecting the Network
-			//net, found := cInfo.NetworkSettings.Networks[n]
-			//if !found {
-			//	log().Errorf("container %s is not connected to the network %s", cInfo.Id, n)
-			//	continue
-			//}
 
 			network, err := p.client.NetworkInspect(context.Background(), n, false)
 			if err != nil {
@@ -110,7 +96,7 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []types.Container) 
 				continue
 			}
 
-			addr, err = utils.BackendOverlayAddress(network, cInfo)
+			addr, err = utils.BackendOverlayAddress(network, c)
 			if err != nil {
 				log().Error(err)
 				continue
@@ -118,26 +104,20 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []types.Container) 
 
 			networks[n] = ""
 		} else {
-			portsExposed := false
-			for _, portBindings := range cInfo.NetworkSettings.Ports {
-				if len(portBindings) != 0 {
-					portsExposed = true
-					break
-				}
-			}
-			if !portsExposed {
+			if len(c.Ports) == 0 {
 				log().Warnf("%s: no ports exposed", cntId)
 				continue
 			}
 
-			addr, err = utils.BackendAddress(cInfo, p.cfg.BackendOverrideAddress)
+			a, err := utils.BackendAddress(c, p.cfg.BackendOverrideAddress)
 			if err != nil {
 				log().Error(err)
 				continue
 			}
+			addr = a
 		}
 
-		container_name := cInfo.Name[1:]
+		container_name := c.Names[0][1:]
 		up := &Upstream{
 			Addr:          addr,
 			Container:     container_name,
@@ -147,7 +127,7 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []types.Container) 
 		log().Infof("%s: upstream=%s container=%s", domain, addr, container_name)
 
 		// "parse" multiple labels for alias domains
-		aliasDomains := utils.AliasDomains(cInfo.Config)
+		aliasDomains := utils.AliasDomains(c)
 
 		log().Debugf("alias domains: %v", aliasDomains)
 

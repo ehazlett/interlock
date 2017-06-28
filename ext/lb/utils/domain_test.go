@@ -3,14 +3,16 @@ package utils
 import (
 	"testing"
 
-	ctypes "github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types"
 )
 
 func TestDomain(t *testing.T) {
 	testDomain := "foo.local"
 
-	cfg := &ctypes.Config{
-		Domainname: testDomain,
+	cfg := types.Container{
+		Labels: map[string]string{
+			"interlock.domain": testDomain,
+		},
 	}
 
 	domain := Domain(cfg)

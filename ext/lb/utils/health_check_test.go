@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"testing"
 
-	ctypes "github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types"
 	"github.com/ehazlett/interlock/ext"
 )
 
 func TestHealthCheck(t *testing.T) {
 	testCheck := "get /"
 
-	cfg := &ctypes.Config{
+	cfg := types.Container{
 		Labels: map[string]string{
 			ext.InterlockHealthCheckLabel: testCheck,
 		},
@@ -25,7 +25,7 @@ func TestHealthCheck(t *testing.T) {
 }
 
 func TestHealthCheckNoLabel(t *testing.T) {
-	cfg := &ctypes.Config{
+	cfg := types.Container{
 		Labels: map[string]string{},
 	}
 
@@ -39,7 +39,7 @@ func TestHealthCheckNoLabel(t *testing.T) {
 func TestHealthCheckInterval(t *testing.T) {
 	testInterval := 1000
 
-	cfg := &ctypes.Config{
+	cfg := types.Container{
 		Labels: map[string]string{
 			ext.InterlockHealthCheckIntervalLabel: fmt.Sprintf("%d", testInterval),
 		},
@@ -56,7 +56,7 @@ func TestHealthCheckInterval(t *testing.T) {
 }
 
 func TestHealthCheckIntervalNoLabel(t *testing.T) {
-	cfg := &ctypes.Config{
+	cfg := types.Container{
 		Labels: map[string]string{},
 	}
 

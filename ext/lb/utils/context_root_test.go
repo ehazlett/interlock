@@ -3,14 +3,14 @@ package utils
 import (
 	"testing"
 
-	ctypes "github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types"
 	"github.com/ehazlett/interlock/ext"
 )
 
 func TestContextRoot(t *testing.T) {
 	testContext := "/context"
 
-	cfg := &ctypes.Config{
+	cfg := types.Container{
 		Labels: map[string]string{
 			ext.InterlockContextRootLabel: testContext,
 		},
@@ -24,7 +24,7 @@ func TestContextRoot(t *testing.T) {
 }
 
 func TestContextRootRewrite(t *testing.T) {
-	cfg := &ctypes.Config{
+	cfg := types.Container{
 		Labels: map[string]string{
 			ext.InterlockContextRootRewriteLabel: "true",
 		},

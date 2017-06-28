@@ -3,7 +3,7 @@ package utils
 import (
 	"strconv"
 
-	ctypes "github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types"
 	"github.com/ehazlett/interlock/ext"
 )
 
@@ -11,7 +11,7 @@ const (
 	DefaultHealthCheckInterval = 5000
 )
 
-func HealthCheck(config *ctypes.Config) string {
+func HealthCheck(config types.Container) string {
 	if v, ok := config.Labels[ext.InterlockHealthCheckLabel]; ok {
 		return v
 	}
@@ -19,7 +19,7 @@ func HealthCheck(config *ctypes.Config) string {
 	return ""
 }
 
-func HealthCheckInterval(config *ctypes.Config) (int, error) {
+func HealthCheckInterval(config types.Container) (int, error) {
 	checkInterval := DefaultHealthCheckInterval
 
 	if v, ok := config.Labels[ext.InterlockHealthCheckIntervalLabel]; ok && v != "" {

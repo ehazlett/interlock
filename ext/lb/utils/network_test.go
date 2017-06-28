@@ -4,14 +4,11 @@ import (
 	"testing"
 
 	"github.com/docker/docker/api/types"
-	ctypes "github.com/docker/docker/api/types/container"
-	ntypes "github.com/docker/docker/api/types/network"
-	"github.com/docker/go-connections/nat"
 	"github.com/ehazlett/interlock/ext"
 )
 
 func TestUseOverlay(t *testing.T) {
-	cfg := &ctypes.Config{
+	cfg := types.Container{
 		Labels: map[string]string{
 			ext.InterlockNetworkLabel: "foo",
 		},
@@ -23,7 +20,7 @@ func TestUseOverlay(t *testing.T) {
 }
 
 func TestUseOverlayNoLabel(t *testing.T) {
-	cfg := &ctypes.Config{
+	cfg := types.Container{
 		Labels: map[string]string{},
 	}
 
@@ -45,43 +42,24 @@ func TestBackendOverlayAddress(t *testing.T) {
 		},
 	}
 
-	b := &types.ContainerJSONBase{
-		ID: containerID,
-	}
-	mounts := []types.MountPoint{}
-	cfg := &ctypes.Config{
+	cnt := types.Container{
+		ID:     containerID,
 		Labels: map[string]string{},
-	}
-	netSettings := &types.NetworkSettings{}
-	netSettings.IPAddress = ""
-	netSettings.IPPrefixLen = 0
-	netSettings.Gateway = ""
-	netSettings.Bridge = ""
-	netSettings.Ports = nat.PortMap{
-		"80/tcp": []nat.PortBinding{
+		Ports: []types.Port{
 			{
-				HostIP:   "",
-				HostPort: "80",
+				IP:          "0.0.0.0",
+				PrivatePort: 80,
+				PublicPort:  32768,
 			},
 		},
 	}
-	netSettings.Networks = map[string]*ntypes.EndpointSettings{
-		"": nil,
-	}
 
-	containerInfo := types.ContainerJSON{
-		b,
-		mounts,
-		cfg,
-		netSettings,
-	}
-
-	addr, err := BackendOverlayAddress(network, containerInfo)
+	addr, err := BackendOverlayAddress(network, cnt)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	expected := "1.2.3.4:80"
+	expected := "1.2.3.4:32768"
 	if addr != expected {
 		t.Fatalf("expected %s; received %s", expected, addr)
 	}
@@ -90,43 +68,24 @@ func TestBackendOverlayAddress(t *testing.T) {
 func TestBackendAddress(t *testing.T) {
 	containerID := "a5bb3cae92fb660eba775831d7fec0227d980ce04c138b0b8e5d69885a82d75f"
 
-	b := &types.ContainerJSONBase{
-		ID: containerID,
-	}
-	mounts := []types.MountPoint{}
-	cfg := &ctypes.Config{
+	cnt := types.Container{
+		ID:     containerID,
 		Labels: map[string]string{},
-	}
-	netSettings := &types.NetworkSettings{}
-	netSettings.IPAddress = ""
-	netSettings.IPPrefixLen = 0
-	netSettings.Gateway = ""
-	netSettings.Bridge = ""
-	netSettings.Ports = nat.PortMap{
-		"80/tcp": []nat.PortBinding{
+		Ports: []types.Port{
 			{
-				HostIP:   "0.0.0.0",
-				HostPort: "80",
+				IP:          "0.0.0.0",
+				PrivatePort: 80,
+				PublicPort:  32768,
 			},
 		},
 	}
-	netSettings.Networks = map[string]*ntypes.EndpointSettings{
-		"": nil,
-	}
 
-	containerInfo := types.ContainerJSON{
-		b,
-		mounts,
-		cfg,
-		netSettings,
-	}
-
-	addr, err := BackendAddress(containerInfo, "")
+	addr, err := BackendAddress(cnt, "")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	expected := "0.0.0.0:80"
+	expected := "0.0.0.0:32768"
 	if addr != expected {
 		t.Fatalf("expected %s; received %s", expected, addr)
 	}
@@ -135,43 +94,24 @@ func TestBackendAddress(t *testing.T) {
 func TestBackendAddressOverride(t *testing.T) {
 	containerID := "a5bb3cae92fb660eba775831d7fec0227d980ce04c138b0b8e5d69885a82d75f"
 
-	b := &types.ContainerJSONBase{
-		ID: containerID,
-	}
-	mounts := []types.MountPoint{}
-	cfg := &ctypes.Config{
+	cnt := types.Container{
+		ID:     containerID,
 		Labels: map[string]string{},
-	}
-	netSettings := &types.NetworkSettings{}
-	netSettings.IPAddress = ""
-	netSettings.IPPrefixLen = 0
-	netSettings.Gateway = ""
-	netSettings.Bridge = ""
-	netSettings.Ports = nat.PortMap{
-		"80/tcp": []nat.PortBinding{
+		Ports: []types.Port{
 			{
-				HostIP:   "0.0.0.0",
-				HostPort: "80",
+				IP:          "0.0.0.0",
+				PrivatePort: 80,
+				PublicPort:  32768,
 			},
 		},
 	}
-	netSettings.Networks = map[string]*ntypes.EndpointSettings{
-		"": nil,
-	}
 
-	containerInfo := types.ContainerJSON{
-		b,
-		mounts,
-		cfg,
-		netSettings,
-	}
-
-	addr, err := BackendAddress(containerInfo, "1.1.1.1")
+	addr, err := BackendAddress(cnt, "1.1.1.1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	expected := "1.1.1.1:80"
+	expected := "1.1.1.1:32768"
 	if addr != expected {
 		t.Fatalf("expected %s; received %s", expected, addr)
 	}

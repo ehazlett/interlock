@@ -1,7 +1,7 @@
 package utils
 
 import (
-	ctypes "github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types"
 	"github.com/ehazlett/interlock/ext"
 )
 
@@ -9,7 +9,7 @@ const (
 	DefaultBalanceAlgorithm = "roundrobin"
 )
 
-func BalanceAlgorithm(config *ctypes.Config) string {
+func BalanceAlgorithm(config types.Container) string {
 	algo := DefaultBalanceAlgorithm
 
 	if v, ok := config.Labels[ext.InterlockBalanceAlgorithmLabel]; ok {
