@@ -237,8 +237,6 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *client.Client) (*LoadBal
 				continue
 			}
 
-			log().Debugf("proxyContainers: %v", proxyContainers)
-
 			// save config
 			log().Debug("saving proxy config")
 			if err := extension.SaveConfig(configPath, cfg, proxyContainers); err != nil {
@@ -280,18 +278,20 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *client.Client) (*LoadBal
 			}
 
 			// get interlock nodes
-			interlockNodes := []types.Container{}
+			nodeFilters := filters.NewArgs()
+			nodeFilters.Add("status", "running")
+			nodeFilters.Add("label", ext.InterlockAppLabel)
+			nodeOpts := types.ContainerListOptions{
+				All:     false,
+				Size:    false,
+				Filters: nodeFilters,
+			}
 
-			for _, cnt := range containers {
-				// always include self container
-				if cnt.ID == containerID && cnt.State == "running" {
-					interlockNodes = append(interlockNodes, cnt)
-					continue
-				}
-
-				if _, ok := cnt.Labels[ext.InterlockAppLabel]; ok {
-					interlockNodes = append(interlockNodes, cnt)
-				}
+			log().Debug("getting interlock container list")
+			interlockNodes, err := client.ContainerList(context.Background(), nodeOpts)
+			if err != nil {
+				errChan <- err
+				continue
 			}
 
 			proxyContainersToRestart := extension.proxyContainersToRestart(interlockNodes, proxyContainers)
@@ -337,17 +337,9 @@ func (l *LoadBalancer) ProxyContainers(name string) ([]types.Container, error) {
 		return nil, err
 	}
 
-	proxyContainers := []types.Container{}
+	log().Debugf("proxy containers: %+v", containers)
 
-	// find interlock proxy containers
-	for _, cnt := range containers {
-		if v, ok := cnt.Labels[ext.InterlockExtNameLabel]; ok && v == l.backend.Name() {
-			log().Debugf("detected proxy container: id=%s backend=%v", cnt.ID, v)
-			proxyContainers = append(proxyContainers, cnt)
-		}
-	}
-
-	return proxyContainers, nil
+	return containers, nil
 }
 
 func (l *LoadBalancer) SaveConfig(configPath string, cfg interface{}, proxyContainers []types.Container) error {
