@@ -73,21 +73,19 @@ func (p *NginxLoadBalancer) ConfigPath() string {
 func (p *NginxLoadBalancer) Reload(proxyContainers []types.Container) error {
 	// restart all interlock managed nginx containers
 	for _, cnt := range proxyContainers {
-		// restart
 		log().Debugf("reloading proxy container: id=%s", cnt.ID)
 		resp, err := p.client.ContainerExecCreate(context.Background(), cnt.ID, types.ExecConfig{
 			User: "root",
 			Cmd: []string{
 				"nginx",
-				"-s",
-				"reload",
+				"-t",
 			},
 			Detach:       false,
 			AttachStdout: true,
 			AttachStderr: true,
 		})
 		if err != nil {
-			log().Errorf("error reloading container (exec create): id=%s err=%s", cnt.ID[:12], err)
+			log().Errorf("error validating config (exec create): id=%s err=%s", cnt.ID[:12], err)
 			continue
 		}
 
@@ -96,7 +94,7 @@ func (p *NginxLoadBalancer) Reload(proxyContainers []types.Container) error {
 			AttachStderr: true,
 		})
 		if err != nil {
-			log().Errorf("error reloading container (exec attach): id=%s err=%s", cnt.ID[:12], err)
+			log().Errorf("error validating config (exec attach): id=%s err=%s", cnt.ID[:12], err)
 			continue
 		}
 		defer aResp.Conn.Close()
@@ -104,23 +102,33 @@ func (p *NginxLoadBalancer) Reload(proxyContainers []types.Container) error {
 		// wait for exec to finish
 		res, err := p.waitForExec(resp.ID)
 		if err != nil {
-			log().Errorf("error reloading container (exec attach): id=%s err=%s", cnt.ID[:12], err)
+			log().Errorf("error validating config (exec attach): id=%s err=%s", cnt.ID[:12], err)
 			continue
 		}
 
 		if res.ExitCode != 0 {
 			out, err := aResp.Reader.ReadString('\n')
 			if err != nil {
-				log().Error("error reloading container: unable to read output from exec")
+				log().Error("error validating config: unable to read output from exec")
 				continue
 			}
 			// restore
 			log().Warn("restoring proxy config")
 			if err := p.restoreConfig(cnt.ID); err != nil {
-				log().Errorf("error reloading container: error restoring config: %s", err)
+				log().Errorf("error validating config: error restoring config: %s", err)
 				continue
 			}
-			log().Errorf("error reloading container, invalid proxy configuration: %s", strings.TrimSpace(out))
+			log().Errorf("error validating config, invalid proxy configuration: %s", strings.TrimSpace(out))
+			continue
+		}
+
+		// reload process
+		if err := p.client.ContainerKill(context.Background(), cnt.ID, "HUP"); err != nil {
+			log().Warn("restoring proxy config")
+			if err := p.restoreConfig(cnt.ID); err != nil {
+				log().Errorf("error restoring config: %s", err)
+			}
+			log().Errorf("error reloading proxy container: %s", err)
 			continue
 		}
 
