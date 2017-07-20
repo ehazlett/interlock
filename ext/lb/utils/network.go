@@ -38,13 +38,19 @@ func BackendOverlayAddress(network types.NetworkResource, cnt types.Container) (
 
 	// parse the port
 	for _, k := range ports {
-		portDef.HostPort = fmt.Sprintf("%d", k.PublicPort)
-		break
+		if k.PublicPort != 0 {
+			portDef.HostPort = fmt.Sprintf("%d", k.PublicPort)
+			break
+		}
 	}
 
 	// check for custom port
 	if v, ok := cnt.Labels[ext.InterlockPortLabel]; ok {
 		portDef.HostPort = v
+	}
+
+	if portDef.HostPort == "" {
+		return "", fmt.Errorf("unable to find exposed port")
 	}
 
 	addr = fmt.Sprintf("%s:%s", portDef.HostIP, portDef.HostPort)
