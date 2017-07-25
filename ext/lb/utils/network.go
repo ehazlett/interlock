@@ -82,10 +82,15 @@ func BackendAddress(cnt types.Container, backendOverrideAddress string) (string,
 		}
 		for _, port := range ports {
 			if port.PrivatePort == uint16(interlockPort) {
+				portDef.HostIP = port.IP
 				portDef.HostPort = fmt.Sprintf("%d", port.PublicPort)
 				break
 			}
 		}
+	}
+
+	if portDef.HostIP == "" || portDef.HostPort == "" {
+		return "", fmt.Errorf("unable to find ip or exposed port: %+v", portDef)
 	}
 
 	addr = fmt.Sprintf("%s:%s", portDef.HostIP, portDef.HostPort)
