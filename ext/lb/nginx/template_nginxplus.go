@@ -134,7 +134,6 @@ http {
             stub_status on;
             access_log off;
         }
-
         {{ end }}
     }
     {{ if $host.SSL }}
@@ -167,6 +166,8 @@ http {
 
     {{ end }}
     {{ end }} {{/* end host range */}}
+
+    }
 
     include {{ .Config.ConfigBasePath }}/conf.d/*.conf;
 }

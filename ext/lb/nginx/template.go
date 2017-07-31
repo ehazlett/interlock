@@ -121,9 +121,9 @@ http {
             stub_status on;
             access_log off;
         }
-
         {{ end }}
     }
+
     {{ if $host.SSL }}
     server {
         listen {{ $host.SSLPort }};
@@ -154,6 +154,8 @@ http {
 
     {{ end }}
     {{ end }} {{/* end host range */}}
+
+    }
 
     include {{ .Config.ConfigBasePath }}/conf.d/*.conf;
 }
