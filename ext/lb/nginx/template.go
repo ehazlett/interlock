@@ -155,8 +155,6 @@ http {
     {{ end }}
     {{ end }} {{/* end host range */}}
 
-    }
-
     include {{ .Config.ConfigBasePath }}/conf.d/*.conf;
 }
 `
