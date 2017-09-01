@@ -1,14 +1,13 @@
 package utils
 
 import (
-	"github.com/docker/docker/api/types"
 	"github.com/ehazlett/interlock/ext"
 )
 
-func Domain(config types.Container) string {
+func Domain(labels map[string]string) string {
 	domain := "local"
 
-	if v, ok := config.Labels[ext.InterlockDomainLabel]; ok {
+	if v, ok := labels[ext.InterlockDomainLabel]; ok {
 		domain = v
 	}
 

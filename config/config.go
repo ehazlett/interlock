@@ -22,6 +22,7 @@ type ExtensionConfig struct {
 	MaxConn                       int              // haproxy, nginx
 	Port                          int              // haproxy, nginx
 	SyslogAddr                    string           // haproxy
+	SwarmTaskMode                 bool             // haproxy, nginx
 	AdminUser                     string           // haproxy
 	AdminPass                     string           // haproxy
 	SSLCertPath                   string           // haproxy, nginx

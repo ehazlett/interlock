@@ -6,13 +6,12 @@ import (
 	"strconv"
 
 	"github.com/docker/docker/api/types"
-	ctypes "github.com/docker/docker/api/types"
 	"github.com/docker/go-connections/nat"
 	"github.com/ehazlett/interlock/ext"
 )
 
-func OverlayEnabled(config ctypes.Container) (string, bool) {
-	if v, ok := config.Labels[ext.InterlockNetworkLabel]; ok {
+func OverlayEnabled(labels map[string]string) (string, bool) {
+	if v, ok := labels[ext.InterlockNetworkLabel]; ok {
 		return v, true
 	}
 
@@ -90,4 +89,18 @@ func BackendAddress(cnt types.Container, backendOverrideAddress string) (string,
 
 	addr = fmt.Sprintf("%s:%s", portDef.HostIP, portDef.HostPort)
 	return addr, nil
+}
+
+func CustomPort(labels map[string]string) (int, error) {
+	// check for custom port
+	var interlockPort int
+	if v, ok := labels[ext.InterlockPortLabel]; ok {
+		var err error
+		interlockPort, err = strconv.Atoi(v)
+		if err != nil {
+			return -1, err
+		}
+	}
+
+	return interlockPort, nil
 }
