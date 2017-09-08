@@ -1,0 +1,15 @@
+ListenAddr = ":9090"
+DockerURL = "tcp://192.168.99.100:2376"
+TLSCACert = "/Users/jccote/.docker/machine/machines/manager/ca.pem"
+TLSCert = "/Users/jccote/.docker/machine/machines/manager/cert.pem"
+TLSKey = "/Users/jccote/.docker/machine/machines/manager/key.pem"
+
+[[Extensions]]
+Name = "nginx"
+ConfigPath = "/etc/nginx/nginx.conf"
+TemplatePath = "interlock/docs/examples/nginx-swarm-stack-machine/nginx-template.conf"
+PidPath = "/var/run/nginx.pid"
+BackendOverrideAddress = "172.17.0.1"
+MaxConn = 1024
+Port = 7070
+NginxPlusEnabled = false
