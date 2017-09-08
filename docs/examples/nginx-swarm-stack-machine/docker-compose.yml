@@ -6,7 +6,7 @@ networks:
 services:
 
  interlock:
-    image: ehazlett/interlock:jcmcote
+    image: ehazlett/interlock:mytag
     command: -D run -c /etc/interlock/config.toml
     tty: true
     networks:

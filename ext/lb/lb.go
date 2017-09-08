@@ -48,8 +48,7 @@ type proxyContainerNetworkConfig struct {
 type LoadBalancerBackend interface {
 	Name() string
 	ConfigPath() string
-	GenerateProxyConfig(c []types.Container) (interface{}, error)
-	GenerateProxyConfigForTasks(s []swarm.Task) (interface{}, error)
+	GenerateProxyConfig(c []types.Container, s []swarm.Task) (interface{}, error)
 	Template() string
 	Reload(proxyContainers []types.Container) error
 }
@@ -207,63 +206,53 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *client.Client) (*LoadBal
 
 			var cfg interface{}
 
-			if extension.cfg.SwarmTaskMode == true {
-				optFilters := filters.NewArgs()
-				// jcc, this filter is not working...
-				// optFilters.Add("label", "interlock.hostname")
-				optFilters.Add("desired-state", "running")
-				opts := types.TaskListOptions{
-					Filters: optFilters,
-				}
-				log().Debug("getting task list")
-				tasks, err := client.TaskList(context.Background(), opts)
-				if err != nil {
-					errChan <- err
-					continue
-				}
-
-				var proxyTasks []swarm.Task
-				for _, t := range tasks {
-					labels := t.Spec.ContainerSpec.Labels
-					hostname := utils.Hostname(labels)
-					if hostname != "unknown" {
-						proxyTasks = append(proxyTasks, t)
-					}
-				}
-				// generate proxy config
-				log().Debug("generating proxy config for tasks")
-				cfg, err = extension.backend.GenerateProxyConfigForTasks(proxyTasks)
-				if err != nil {
-					errChan <- err
-					continue
-				}
-				log().Debugf("service gen conf: %s", cfg)
-			} else {
-				optFilters := filters.NewArgs()
-				optFilters.Add("status", "running")
-				optFilters.Add("label", "interlock.hostname")
-				opts := types.ContainerListOptions{
-					All:     false,
-					Size:    false,
-					Filters: optFilters,
-				}
-				log().Debug("getting container list")
-				containers, err := client.ContainerList(context.Background(), opts)
-				if err != nil {
-					errChan <- err
-					continue
-				}
-
-				// generate proxy config
-				log().Debug("generating proxy config")
-				cfg, err = extension.backend.GenerateProxyConfig(containers)
-				if err != nil {
-					errChan <- err
-					continue
-				}
-
-				log().Debugf("container gen conf: %s", cfg)
+			optTaskFilters := filters.NewArgs()
+			// jcc, this filter is not working...
+			// optFilters.Add("label", "interlock.hostname")
+			optTaskFilters.Add("desired-state", "running")
+			optsTask := types.TaskListOptions{
+				Filters: optTaskFilters,
 			}
+			log().Debug("getting task list")
+			tasks, err := client.TaskList(context.Background(), optsTask)
+			if err != nil {
+				errChan <- err
+				continue
+			}
+
+			var proxyTasks []swarm.Task
+			for _, t := range tasks {
+				labels := t.Spec.ContainerSpec.Labels
+				hostname := utils.Hostname(labels)
+				if hostname != "unknown" {
+					proxyTasks = append(proxyTasks, t)
+				}
+			}
+
+			optFilters := filters.NewArgs()
+			optFilters.Add("status", "running")
+			optFilters.Add("label", "interlock.hostname")
+			opts := types.ContainerListOptions{
+				All:     false,
+				Size:    false,
+				Filters: optFilters,
+			}
+			log().Debug("getting container list")
+			containers, err := client.ContainerList(context.Background(), opts)
+			if err != nil {
+				errChan <- err
+				continue
+			}
+
+			// generate proxy config
+			log().Debug("generating proxy config")
+			cfg, err = extension.backend.GenerateProxyConfig(containers, tasks)
+			if err != nil {
+				errChan <- err
+				continue
+			}
+
+			log().Debugf("gen conf: %s", cfg)
 
 			// save proxy config
 			configPath := extension.backend.ConfigPath()

@@ -11,7 +11,7 @@ import (
 	"net"
 )
 
-func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []types.Container) (interface{}, error) {
+func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []types.Container, tasks []swarm.Task) (interface{}, error) {
 	var hosts []*Host
 
 	proxyUpstreams := map[string][]*Upstream{}
@@ -23,12 +23,35 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []types.Container) 
 	hostSSLOnly := map[string]bool{}
 	hostSSLBackend := map[string]bool{}
 	hostSSLBackendTLSVerify := map[string]string{}
+	cntId := ""
+	labels := map[string]string{}
+	container_name := ""
 
 	networks := map[string]string{}
 
-	for _, c := range containers {
-		cntId := c.ID[:12]
-		labels := c.Labels
+	var backends []interface{}
+
+	for _, i := range containers {
+		backends = append(backends, i)
+	}
+
+	for _, i := range tasks {
+		backends = append(backends, i)
+	}
+
+	for _, c := range backends {
+		switch t := c.(type) {
+		case types.Container:
+			cntId = t.ID[:12]
+			labels = t.Labels
+		case swarm.Task:
+			cntId = t.ID[:12]
+			labels = t.Labels
+		default:
+			log().Warnf("unknown type detected: %v", t)
+			continue
+		}
+
 		// load interlock data
 		hostname := utils.Hostname(labels)
 		domain := utils.Domain(labels)
@@ -89,38 +112,81 @@ func (p *HAProxyLoadBalancer) GenerateProxyConfig(containers []types.Container) 
 
 		addr := ""
 
-		// check for networking
-		if n, ok := utils.OverlayEnabled(labels); ok {
-			log().Debugf("configuring docker network: name=%s", n)
+		switch t := c.(type) {
+		case types.Container:
 
-			network, err := p.client.NetworkInspect(context.Background(), n, false)
+			// check for networking
+			if n, ok := utils.OverlayEnabled(labels); ok {
+				log().Debugf("configuring docker network: name=%s", n)
+
+				network, err := p.client.NetworkInspect(context.Background(), n, false)
+				if err != nil {
+					log().Error(err)
+					continue
+				}
+
+				addr, err = utils.BackendOverlayAddress(network, t)
+				if err != nil {
+					log().Error(err)
+					continue
+				}
+
+				networks[n] = ""
+			} else {
+				if len(t.Ports) == 0 {
+					log().Warnf("%s: no ports exposed", cntId)
+					continue
+				}
+
+				a, err := utils.BackendAddress(t, p.cfg.BackendOverrideAddress)
+				if err != nil {
+					log().Error(err)
+					continue
+				}
+				addr = a
+			}
+			container_name = t.Names[0][1:]
+		case swarm.Task:
+			interlockPort, err := utils.CustomPort(labels)
 			if err != nil {
 				log().Error(err)
 				continue
 			}
+			log().Debug(interlockPort)
 
-			addr, err = utils.BackendOverlayAddress(network, c)
-			if err != nil {
-				log().Error(err)
-				continue
-			}
+			// check for networking
+			if overlayNetworkName, ok := utils.OverlayEnabled(labels); ok {
+				log().Debugf("configuring docker network: name=%s", overlayNetworkName)
 
-			networks[n] = ""
-		} else {
-			if len(c.Ports) == 0 {
-				log().Warnf("%s: no ports exposed", cntId)
-				continue
-			}
+				for _, networksAttachment := range t.NetworksAttachments {
 
-			a, err := utils.BackendAddress(c, p.cfg.BackendOverrideAddress)
-			if err != nil {
-				log().Error(err)
-				continue
+					if overlayNetworkName == networksAttachment.Network.Spec.Annotations.Name {
+						for _, address := range networksAttachment.Addresses {
+							log().Debug(address)
+
+							ip, _, err := net.ParseCIDR(address)
+							if err != nil {
+								log().Error(err)
+								continue
+							}
+
+							addr = fmt.Sprintf("%s:%d", ip, interlockPort)
+							log().Debug(addr)
+						}
+					}
+				}
+
+				networks[overlayNetworkName] = ""
+			} else {
+
+				//addr = fmt.Sprintf("%s:%d", network, interlockPort)
 			}
-			addr = a
+			container_name = ""//t.Names[0][1:]
+		default:
+			log().Warnf("unknown type detected: %v", t)
+			continue
 		}
 
-		container_name := c.Names[0][1:]
 		up := &Upstream{
 			Addr:          addr,
 			Container:     container_name,

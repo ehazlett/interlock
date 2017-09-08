@@ -16,11 +16,24 @@ Interlock to your Swarm cluster.  Run the following to set it up:
 `docker-machine env manager`
 
 export DOCKER_TLS_VERIFY="1"
-export DOCKER_HOST="tcp://192.168.99.102:2376"
+export DOCKER_HOST="tcp://192.168.99.100:2376"
 export DOCKER_CERT_PATH="/Users/jccote/.docker/machine/machines/manager"
 export DOCKER_MACHINE_NAME="manager"
 # Run this command to configure your shell:
 # eval $(docker-machine env manager)
+
+# build an interlock image using a custom tag
+# this builds the image into the DOCKER_HOST specified above that is the manager node
+`make -e TAG=mytag image`
+
+# you can verify the image was created in the manager node
+`docker image ls`
+REPOSITORY           TAG                 IMAGE ID            CREATED             SIZE
+ehazlett/interlock   mytag               7b20d1a87b1e        15 seconds ago      23.2MB
+<none>               <none>              0da48c200507        34 seconds ago      634MB
+nginx                <none>              0b5dec81616c        44 hours ago        108MB
+alpine               latest              7328f6f8b418        2 months ago        3.97MB
+golang               1.6-alpine          1ea38172de32        8 months ago        283MB
 
 # generate a stack file using docker-compose
 `docker-compose -f ./docs/examples/nginx-swarm-stack-machine/docker-compose.yml config > stack.yml`
@@ -37,11 +50,11 @@ ykdsht0davud        mystack_interlock   replicated          1/1                 
 
 Once up you can check the logs to ensure Interlock is detecting:
 
-`docker logs mystack_interlock`
+`docker logs mystack_interlock.1.5s9qd89crem17f384o2zt2kv2`
 
 
 You can also verify that the nginx routes are created properly:
-`docker exec -it mystack_nginx.1.d2tt5tdwcsz0yq91wjwhympqy /bin/bash -c "cat /etc/nginx/nginx.conf"`
+`docker exec -it mystack_nginx.1.5s9qd89crem17f384o2zt2kv2 /bin/bash -c "cat /etc/nginx/nginx.conf"`
 
  upstream ctx___web {
         zone ctx___web_backend 64k;
@@ -62,5 +75,4 @@ You can also verify that the nginx routes are created properly:
 
 
 The sample web applications should be available at
-http://192.168.99.102/web
-
+http://192.168.99.100:7070/web
