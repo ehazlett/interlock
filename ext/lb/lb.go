@@ -111,10 +111,10 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *client.Client) (*LoadBal
 	})
 
 	// load containerID for the following nodeID
-//	containerID, err := utils.GetContainerID()
-//	if err != nil {
-//		return nil, err
-//	}
+	containerID, err := utils.GetContainerID()
+	if err != nil {
+		return nil, err
+	}
 
 	containerID := "none"
 	log().Infof("interlock node: container id=%s", containerID)
