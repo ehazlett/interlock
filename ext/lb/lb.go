@@ -23,6 +23,7 @@ import (
 	"github.com/ehazlett/interlock/ext"
 	"github.com/ehazlett/interlock/ext/lb/nginx"
 	"github.com/ehazlett/interlock/ext/lb/utils"
+	nutils "github.com/ehazlett/interlock/utils"
 	"github.com/ehazlett/ttlcache"
 	"golang.org/x/net/context"
 	"github.com/ehazlett/interlock/ext/lb/haproxy"
@@ -111,7 +112,7 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *client.Client) (*LoadBal
 	})
 
 	// load containerID for the following nodeID
-	containerID, err := utils.GetContainerID()
+	containerID, err := nutils.GetContainerID()
 	if err != nil {
 		return nil, err
 	}
