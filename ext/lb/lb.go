@@ -116,7 +116,6 @@ func NewLoadBalancer(c *config.ExtensionConfig, client *client.Client) (*LoadBal
 		return nil, err
 	}
 
-	containerID := "none"
 	log().Infof("interlock node: container id=%s", containerID)
 
 	extension := &LoadBalancer{
