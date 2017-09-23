@@ -15,7 +15,7 @@ func TestWebsocketEndpoints(t *testing.T) {
 		},
 	}
 
-	ep := WebsocketEndpoints(cfg)
+	ep := WebsocketEndpoints(cfg.Labels)
 
 	if len(ep) != 2 {
 		t.Fatalf("expected %d endpoints; received %d", len(cfg.Labels), len(ep))
@@ -27,7 +27,7 @@ func TestWebsocketEndpointsNoLabels(t *testing.T) {
 		Labels: map[string]string{},
 	}
 
-	ep := WebsocketEndpoints(cfg)
+	ep := WebsocketEndpoints(cfg.Labels)
 
 	if len(ep) != 0 {
 		t.Fatalf("expected no endpoints; received %s", ep)

@@ -15,7 +15,7 @@ func TestDomain(t *testing.T) {
 		},
 	}
 
-	domain := Domain(cfg)
+	domain := Domain(cfg.Labels)
 
 	if domain != testDomain {
 		t.Fatalf("expected %s; received %s", testDomain, domain)

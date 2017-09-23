@@ -16,7 +16,7 @@ func TestHostnameLabel(t *testing.T) {
 		},
 	}
 
-	hostname := Hostname(cfg)
+	hostname := Hostname(cfg.Labels)
 
 	if hostname != testLabelHostname {
 		t.Fatalf("expected %s; received %s", testLabelHostname, hostname)
