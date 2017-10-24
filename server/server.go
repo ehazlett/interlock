@@ -13,6 +13,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/docker/docker/api/types"
 	etypes "github.com/docker/docker/api/types/events"
+	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 	"github.com/ehazlett/interlock/config"
@@ -22,6 +23,7 @@ import (
 	"github.com/ehazlett/interlock/ext/lb"
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/net/context"
+	"github.com/ehazlett/interlock/ext/lb/utils"
 )
 
 const (
@@ -257,6 +259,33 @@ func (s *Server) runPoller(d time.Duration) {
 	go func() {
 		for range t.C {
 			log.Debug("poller tick")
+
+			optTaskFilters := filters.NewArgs()
+			// jcc, this filter is not working...
+			// optFilters.Add("label", "interlock.hostname")
+			optTaskFilters.Add("desired-state", "running")
+			optsTask := types.TaskListOptions{
+				Filters: optTaskFilters,
+			}
+			log.Debug("getting task list")
+			tasks, err := s.client.TaskList(context.Background(), optsTask)
+			if err != nil {
+				log.Warnf("poller: unable to get tasks: %s", err)
+				continue
+			}
+
+			var proxyTasks []swarm.Task
+			for _, t := range tasks {
+				labels := t.Spec.ContainerSpec.Labels
+				hostname := utils.Hostname(labels)
+				if t.Status.State == swarm.TaskStateRunning {
+					if hostname != "unknown" {
+						proxyTasks = append(proxyTasks, t)
+					}
+				}
+			}
+
+
 			optFilters := filters.NewArgs()
 			optFilters.Add("status", "running")
 			opts := types.ContainerListOptions{
@@ -271,7 +300,12 @@ func (s *Server) runPoller(d time.Duration) {
 			}
 
 			containerIDs := []string{}
+			taskIDs := []string{}
 			ports := []int{}
+
+			for _, t := range proxyTasks {
+				taskIDs = append(taskIDs, t.ID)
+			}
 
 			for _, c := range containers {
 				containerIDs = append(containerIDs, c.ID)
@@ -280,8 +314,15 @@ func (s *Server) runPoller(d time.Duration) {
 				}
 			}
 
+			sort.Strings(taskIDs)
 			sort.Strings(containerIDs)
 			sort.Ints(ports)
+
+			tData, err := json.Marshal(taskIDs)
+			if err != nil {
+				log.Errorf("unable to marshal containers: %s", err)
+				continue
+			}
 
 			cData, err := json.Marshal(containerIDs)
 			if err != nil {
@@ -296,6 +337,7 @@ func (s *Server) runPoller(d time.Duration) {
 			}
 
 			h := sha256.New()
+			h.Write(tData)
 			h.Write(cData)
 			h.Write(pData)
 			sum := hex.EncodeToString(h.Sum(nil))
