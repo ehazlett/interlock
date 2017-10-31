@@ -1,6 +1,9 @@
 version: "2"
 
 services:
+    # 
+    # this doesn't work for swarm-mode(new one) cluster
+    # 
     interlock:
         image: ehazlett/interlock:master
         command: run -c /etc/interlock/config.toml
