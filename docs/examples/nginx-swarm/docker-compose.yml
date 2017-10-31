@@ -1,3 +1,6 @@
+#
+# this doesn't work on swarm-mode clusters
+#
 interlock:
     image: ehazlett/interlock:master
     command: run -c /etc/interlock/config.toml
