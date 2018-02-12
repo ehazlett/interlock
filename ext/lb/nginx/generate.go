@@ -16,6 +16,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 	upstreamServers := map[string][]string{}
 	serverNames := map[string][]string{}
 	hostContextRoots := map[string]map[string]*ContextRoot{}
+	hostBackendOptions := map[string][]string{}
 	hostSSL := map[string]bool{}
 	hostSSLCert := map[string]string{}
 	hostSSLCertKey := map[string]string{}
@@ -56,6 +57,12 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 		hostIPHash[domain] = utils.IPHash(c)
 		// check ssl backend
 		hostSSLBackend[domain] = utils.SSLBackend(c)
+
+		backendOptions := utils.BackendOptions(c)
+		if len(backendOptions) > 0 {
+			hostBackendOptions[domain] = backendOptions
+			log().Debugf("using backend options for %s: %s", domain, strings.Join(backendOptions, ","))
+		}
 
 		// set cert paths
 		baseCertPath := p.cfg.SSLCertPath
@@ -134,9 +141,10 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 		log().Debugf("websocket endpoints: %v", websocketEndpoints)
 
 		// websocket endpoints
-		outer:for _, ws := range websocketEndpoints {
+	outer:
+		for _, ws := range websocketEndpoints {
 			for _, existingEndpoint := range hostWebsocketEndpoints[domain] {
-				if(existingEndpoint == ws) {
+				if existingEndpoint == ws {
 					continue outer
 				}
 			}
@@ -175,6 +183,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 			SSLOnly:            hostSSLOnly[k],
 			SSLBackend:         hostSSLBackend[k],
 			WebsocketEndpoints: hostWebsocketEndpoints[k],
+			BackendOptions:     hostBackendOptions[k],
 			IPHash:             hostIPHash[k],
 		}
 

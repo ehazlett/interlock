@@ -2,14 +2,14 @@ version: "2"
 
 services:
     interlock:
-        image: ehazlett/interlock:master
+        image: ehazlett/interlock:latest
         command: run -c /etc/interlock/config.toml
         ports:
             - 8080
         volumes:
             - ./config.toml:/etc/interlock/config.toml
             - /var/run/docker.sock:/var/run/docker.sock
-    
+
     nginx:
         image: nginx:latest
         entrypoint: nginx
@@ -22,7 +22,7 @@ services:
             - interlock:interlock
         depends_on:
             - interlock
-    
+
     app:
         image: ehazlett/docker-demo:latest
         ports:

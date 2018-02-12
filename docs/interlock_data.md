@@ -26,7 +26,7 @@ compatibility.
 |`interlock.health_check`           | haproxy| haproxy health check for backend | `interlock.health_check=/ping` |
 |`interlock.health_check_interval`  | haproxy| interval to use for backend health check (in ms) | `interlock.health_check_interval=5000` |
 |`interlock.balance_algorithm`      | haproxy| load balancing algorithm to use in haproxy| `interlock.balance_algorithm=leastconn` |
-|`interlock.backend_option`         | haproxy| one or more backend options as specified by haproxy| `interlock.backend_option.0=forceclose` |
+|`interlock.backend_option`         | haproxy, nginx| one or more backend options as specified by haproxy| `interlock.backend_option.0=forceclose` |
 
 # Port
 If an upstream container uses multiple ports you can select the port for
