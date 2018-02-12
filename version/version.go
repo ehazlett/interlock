@@ -1,7 +1,7 @@
 package version
 
 var (
-	Version = "1.4.3"
+	Version = "1.4.4"
 
 	// Build will be overwritten automatically by the build system
 	Build = "-dev"
