@@ -81,6 +81,9 @@ http {
 
         {{ range $up := $host.Upstream.Servers }}server {{ $up.Addr }};
         {{ end }}
+
+	{{ range $option := $host.BackendOptions }}{{ $option }}
+    	{{ end }}
     }
     {{ end }}
     {{ range $k, $ctxroot := $host.ContextRoots }}

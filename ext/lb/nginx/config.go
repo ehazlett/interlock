@@ -24,6 +24,7 @@ type Host struct {
 	ServerNames        []string
 	Port               int
 	ContextRoots       map[string]*ContextRoot
+	BackendOptions     []string
 	SSLPort            int
 	SSL                bool
 	SSLCert            string
