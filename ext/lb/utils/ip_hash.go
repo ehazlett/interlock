@@ -1,14 +1,13 @@
 package utils
 
 import (
-	"github.com/docker/docker/api/types"
 	"github.com/ehazlett/interlock/ext"
 )
 
-func IPHash(config types.Container) bool {
+func IPHash(labels map[string]string) bool {
 	ipHash := false
 
-	if _, ok := config.Labels[ext.InterlockIPHashLabel]; ok {
+	if _, ok := labels[ext.InterlockIPHashLabel]; ok {
 		ipHash = true
 	}
 

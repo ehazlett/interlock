@@ -3,7 +3,6 @@ package utils
 import (
 	"strconv"
 
-	"github.com/docker/docker/api/types"
 	"github.com/ehazlett/interlock/ext"
 )
 
@@ -11,18 +10,18 @@ const (
 	DefaultHealthCheckInterval = 5000
 )
 
-func HealthCheck(config types.Container) string {
-	if v, ok := config.Labels[ext.InterlockHealthCheckLabel]; ok {
+func HealthCheck(labels map[string]string) string {
+	if v, ok := labels[ext.InterlockHealthCheckLabel]; ok {
 		return v
 	}
 
 	return ""
 }
 
-func HealthCheckInterval(config types.Container) (int, error) {
+func HealthCheckInterval(labels map[string]string) (int, error) {
 	checkInterval := DefaultHealthCheckInterval
 
-	if v, ok := config.Labels[ext.InterlockHealthCheckIntervalLabel]; ok && v != "" {
+	if v, ok := labels[ext.InterlockHealthCheckIntervalLabel]; ok && v != "" {
 		i, err := strconv.Atoi(v)
 		if err != nil {
 			return -1, err

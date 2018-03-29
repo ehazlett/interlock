@@ -6,11 +6,13 @@ import (
 	"strings"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/swarm"
 	"github.com/ehazlett/interlock/ext/lb/utils"
 	"golang.org/x/net/context"
+	"net"
 )
 
-func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (interface{}, error) {
+func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container, tasks [] swarm.Task) (interface{}, error) {
 	var hosts []*Host
 	upstreamHosts := map[string]struct{}{}
 	upstreamServers := map[string][]string{}
@@ -25,16 +27,45 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 	hostWebsocketEndpoints := map[string][]string{}
 	hostIPHash := map[string]bool{}
 	networks := map[string]string{}
+	cntId := ""
+	labels := map[string]string{}
 
-	for _, c := range containers {
-		cntId := c.ID[:12]
+	var backends []interface{}
+
+	for _, i := range containers {
+		backends = append(backends, i)
+	}
+
+	for _, i := range tasks {
+		backends = append(backends, i)
+	}
+
+	for _, c := range backends {
+		switch t := c.(type) {
+		case types.Container:
+			cntId = t.ID[:12]
+			labels = t.Labels
+		case swarm.Task:
+			cntId = t.ID[:12]
+			labels = t.Spec.ContainerSpec.Labels
+
+			if t.Status.State != swarm.TaskStateRunning {
+				continue
+			}
+
+		default:
+			log().Warnf("unknown type detected: %v", t)
+			continue
+		}
+
 		// load interlock data
-		contextRoot := utils.ContextRoot(c)
+		contextRoot := utils.ContextRoot(labels)
 
-		hostname := utils.Hostname(c)
-		domain := utils.Domain(c)
+		hostname := utils.Hostname(labels)
+		domain := utils.Domain(labels)
 
-		if domain == "" && contextRoot == "" {
+
+		if domain == "local" && contextRoot == "" {
 			continue
 		}
 
@@ -44,7 +75,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 
 		// context root
 		contextRootName := fmt.Sprintf("%s_%s", domain, strings.Replace(contextRoot, "/", "_", -1))
-		contextRootRewrite := utils.ContextRootRewrite(c)
+		contextRootRewrite := utils.ContextRootRewrite(labels)
 
 		// check if the first server name is there; if not, add
 		// this happens if there are multiple backend containers
@@ -52,11 +83,11 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 			serverNames[domain] = []string{domain}
 		}
 
-		hostSSL[domain] = utils.SSLEnabled(c)
-		hostSSLOnly[domain] = utils.SSLOnly(c)
-		hostIPHash[domain] = utils.IPHash(c)
+		hostSSL[domain] = utils.SSLEnabled(labels)
+		hostSSLOnly[domain] = utils.SSLOnly(labels)
+		hostIPHash[domain] = utils.IPHash(labels)
 		// check ssl backend
-		hostSSLBackend[domain] = utils.SSLBackend(c)
+		hostSSLBackend[domain] = utils.SSLBackend(labels)
 
 		backendOptions := utils.BackendOptions(c)
 		if len(backendOptions) > 0 {
@@ -67,7 +98,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 		// set cert paths
 		baseCertPath := p.cfg.SSLCertPath
 
-		certName := utils.SSLCertName(c)
+		certName := utils.SSLCertName(labels)
 
 		if certName != "" {
 			certPath := filepath.Join(baseCertPath, certName)
@@ -75,7 +106,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 			hostSSLCert[domain] = certPath
 		}
 
-		certKeyName := utils.SSLCertKey(c)
+		certKeyName := utils.SSLCertKey(labels)
 		if certKeyName != "" {
 			keyPath := filepath.Join(baseCertPath, certKeyName)
 			log().Infof("ssl key for %s: %s", domain, keyPath)
@@ -84,8 +115,11 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 
 		addr := ""
 
+		switch t := c.(type) {
+		case types.Container:
+
 		// check for networking
-		if n, ok := utils.OverlayEnabled(c); ok {
+		if n, ok := utils.OverlayEnabled(labels); ok {
 			log().Debugf("configuring docker network: name=%s", n)
 
 			network, err := p.client.NetworkInspect(context.Background(), n, false)
@@ -94,7 +128,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 				continue
 			}
 
-			addr, err = utils.BackendOverlayAddress(network, c)
+			addr, err = utils.BackendOverlayAddress(network, t)
 			if err != nil {
 				log().Error(err)
 				continue
@@ -102,18 +136,57 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 
 			networks[n] = ""
 		} else {
-			if len(c.Ports) == 0 {
+			if len(t.Ports) == 0 {
 				log().Warnf("%s: no ports exposed", cntId)
 				continue
 			}
 
-			a, err := utils.BackendAddress(c, p.cfg.BackendOverrideAddress)
+			a, err := utils.BackendAddress(t, p.cfg.BackendOverrideAddress)
 			if err != nil {
 				log().Error(err)
 				continue
 			}
 
 			addr = a
+		}
+		case swarm.Task:
+			interlockPort, err := utils.CustomPort(labels)
+			if err != nil {
+				log().Error(err)
+				continue
+			}
+			log().Debug(interlockPort)
+
+			// check for networking
+			if overlayNetworkName, ok := utils.OverlayEnabled(labels); ok {
+				log().Debugf("configuring docker network: name=%s", overlayNetworkName)
+
+				for _, networksAttachment := range t.NetworksAttachments {
+
+					if overlayNetworkName == networksAttachment.Network.Spec.Annotations.Name {
+						for _, address := range networksAttachment.Addresses {
+							log().Debug(address)
+
+							ip, _, err := net.ParseCIDR(address)
+							if err != nil {
+								log().Error(err)
+								continue
+							}
+
+							addr = fmt.Sprintf("%s:%d", ip, interlockPort)
+							log().Debug(addr)
+						}
+					}
+				}
+
+				networks[overlayNetworkName] = ""
+			} else {
+
+				//addr = fmt.Sprintf("%s:%d", network, interlockPort)
+			}
+		default:
+			log().Warnf("unknown type detected: %v", t)
+			continue
 		}
 
 		if contextRoot != "" {
@@ -136,7 +209,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 		}
 
 		// "parse" multiple labels for websocket endpoints
-		websocketEndpoints := utils.WebsocketEndpoints(c)
+		websocketEndpoints := utils.WebsocketEndpoints(labels)
 
 		log().Debugf("websocket endpoints: %v", websocketEndpoints)
 
@@ -152,7 +225,7 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 		}
 
 		// "parse" multiple labels for alias domains
-		aliasDomains := utils.AliasDomains(c)
+		aliasDomains := utils.AliasDomains(labels)
 
 		log().Debugf("alias domains: %v", aliasDomains)
 
@@ -214,3 +287,4 @@ func (p *NginxLoadBalancer) GenerateProxyConfig(containers []types.Container) (i
 
 	return config, nil
 }
+

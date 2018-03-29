@@ -14,7 +14,7 @@ func TestSSLEnabled(t *testing.T) {
 		},
 	}
 
-	if !SSLEnabled(cfg) {
+	if !SSLEnabled(cfg.Labels) {
 		t.Fatal("expected ssl enabled")
 	}
 }
@@ -24,7 +24,7 @@ func TestSSLEnabledNoLabel(t *testing.T) {
 		Labels: map[string]string{},
 	}
 
-	if SSLEnabled(cfg) {
+	if SSLEnabled(cfg.Labels) {
 		t.Fatal("expected ssl disabled")
 	}
 }
@@ -36,7 +36,7 @@ func TestSSLOnly(t *testing.T) {
 		},
 	}
 
-	if !SSLOnly(cfg) {
+	if !SSLOnly(cfg.Labels) {
 		t.Fatal("expected ssl only")
 	}
 }
@@ -46,7 +46,7 @@ func TestSSLOnlyNoLabel(t *testing.T) {
 		Labels: map[string]string{},
 	}
 
-	if SSLOnly(cfg) {
+	if SSLOnly(cfg.Labels) {
 		t.Fatal("expected not ssl only")
 	}
 }
@@ -58,7 +58,7 @@ func TestSSLBackend(t *testing.T) {
 		},
 	}
 
-	if !SSLBackend(cfg) {
+	if !SSLBackend(cfg.Labels) {
 		t.Fatal("expected ssl backend")
 	}
 }
@@ -68,7 +68,7 @@ func TestSSLBackendNoLabel(t *testing.T) {
 		Labels: map[string]string{},
 	}
 
-	if SSLBackend(cfg) {
+	if SSLBackend(cfg.Labels) {
 		t.Fatal("expected no ssl backend")
 	}
 }
@@ -82,7 +82,7 @@ func TestSSLCertName(t *testing.T) {
 		},
 	}
 
-	if SSLCertName(cfg) != testCert {
+	if SSLCertName(cfg.Labels) != testCert {
 		t.Fatalf("expected ssl cert %s", testCert)
 	}
 }
@@ -92,7 +92,7 @@ func TestSSLCertNameNoLabel(t *testing.T) {
 		Labels: map[string]string{},
 	}
 
-	if SSLCertName(cfg) != "" {
+	if SSLCertName(cfg.Labels) != "" {
 		t.Fatal("expected no ssl cert")
 	}
 }
@@ -106,7 +106,7 @@ func TestSSLCertKey(t *testing.T) {
 		},
 	}
 
-	if SSLCertKey(cfg) != testKey {
+	if SSLCertKey(cfg.Labels) != testKey {
 		t.Fatalf("expected ssl key %s", testKey)
 	}
 }
@@ -116,7 +116,7 @@ func TestSSLCertKeyNoLabel(t *testing.T) {
 		Labels: map[string]string{},
 	}
 
-	if SSLCertKey(cfg) != "" {
+	if SSLCertKey(cfg.Labels) != "" {
 		t.Fatal("expected no ssl key")
 	}
 }

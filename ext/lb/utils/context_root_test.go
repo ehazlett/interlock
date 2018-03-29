@@ -16,7 +16,7 @@ func TestContextRoot(t *testing.T) {
 		},
 	}
 
-	context := ContextRoot(cfg)
+	context := ContextRoot(cfg.Labels)
 
 	if context != testContext {
 		t.Fatalf("expected %s; received %s", testContext, context)
@@ -30,7 +30,7 @@ func TestContextRootRewrite(t *testing.T) {
 		},
 	}
 
-	rewrite := ContextRootRewrite(cfg)
+	rewrite := ContextRootRewrite(cfg.Labels)
 
 	if !rewrite {
 		t.Fatal("expected context root rewrite")

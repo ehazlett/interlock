@@ -17,7 +17,7 @@ func TestHealthCheck(t *testing.T) {
 		},
 	}
 
-	chk := HealthCheck(cfg)
+	chk := HealthCheck(cfg.Labels)
 
 	if chk != testCheck {
 		t.Fatalf("expected %s; received %s", testCheck, chk)
@@ -29,7 +29,7 @@ func TestHealthCheckNoLabel(t *testing.T) {
 		Labels: map[string]string{},
 	}
 
-	chk := HealthCheck(cfg)
+	chk := HealthCheck(cfg.Labels)
 
 	if chk != "" {
 		t.Fatalf("expected no health check; received %s", chk)
@@ -45,7 +45,7 @@ func TestHealthCheckInterval(t *testing.T) {
 		},
 	}
 
-	i, err := HealthCheckInterval(cfg)
+	i, err := HealthCheckInterval(cfg.Labels)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -60,7 +60,7 @@ func TestHealthCheckIntervalNoLabel(t *testing.T) {
 		Labels: map[string]string{},
 	}
 
-	i, err := HealthCheckInterval(cfg)
+	i, err := HealthCheckInterval(cfg.Labels)
 	if err != nil {
 		t.Fatal(err)
 	}
