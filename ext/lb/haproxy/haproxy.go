@@ -64,25 +64,34 @@ func (p *HAProxyLoadBalancer) Template() string {
 }
 
 func (p *HAProxyLoadBalancer) Reload(proxyContainers []types.Container) error {
-	// drop SYN to allow for restarts
-	if err := p.dropSYN(); err != nil {
-		log().Warnf("error signaling clients to resend; you will notice dropped packets: %s", err)
-	}
-
+	// reload all interlock managed haproxy containers
 	for _, cnt := range proxyContainers {
-		// restart
-		log().Debugf("restarting proxy container: id=%s", cnt.ID)
-		d := time.Millisecond * 1000
-		if err := p.client.ContainerRestart(context.Background(), cnt.ID, &d); err != nil {
-			log().Errorf("error restarting container: id=%s err=%s", cnt.ID[:12], err)
+		// update the proxy container status
+		cInfo, err := p.client.ContainerInspect(context.Background(), cnt.ID)
+		if err != nil {
+			log().Errorf("unable to inspect proxy container: %s", err)
+			continue
+		}
+		switch cInfo.State.Status {
+		case "exited":
+			log().Infof("restarting proxy container: id=%s", cnt.ID)
+			d := time.Millisecond * 1000
+			if err := p.client.ContainerRestart(context.Background(), cnt.ID, &d); err != nil {
+				log().Errorf("error restarting container: id=%s err=%s", cnt.ID[:12], err)
+				continue
+			}
+		case "running":
+			log().Debugf("reloading proxy container: id=%s", cnt.ID)
+			if err := p.client.ContainerKill(context.Background(), cnt.ID, "HUP"); err != nil {
+				log().Errorf("error reloading container: id=%s err=%s", cnt.ID[:12], err)
+				continue
+			}
+		default:
+			log().Infof("haproxy container id=%s name=%s in state %s", cnt.ID[:12], cnt.Names[0], cInfo.State.Status)
 			continue
 		}
 
-		log().Infof("restarted proxy container: id=%s name=%s", cnt.ID[:12], cnt.Names[0])
-	}
-
-	if err := p.resumeSYN(); err != nil {
-		log().Warnf("error signaling clients to resume; you will notice dropped packets: %s", err)
+		log().Infof("reloaded proxy container: id=%s name=%s", cnt.ID[:12], cnt.Names[0])
 	}
 
 	return nil
