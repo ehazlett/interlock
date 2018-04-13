@@ -135,6 +135,9 @@ http {
         ssl_certificate_key {{ $host.SSLCertKey }};
         server_name{{ range $name := $host.ServerNames }} {{ $name }}{{ end }};
 
+        # HSTS (ngx_http_headers_module is required) (15768000 seconds = 6 months)
+        add_header Strict-Transport-Security max-age=15768000;
+
         location / {
             {{ if $host.SSLBackend }}proxy_pass https://{{ $host.Upstream.Name }};{{ else }}proxy_pass http://{{ $host.Upstream.Name }};{{ end }}
         }
