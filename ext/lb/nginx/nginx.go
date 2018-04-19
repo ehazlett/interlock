@@ -75,7 +75,7 @@ func (p *NginxLoadBalancer) Reload(proxyContainers []types.Container) error {
 	for _, cnt := range proxyContainers {
 		log().Debugf("reloading proxy container: id=%s", cnt.ID)
 		resp, err := p.client.ContainerExecCreate(context.Background(), cnt.ID, types.ExecConfig{
-			User: "root",
+			User: "0",
 			Cmd: []string{
 				"nginx",
 				"-t",
