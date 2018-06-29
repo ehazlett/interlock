@@ -70,7 +70,7 @@ func (p *HAProxyLoadBalancer) dropSYN() error {
 func (p *HAProxyLoadBalancer) resumeSYN() error {
 	log().Debug("resuming SYN packets")
 
-	if err := p.configIPTables(false); err != nil {
+	if err := p.configIPTables(true); err != nil {
 		return err
 	}
 
